@@ -1,0 +1,52 @@
+// Package cmd 中的 release.go 实现了发布计划管理命令
+package cmd
+
+import (
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/output"
+)
+
+var (
+	flagReleaseStatus string
+)
+
+// releaseCmd 是 release 父命令
+var releaseCmd = &cobra.Command{
+	Use:   "release",
+	Short: "发布计划管理",
+}
+
+var releaseListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "查询发布计划列表",
+	RunE:  runReleaseList,
+}
+
+func init() {
+	releaseListCmd.Flags().StringVar(&flagName, "name", "", "按名称筛选")
+	releaseListCmd.Flags().StringVar(&flagReleaseStatus, "status", "", "按状态筛选")
+	releaseListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
+	releaseListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
+
+	releaseCmd.AddCommand(releaseListCmd)
+	rootCmd.AddCommand(releaseCmd)
+}
+
+func runReleaseList(cmd *cobra.Command, args []string) error {
+	params := map[string]string{
+		"workspace_id": flagWorkspaceID,
+	}
+	addOptionalParam(params, "name", flagName)
+	addOptionalParam(params, "status", flagReleaseStatus)
+	addPaginationParams(params, flagLimit, flagPage)
+
+	releases, err := apiClient.ListReleases(params)
+	if err != nil {
+		output.PrintError(os.Stderr, "api_error", err.Error(), "")
+		os.Exit(output.ExitAPIError)
+		return nil
+	}
+	return output.PrintJSON(os.Stdout, releases, !flagPretty)
+}

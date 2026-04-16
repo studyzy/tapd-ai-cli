@@ -734,3 +734,187 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	}
 	t.Logf("URL→Wiki: id=%v name=%v", result.ID, result.Name)
 }
+
+// === 以下为新增命令的集成测试 ===
+
+func TestIntegration_RunTodoList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagTodoEntityType = "story"
+	flagLimit = 3
+	flagPage = 1
+
+	err := runTodoList(nil, nil)
+	if err != nil {
+		t.Fatalf("runTodoList failed: %v", err)
+	}
+}
+
+func TestIntegration_RunTodoList_Bug(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagTodoEntityType = "bug"
+	flagLimit = 3
+	flagPage = 1
+
+	err := runTodoList(nil, nil)
+	if err != nil {
+		t.Fatalf("runTodoList(bug) failed: %v", err)
+	}
+}
+
+func TestIntegration_RunTodoList_Task(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagTodoEntityType = "task"
+	flagLimit = 3
+	flagPage = 1
+
+	err := runTodoList(nil, nil)
+	if err != nil {
+		t.Fatalf("runTodoList(task) failed: %v", err)
+	}
+}
+
+func TestIntegration_RunTimesheetList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagTimesheetEntityType = ""
+	flagTimesheetEntityID = ""
+	flagTimesheetOwner = ""
+	flagLimit = 3
+	flagPage = 1
+
+	err := runTimesheetList(nil, nil)
+	if err != nil {
+		t.Fatalf("runTimesheetList failed: %v", err)
+	}
+}
+
+func TestIntegration_RunReleaseList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagName = ""
+	flagReleaseStatus = ""
+	flagLimit = 3
+	flagPage = 1
+
+	err := runReleaseList(nil, nil)
+	if err != nil {
+		t.Fatalf("runReleaseList failed: %v", err)
+	}
+}
+
+func TestIntegration_ReleaseList_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	releases, err := c.ListReleases(map[string]string{
+		"workspace_id": wsID,
+		"limit":        "3",
+	})
+	if err != nil {
+		t.Fatalf("ListReleases failed: %v", err)
+	}
+	t.Logf("Found %d releases", len(releases))
+	for _, r := range releases {
+		t.Logf("  Release: id=%s name=%s status=%s", r.ID, r.Name, r.Status)
+	}
+}
+
+func TestIntegration_TimesheetList_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	timesheets, err := c.ListTimesheets(map[string]string{
+		"workspace_id": wsID,
+		"limit":        "3",
+	})
+	if err != nil {
+		t.Fatalf("ListTimesheets failed: %v", err)
+	}
+	t.Logf("Found %d timesheets", len(timesheets))
+	for _, ts := range timesheets {
+		t.Logf("  Timesheet: id=%s entity_type=%s timespent=%s owner=%s", ts.ID, ts.EntityType, ts.Timespent, ts.Owner)
+	}
+}
+
+func TestIntegration_TodoList_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	data, err := c.GetTodo(map[string]string{
+		"workspace_id": wsID,
+		"entity_type":  "story",
+		"limit":        "3",
+	})
+	if err != nil {
+		t.Fatalf("GetTodo failed: %v", err)
+	}
+	t.Logf("Todo data length: %d bytes", len(data))
+}
+
+func TestIntegration_CommitMsg_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 先获取一个真实 story ID
+	listResult, err := c.ListStories(map[string]string{
+		"workspace_id": wsID,
+		"entity_type":  "stories",
+		"limit":        "1",
+		"fields":       "id",
+	})
+	if err != nil {
+		t.Skip("No stories available for commit-msg test")
+	}
+	stories, ok := listResult.([]model.Story)
+	if !ok || len(stories) == 0 {
+		t.Skip("No stories available for commit-msg test")
+	}
+	storyID := stories[0].ID
+
+	data, err := c.GetCommitMsg(map[string]string{
+		"workspace_id": wsID,
+		"object_id":    storyID,
+		"type":         "story",
+	})
+	if err != nil {
+		t.Fatalf("GetCommitMsg failed: %v", err)
+	}
+	t.Logf("CommitMsg data: %s", string(data))
+}
+
+func TestIntegration_RunCommitMsgGet(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 先获取一个真实 story ID
+	listResult, err := c.ListStories(map[string]string{
+		"workspace_id": wsID,
+		"entity_type":  "stories",
+		"limit":        "1",
+		"fields":       "id",
+	})
+	if err != nil {
+		t.Skip("No stories available for commit-msg test")
+	}
+	stories, ok := listResult.([]model.Story)
+	if !ok || len(stories) == 0 {
+		t.Skip("No stories available for commit-msg test")
+	}
+
+	setupIntegrationCmd(t)
+	flagCommitMsgObjectID = stories[0].ID
+	flagCommitMsgType = "story"
+
+	err = runCommitMsgGet(nil, nil)
+	if err != nil {
+		t.Fatalf("runCommitMsgGet failed: %v", err)
+	}
+}

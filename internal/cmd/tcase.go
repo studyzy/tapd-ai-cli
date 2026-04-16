@@ -12,13 +12,13 @@ import (
 )
 
 var (
-	flagTCaseID       string
+	flagTCaseID           string
 	flagTCasePrecondition string
-	flagTCaseSteps       string
-	flagTCaseExpectation string
-	flagTCaseType        string
-	flagTCaseCreator     string
-	flagTCasesJSON    string
+	flagTCaseSteps        string
+	flagTCaseExpectation  string
+	flagTCaseType         string
+	flagTCaseCreator      string
+	flagTCasesJSON        string
 )
 
 // tcaseCmd 是 tcase 父命令
@@ -69,28 +69,26 @@ func init() {
 }
 
 func runTCaseList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.ListTCasesRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
+		Priority:    flagPriority,
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
 	}
-	addOptionalParam(params, "status", flagStatus)
-	addOptionalParam(params, "priority", flagPriority)
-	addOptionalParam(params, "creator", flagTCaseCreator)
-	addPaginationParams(params, flagLimit, flagPage)
 
-	tcases, err := apiClient.ListTCases(params)
+	tcases, err := apiClient.ListTCases(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
 
-	countParams := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	countReq := &model.CountTCasesRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
 	}
-	addOptionalParam(countParams, "status", flagStatus)
-	addOptionalParam(countParams, "priority", flagPriority)
-	addOptionalParam(countParams, "creator", flagTCaseCreator)
-	total, _ := apiClient.CountTCases(countParams)
+	total, _ := apiClient.CountTCases(countReq)
 
 	resp := &model.ListResponse{
 		Items:   tcases,
@@ -111,20 +109,18 @@ func runTCaseCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.CreateTCaseRequest{
+		WorkspaceID:  flagWorkspaceID,
+		Name:         flagName,
+		Precondition: flagTCasePrecondition,
+		Steps:        flagTCaseSteps,
+		Expectation:  flagTCaseExpectation,
+		Type:         flagTCaseType,
+		Priority:     flagPriority,
+		Creator:      flagTCaseCreator,
 	}
-	addOptionalParam(params, "id", flagTCaseID)
-	addOptionalParam(params, "name", flagName)
-	addOptionalParam(params, "status", flagStatus)
-	addOptionalParam(params, "precondition", flagTCasePrecondition)
-	addOptionalParam(params, "steps", flagTCaseSteps)
-	addOptionalParam(params, "expectation", flagTCaseExpectation)
-	addOptionalParam(params, "type", flagTCaseType)
-	addOptionalParam(params, "priority", flagPriority)
-	addOptionalParam(params, "creator", flagTCaseCreator)
 
-	result, err := apiClient.CreateTCase(params)
+	result, err := apiClient.CreateTCase(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -159,12 +155,12 @@ func runTCaseBatchCreate(cmd *cobra.Command, args []string) error {
 	}
 
 	tcasesBytes, _ := json.Marshal(tcases)
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"tcases":       string(tcasesBytes),
+	req := &model.BatchCreateTCasesRequest{
+		WorkspaceID: flagWorkspaceID,
+		Data:        string(tcasesBytes),
 	}
 
-	data, err := apiClient.BatchCreateTCases(params)
+	data, err := apiClient.BatchCreateTCases(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

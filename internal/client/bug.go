@@ -9,8 +9,8 @@ import (
 )
 
 // ListBugs 查询缺陷列表，返回强类型 Bug 切片，自动过滤 custom_field 等无用字段
-func (c *Client) ListBugs(params map[string]string) ([]model.Bug, error) {
-	data, err := c.doGet("/bugs", params)
+func (c *Client) ListBugs(req *model.ListBugsRequest) ([]model.Bug, error) {
+	data, err := c.doGet("/bugs", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,8 @@ func (c *Client) GetBug(workspaceID, id string) (*model.Bug, error) {
 }
 
 // CreateBug 创建缺陷
-func (c *Client) CreateBug(params map[string]string) (*model.SuccessResponse, error) {
-	data, err := c.doPost("/bugs", params)
+func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.SuccessResponse, error) {
+	data, err := c.doPost("/bugs", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *Client) CreateBug(params map[string]string) (*model.SuccessResponse, er
 		return nil, fmt.Errorf("failed to parse created bug: %w", err)
 	}
 
-	wsID := params["workspace_id"]
+	wsID := req.WorkspaceID
 
 	return &model.SuccessResponse{
 		Success: true,
@@ -108,8 +108,8 @@ func (c *Client) CreateBug(params map[string]string) (*model.SuccessResponse, er
 }
 
 // UpdateBug 更新缺陷
-func (c *Client) UpdateBug(params map[string]string) (*model.Bug, error) {
-	data, err := c.doPost("/bugs", params)
+func (c *Client) UpdateBug(req *model.UpdateBugRequest) (*model.Bug, error) {
+	data, err := c.doPost("/bugs", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func (c *Client) UpdateBug(params map[string]string) (*model.Bug, error) {
 }
 
 // CountBugs 查询缺陷数量
-func (c *Client) CountBugs(params map[string]string) (int, error) {
-	data, err := c.doGet("/bugs/count", params)
+func (c *Client) CountBugs(req *model.CountBugsRequest) (int, error) {
+	data, err := c.doGet("/bugs/count", req.ToParams())
 	if err != nil {
 		return 0, err
 	}

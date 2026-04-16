@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestGetImage(t *testing.T) {
@@ -22,9 +23,9 @@ func TestGetImage(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetImage(map[string]string{
-		"workspace_id": "1",
-		"image_path":   "/tfl/pictures/abc.png",
+	result, err := c.GetImage(&model.GetImageRequest{
+		WorkspaceID: "1",
+		ImagePath:   "/tfl/pictures/abc.png",
 	})
 	if err != nil {
 		t.Fatalf("GetImage() unexpected error: %v", err)
@@ -49,9 +50,9 @@ func TestGetImage_MissingAttachment(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.GetImage(map[string]string{
-		"workspace_id": "1",
-		"image_path":   "/tfl/pictures/abc.png",
+	_, err := c.GetImage(&model.GetImageRequest{
+		WorkspaceID: "1",
+		ImagePath:   "/tfl/pictures/abc.png",
 	})
 	if err == nil {
 		t.Fatal("expected error for missing Attachment key")
@@ -69,9 +70,9 @@ func TestGetAttachments(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	results, err := c.GetAttachments(map[string]string{
-		"workspace_id": "1",
-		"entry_id":     "200",
+	results, err := c.GetAttachments(&model.GetAttachmentsRequest{
+		WorkspaceID: "1",
+		EntryID:     "200",
 	})
 	if err != nil {
 		t.Fatalf("GetAttachments() unexpected error: %v", err)
@@ -101,9 +102,9 @@ func TestGetAttachments_Empty(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	results, err := c.GetAttachments(map[string]string{
-		"workspace_id": "1",
-		"entry_id":     "200",
+	results, err := c.GetAttachments(&model.GetAttachmentsRequest{
+		WorkspaceID: "1",
+		EntryID:     "200",
 	})
 	if err != nil {
 		t.Fatalf("GetAttachments() unexpected error: %v", err)
@@ -121,9 +122,9 @@ func TestGetAttachments_APIError(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.GetAttachments(map[string]string{
-		"workspace_id": "1",
-		"entry_id":     "200",
+	_, err := c.GetAttachments(&model.GetAttachmentsRequest{
+		WorkspaceID: "1",
+		EntryID:     "200",
 	})
 	if err == nil {
 		t.Fatal("expected error for status=0")

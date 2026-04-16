@@ -138,10 +138,10 @@ func printComments(workspaceID, entryType, entryID string) {
 	if flagNoComments {
 		return
 	}
-	comments, err := apiClient.ListComments(map[string]string{
-		"workspace_id": workspaceID,
-		"entry_type":   entryType,
-		"entry_id":     entryID,
+	comments, err := apiClient.ListComments(&model.ListCommentsRequest{
+		WorkspaceID: workspaceID,
+		EntryType:   entryType,
+		EntryID:     entryID,
 	})
 	if err != nil || len(comments) == 0 {
 		return

@@ -2,9 +2,11 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -64,14 +66,15 @@ func runAttachmentList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"entry_id":     flagAttachmentEntryID,
+	req := &model.GetAttachmentsRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntryID:     flagAttachmentEntryID,
+		Type:        flagAttachmentType,
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
 	}
-	addOptionalParam(params, "type", flagAttachmentType)
-	addPaginationParams(params, flagLimit, flagPage)
 
-	attachments, err := apiClient.GetAttachments(params)
+	attachments, err := apiClient.GetAttachments(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -89,12 +92,12 @@ func runImageGet(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"image_path":   flagImagePath,
+	req := &model.GetImageRequest{
+		WorkspaceID: flagWorkspaceID,
+		ImageID:     flagImagePath,
 	}
 
-	img, err := apiClient.GetImage(params)
+	img, err := apiClient.GetImage(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

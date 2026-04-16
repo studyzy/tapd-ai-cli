@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -76,24 +77,24 @@ func init() {
 }
 
 func runBugList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.ListBugsRequest{
+		WorkspaceID:   flagWorkspaceID,
+		PriorityLabel: flagPriority,
+		Severity:      flagSeverity,
+		Status:        flagStatus,
+		Limit:         fmt.Sprintf("%d", flagLimit),
+		Page:          fmt.Sprintf("%d", flagPage),
 	}
-	addOptionalParam(params, "status", flagStatus)
-	addOptionalParam(params, "priority_label", flagPriority)
-	addOptionalParam(params, "severity", flagSeverity)
-	addPaginationParams(params, flagLimit, flagPage)
-
-	bugs, err := apiClient.ListBugs(params)
+	bugs, err := apiClient.ListBugs(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
 
-	total, _ := apiClient.CountBugs(map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"status":       flagStatus,
+	total, _ := apiClient.CountBugs(&model.CountBugsRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
 	})
 
 	resp := &model.ListResponse{
@@ -127,15 +128,14 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"title":        flagTitle,
+	req := &model.CreateBugRequest{
+		WorkspaceID:   flagWorkspaceID,
+		Title:         flagTitle,
+		Description:   flagDescription,
+		PriorityLabel: flagPriority,
+		Severity:      flagSeverity,
 	}
-	addOptionalParam(params, "description", flagDescription)
-	addOptionalParam(params, "priority_label", flagPriority)
-	addOptionalParam(params, "severity", flagSeverity)
-
-	result, err := apiClient.CreateBug(params)
+	result, err := apiClient.CreateBug(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -145,16 +145,15 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 }
 
 func runBugUpdate(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"id":           args[0],
+	req := &model.UpdateBugRequest{
+		WorkspaceID:   flagWorkspaceID,
+		ID:            args[0],
+		Title:         flagTitle,
+		VStatus:       flagStatus,
+		PriorityLabel: flagPriority,
+		Severity:      flagSeverity,
 	}
-	addOptionalParam(params, "title", flagTitle)
-	addOptionalParam(params, "v_status", flagStatus)
-	addOptionalParam(params, "priority_label", flagPriority)
-	addOptionalParam(params, "severity", flagSeverity)
-
-	result, err := apiClient.UpdateBug(params)
+	result, err := apiClient.UpdateBug(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -164,12 +163,11 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 }
 
 func runBugCount(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.CountBugsRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
 	}
-	addOptionalParam(params, "status", flagStatus)
-
-	count, err := apiClient.CountBugs(params)
+	count, err := apiClient.CountBugs(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

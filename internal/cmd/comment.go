@@ -77,16 +77,16 @@ func init() {
 }
 
 func runCommentList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.ListCommentsRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntryType:   flagEntryType,
+		EntryID:     flagEntryID,
+		Author:      flagCommentAuthor,
+		Order:       flagOrder,
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
 	}
-	addOptionalParam(params, "entry_type", flagEntryType)
-	addOptionalParam(params, "entry_id", flagEntryID)
-	addOptionalParam(params, "author", flagCommentAuthor)
-	addOptionalParam(params, "order", flagOrder)
-	addPaginationParams(params, flagLimit, flagPage)
-
-	comments, err := apiClient.ListComments(params)
+	comments, err := apiClient.ListComments(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -94,13 +94,12 @@ func runCommentList(cmd *cobra.Command, args []string) error {
 	}
 
 	// 尝试获取总数用于分页信息
-	countParams := map[string]string{
-		"workspace_id": flagWorkspaceID,
-	}
-	addOptionalParam(countParams, "entry_type", flagEntryType)
-	addOptionalParam(countParams, "entry_id", flagEntryID)
-	addOptionalParam(countParams, "author", flagCommentAuthor)
-	total, _ := apiClient.CountComments(countParams)
+	total, _ := apiClient.CountComments(&model.CountCommentsRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntryType:   flagEntryType,
+		EntryID:     flagEntryID,
+		Author:      flagCommentAuthor,
+	})
 
 	resp := &model.ListResponse{
 		Items:   comments,
@@ -121,25 +120,20 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"entry_type":   flagEntryType,
-		"entry_id":     flagEntryID,
-		"description":  flagDescription,
-	}
-
 	// author 优先使用命令行参数，否则使用当前登录用户昵称
 	author := flagCommentAuthor
 	if author == "" {
 		author = apiClient.Nick
 	}
-	if author != "" {
-		params["author"] = author
+	req := &model.AddCommentRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntryType:   flagEntryType,
+		EntryID:     flagEntryID,
+		Description: flagDescription,
+		Author:      author,
+		ReplyID:     flagReplyID,
 	}
-
-	addOptionalParam(params, "reply_id", flagReplyID)
-
-	result, err := apiClient.AddComment(params)
+	result, err := apiClient.AddComment(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -157,18 +151,13 @@ func runCommentUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"id":           args[0],
-		"description":  flagDescription,
+	req := &model.UpdateCommentRequest{
+		WorkspaceID:   flagWorkspaceID,
+		ID:            args[0],
+		Description:   flagDescription,
+		ChangeCreator: apiClient.Nick,
 	}
-
-	// change_creator 使用当前登录用户昵称
-	if apiClient.Nick != "" {
-		params["change_creator"] = apiClient.Nick
-	}
-
-	result, err := apiClient.UpdateComment(params)
+	result, err := apiClient.UpdateComment(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -178,13 +167,12 @@ func runCommentUpdate(cmd *cobra.Command, args []string) error {
 }
 
 func runCommentCount(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.CountCommentsRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntryType:   flagEntryType,
+		EntryID:     flagEntryID,
 	}
-	addOptionalParam(params, "entry_type", flagEntryType)
-	addOptionalParam(params, "entry_id", flagEntryID)
-
-	count, err := apiClient.CountComments(params)
+	count, err := apiClient.CountComments(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

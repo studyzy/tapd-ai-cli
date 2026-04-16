@@ -9,13 +9,13 @@ import (
 )
 
 // GetCommitMsg 获取源码提交关键字
-func (c *Client) GetCommitMsg(params map[string]string) (json.RawMessage, error) {
-	return c.doGet("/svn_commits/get_scm_copy_keywords", params)
+func (c *Client) GetCommitMsg(req *model.GetCommitMsgRequest) (json.RawMessage, error) {
+	return c.doGet("/svn_commits/get_scm_copy_keywords", req.ToParams())
 }
 
 // ListReleases 查询发布计划列表
-func (c *Client) ListReleases(params map[string]string) ([]model.Release, error) {
-	data, err := c.doGet("/releases", params)
+func (c *Client) ListReleases(req *model.WorkspaceIDRequest) ([]model.Release, error) {
+	data, err := c.doGet("/releases", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -39,12 +39,9 @@ func (c *Client) ListReleases(params map[string]string) ([]model.Release, error)
 
 // GetTodo 获取用户待办事项
 // entityType 取值：story, bug, task
-func (c *Client) GetTodo(params map[string]string) (json.RawMessage, error) {
-	entityType := params["entity_type"]
-	delete(params, "entity_type")
-
+func (c *Client) GetTodo(req *model.GetTodoRequest) (json.RawMessage, error) {
 	endpoint := "/user_oauth/get_user_todo_story"
-	switch entityType {
+	switch req.EntityType {
 	case "bug":
 		endpoint = "/user_oauth/get_user_todo_bug"
 	case "task":
@@ -52,7 +49,7 @@ func (c *Client) GetTodo(params map[string]string) (json.RawMessage, error) {
 	default:
 		// 默认使用 story
 	}
-	return c.doGet(endpoint, params)
+	return c.doGet(endpoint, req.ToParams())
 }
 
 // SendQiweiMessage 发送消息到企业微信群

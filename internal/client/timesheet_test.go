@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestListTimesheets(t *testing.T) {
@@ -19,8 +20,8 @@ func TestListTimesheets(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	results, err := c.ListTimesheets(map[string]string{
-		"workspace_id": "1",
+	results, err := c.ListTimesheets(&model.ListTimesheetsRequest{
+		WorkspaceID: "1",
 	})
 	if err != nil {
 		t.Fatalf("ListTimesheets() unexpected error: %v", err)
@@ -56,8 +57,8 @@ func TestListTimesheets_Empty(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	results, err := c.ListTimesheets(map[string]string{
-		"workspace_id": "1",
+	results, err := c.ListTimesheets(&model.ListTimesheetsRequest{
+		WorkspaceID: "1",
 	})
 	if err != nil {
 		t.Fatalf("ListTimesheets() unexpected error: %v", err)
@@ -81,12 +82,12 @@ func TestAddTimesheet(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.AddTimesheet(map[string]string{
-		"workspace_id": "1",
-		"entity_type":  "story",
-		"entity_id":    "200",
-		"timespent":    "3h",
-		"owner":        "tester",
+	result, err := c.AddTimesheet(&model.AddTimesheetRequest{
+		WorkspaceID: "1",
+		EntityType:  "story",
+		EntityID:    "200",
+		Timespent:   "3h",
+		Owner:       "tester",
 	})
 	if err != nil {
 		t.Fatalf("AddTimesheet() unexpected error: %v", err)
@@ -113,11 +114,11 @@ func TestUpdateTimesheet_Wrapped(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.UpdateTimesheet(map[string]string{
-		"workspace_id": "1",
-		"id":           "1002",
-		"timespent":    "5h",
-		"memo":         "updated",
+	result, err := c.UpdateTimesheet(&model.UpdateTimesheetRequest{
+		WorkspaceID: "1",
+		ID:          "1002",
+		Timespent:   "5h",
+		Memo:        "updated",
 	})
 	if err != nil {
 		t.Fatalf("UpdateTimesheet() unexpected error: %v", err)
@@ -142,10 +143,10 @@ func TestUpdateTimesheet_Direct(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.UpdateTimesheet(map[string]string{
-		"workspace_id": "1",
-		"id":           "1002",
-		"timespent":    "5h",
+	result, err := c.UpdateTimesheet(&model.UpdateTimesheetRequest{
+		WorkspaceID: "1",
+		ID:          "1002",
+		Timespent:   "5h",
 	})
 	if err != nil {
 		t.Fatalf("UpdateTimesheet() unexpected error: %v", err)

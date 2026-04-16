@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -60,13 +61,13 @@ func runWorkflowTransitions(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id":     flagWorkspaceID,
-		"system":           flagSystem,
-		"workitem_type_id": flagWorkitemTypeID,
+	req := &model.WorkflowRequest{
+		WorkspaceID:    flagWorkspaceID,
+		System:         flagSystem,
+		WorkitemTypeID: flagWorkitemTypeID,
 	}
 
-	data, err := apiClient.GetWorkflowTransitions(params)
+	data, err := apiClient.GetWorkflowTransitions(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -84,13 +85,13 @@ func runWorkflowStatusMap(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id":     flagWorkspaceID,
-		"system":           flagSystem,
-		"workitem_type_id": flagWorkitemTypeID,
+	req := &model.WorkflowRequest{
+		WorkspaceID:    flagWorkspaceID,
+		System:         flagSystem,
+		WorkitemTypeID: flagWorkitemTypeID,
 	}
 
-	data, err := apiClient.GetWorkflowStatusMap(params)
+	data, err := apiClient.GetWorkflowStatusMap(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -108,13 +109,13 @@ func runWorkflowLastSteps(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"system":       flagSystem,
+	req := &model.WorkflowRequest{
+		WorkspaceID:    flagWorkspaceID,
+		System:         flagSystem,
+		WorkitemTypeID: flagWorkitemTypeID,
 	}
-	addOptionalParam(params, "workitem_type_id", flagWorkitemTypeID)
 
-	data, err := apiClient.GetWorkflowLastSteps(params)
+	data, err := apiClient.GetWorkflowLastSteps(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

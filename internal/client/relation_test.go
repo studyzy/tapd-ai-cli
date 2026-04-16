@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestGetRelatedBugs(t *testing.T) {
@@ -23,9 +24,9 @@ func TestGetRelatedBugs(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetRelatedBugs(map[string]string{
-		"workspace_id": "1",
-		"story_id":     "100",
+	result, err := c.GetRelatedBugs(&model.GetRelatedBugsRequest{
+		WorkspaceID: "1",
+		StoryID:     "100",
 	})
 	if err != nil {
 		t.Fatalf("GetRelatedBugs() unexpected error: %v", err)
@@ -51,9 +52,9 @@ func TestGetRelatedBugs_Empty(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetRelatedBugs(map[string]string{
-		"workspace_id": "1",
-		"story_id":     "100",
+	result, err := c.GetRelatedBugs(&model.GetRelatedBugsRequest{
+		WorkspaceID: "1",
+		StoryID:     "100",
 	})
 	if err != nil {
 		t.Fatalf("GetRelatedBugs() unexpected error: %v", err)
@@ -82,12 +83,12 @@ func TestCreateRelation(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.CreateRelation(map[string]string{
-		"workspace_id": "1",
-		"source_type":  "story",
-		"target_type":  "bug",
-		"source_id":    "100",
-		"target_id":    "200",
+	result, err := c.CreateRelation(&model.CreateRelationRequest{
+		WorkspaceID: "1",
+		SourceType:  "story",
+		TargetType:  "bug",
+		SourceID:    "100",
+		TargetID:    "200",
 	})
 	if err != nil {
 		t.Fatalf("CreateRelation() unexpected error: %v", err)
@@ -113,12 +114,12 @@ func TestCreateRelation_APIError(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.CreateRelation(map[string]string{
-		"workspace_id": "1",
-		"source_type":  "story",
-		"target_type":  "bug",
-		"source_id":    "100",
-		"target_id":    "200",
+	_, err := c.CreateRelation(&model.CreateRelationRequest{
+		WorkspaceID: "1",
+		SourceType:  "story",
+		TargetType:  "bug",
+		SourceID:    "100",
+		TargetID:    "200",
 	})
 	if err == nil {
 		t.Fatal("expected error for status=0")

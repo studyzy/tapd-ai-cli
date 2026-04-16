@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -106,14 +107,15 @@ func readWikiContent() (string, error) {
 }
 
 func runWikiList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.ListWikisRequest{
+		WorkspaceID: flagWorkspaceID,
+		Name:        flagWikiName,
+		Fields:      "id,name,creator,modifier,modified",
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
 	}
-	addOptionalParam(params, "name", flagWikiName)
-	addPaginationParams(params, flagLimit, flagPage)
-	params["fields"] = "id,name,creator,modifier,modified"
 
-	wikis, err := apiClient.ListWikis(params)
+	wikis, err := apiClient.ListWikis(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

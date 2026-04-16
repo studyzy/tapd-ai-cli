@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestListIterations(t *testing.T) {
@@ -23,10 +24,9 @@ func TestListIterations(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-	}
-	iterations, err := c.ListIterations(params)
+	iterations, err := c.ListIterations(&model.ListIterationsRequest{
+		WorkspaceID: "1",
+	})
 	if err != nil {
 		t.Fatalf("ListIterations() unexpected error: %v", err)
 	}
@@ -65,14 +65,13 @@ func TestCreateIteration(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"name":         "Sprint 2",
-		"startdate":    "2026-04-16",
-		"enddate":      "2026-04-30",
-		"creator":      "testuser",
-	}
-	resp, err := c.CreateIteration(params)
+	resp, err := c.CreateIteration(&model.CreateIterationRequest{
+		WorkspaceID: "1",
+		Name:        "Sprint 2",
+		StartDate:   "2026-04-16",
+		EndDate:     "2026-04-30",
+		Creator:     "testuser",
+	})
 	if err != nil {
 		t.Fatalf("CreateIteration() unexpected error: %v", err)
 	}
@@ -101,15 +100,14 @@ func TestUpdateIteration(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"id":           "3001",
-		"current_user": "testuser",
-		"name":         "Sprint 1 Updated",
-		"status":       "done",
-		"description":  "updated desc",
-	}
-	result, err := c.UpdateIteration(params)
+	result, err := c.UpdateIteration(&model.UpdateIterationRequest{
+		WorkspaceID: "1",
+		ID:          "3001",
+		CurrentUser: "testuser",
+		Name:        "Sprint 1 Updated",
+		Status:      "done",
+		Description: "updated desc",
+	})
 	if err != nil {
 		t.Fatalf("UpdateIteration() unexpected error: %v", err)
 	}

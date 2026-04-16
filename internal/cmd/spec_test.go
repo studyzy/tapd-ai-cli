@@ -73,8 +73,8 @@ func TestBuildToolDefinitions(t *testing.T) {
 
 	// 验证带位置参数的工具有 required 字段
 	toolsWithArgs := []struct {
-		name     string
-		argName  string
+		name    string
+		argName string
 	}{
 		{"tapd_story_show", "story_id"},
 		{"tapd_bug_show", "bug_id"},

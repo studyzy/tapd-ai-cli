@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -35,14 +36,11 @@ func init() {
 }
 
 func runReleaseList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.WorkspaceIDRequest{
+		WorkspaceID: flagWorkspaceID,
 	}
-	addOptionalParam(params, "name", flagName)
-	addOptionalParam(params, "status", flagReleaseStatus)
-	addPaginationParams(params, flagLimit, flagPage)
 
-	releases, err := apiClient.ListReleases(params)
+	releases, err := apiClient.ListReleases(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

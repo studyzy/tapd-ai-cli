@@ -9,8 +9,8 @@ import (
 )
 
 // GetImage 获取图片下载链接
-func (c *Client) GetImage(params map[string]string) (*model.ImageInfo, error) {
-	data, err := c.doGet("/files/get_image", params)
+func (c *Client) GetImage(req *model.GetImageRequest) (*model.ImageInfo, error) {
+	data, err := c.doGet("/files/get_image", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +33,8 @@ func (c *Client) GetImage(params map[string]string) (*model.ImageInfo, error) {
 }
 
 // GetAttachments 获取附件列表（含下载链接）
-func (c *Client) GetAttachments(params map[string]string) ([]model.Attachment, error) {
-	data, err := c.doGet("/attachments", params)
+func (c *Client) GetAttachments(req *model.GetAttachmentsRequest) ([]model.Attachment, error) {
+	data, err := c.doGet("/attachments", req.ToParams())
 	if err != nil {
 		return nil, err
 	}

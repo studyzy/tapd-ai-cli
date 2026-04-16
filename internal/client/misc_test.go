@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestGetCommitMsg(t *testing.T) {
@@ -27,10 +28,10 @@ func TestGetCommitMsg(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetCommitMsg(map[string]string{
-		"workspace_id": "1",
-		"object_id":    "100",
-		"type":         "story",
+	result, err := c.GetCommitMsg(&model.GetCommitMsgRequest{
+		WorkspaceID: "1",
+		ObjectID:    "100",
+		Type:        "story",
 	})
 	if err != nil {
 		t.Fatalf("GetCommitMsg() unexpected error: %v", err)
@@ -56,9 +57,7 @@ func TestListReleases(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	releases, err := c.ListReleases(map[string]string{
-		"workspace_id": "1",
-	})
+	releases, err := c.ListReleases(&model.WorkspaceIDRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListReleases() unexpected error: %v", err)
 	}
@@ -87,9 +86,7 @@ func TestListReleases_Empty(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	releases, err := c.ListReleases(map[string]string{
-		"workspace_id": "1",
-	})
+	releases, err := c.ListReleases(&model.WorkspaceIDRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListReleases() unexpected error: %v", err)
 	}
@@ -113,9 +110,9 @@ func TestGetTodo_Story(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetTodo(map[string]string{
-		"workspace_id": "1",
-		"entity_type":  "story",
+	result, err := c.GetTodo(&model.GetTodoRequest{
+		WorkspaceID: "1",
+		EntityType:  "story",
 	})
 	if err != nil {
 		t.Fatalf("GetTodo() unexpected error: %v", err)
@@ -141,9 +138,9 @@ func TestGetTodo_Bug(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.GetTodo(map[string]string{
-		"workspace_id": "1",
-		"entity_type":  "bug",
+	_, err := c.GetTodo(&model.GetTodoRequest{
+		WorkspaceID: "1",
+		EntityType:  "bug",
 	})
 	if err != nil {
 		t.Fatalf("GetTodo(bug) unexpected error: %v", err)
@@ -161,9 +158,9 @@ func TestGetTodo_Task(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.GetTodo(map[string]string{
-		"workspace_id": "1",
-		"entity_type":  "task",
+	_, err := c.GetTodo(&model.GetTodoRequest{
+		WorkspaceID: "1",
+		EntityType:  "task",
 	})
 	if err != nil {
 		t.Fatalf("GetTodo(task) unexpected error: %v", err)

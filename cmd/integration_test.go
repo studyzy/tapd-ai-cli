@@ -1,0 +1,401 @@
+// Package cmd 中的 integration_test.go 使用真实 TAPD API 进行集成测试。
+// 需要设置环境变量才会执行：
+//   - TAPD_ACCESS_TOKEN 或 TAPD_API_USER + TAPD_API_PASSWORD
+//   - TAPD_WORKSPACE_ID
+package cmd
+
+import (
+	"bytes"
+	"encoding/json"
+	"os"
+	"testing"
+
+	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
+)
+
+// skipIfNoCredentials 检查环境变量，若无凭据则跳过测试
+func skipIfNoCredentials(t *testing.T) {
+	t.Helper()
+	token := os.Getenv("TAPD_ACCESS_TOKEN")
+	user := os.Getenv("TAPD_API_USER")
+	pass := os.Getenv("TAPD_API_PASSWORD")
+	if token == "" && (user == "" || pass == "") {
+		t.Skip("Skipping integration test: no TAPD credentials in environment (set TAPD_ACCESS_TOKEN or TAPD_API_USER/TAPD_API_PASSWORD)")
+	}
+}
+
+// skipIfNoWorkspace 检查 TAPD_WORKSPACE_ID 环境变量
+func skipIfNoWorkspace(t *testing.T) {
+	t.Helper()
+	skipIfNoCredentials(t)
+	if os.Getenv("TAPD_WORKSPACE_ID") == "" {
+		t.Skip("Skipping integration test: TAPD_WORKSPACE_ID not set")
+	}
+}
+
+// setupIntegrationClient 初始化真实 API 客户端
+func setupIntegrationClient(t *testing.T) *client.Client {
+	t.Helper()
+	token := os.Getenv("TAPD_ACCESS_TOKEN")
+	user := os.Getenv("TAPD_API_USER")
+	pass := os.Getenv("TAPD_API_PASSWORD")
+	return client.NewClient(token, user, pass)
+}
+
+// setupIntegrationCmd 初始化 cmd 包的全局变量用于集成测试
+func setupIntegrationCmd(t *testing.T) {
+	t.Helper()
+	apiClient = setupIntegrationClient(t)
+	flagWorkspaceID = os.Getenv("TAPD_WORKSPACE_ID")
+	flagPretty = false
+}
+
+func TestIntegration_AuthTestAuth(t *testing.T) {
+	skipIfNoCredentials(t)
+	c := setupIntegrationClient(t)
+	if err := c.TestAuth(); err != nil {
+		t.Fatalf("TestAuth failed: %v", err)
+	}
+}
+
+func TestIntegration_WorkspaceList(t *testing.T) {
+	skipIfNoCredentials(t)
+	c := setupIntegrationClient(t)
+
+	workspaces, err := c.ListWorkspaces()
+	if err != nil {
+		t.Fatalf("ListWorkspaces failed: %v", err)
+	}
+	if len(workspaces) == 0 {
+		t.Fatal("Expected at least one workspace")
+	}
+	// 验证没有 organization 类型
+	for _, ws := range workspaces {
+		if ws.Category == "organization" {
+			t.Errorf("ListWorkspaces should filter organization entries, got: %+v", ws)
+		}
+	}
+	t.Logf("Found %d workspaces", len(workspaces))
+}
+
+func TestIntegration_WorkspaceInfo(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+
+	ws, err := c.GetWorkspaceInfo(os.Getenv("TAPD_WORKSPACE_ID"))
+	if err != nil {
+		t.Fatalf("GetWorkspaceInfo failed: %v", err)
+	}
+	if ws.ID == "" || ws.Name == "" {
+		t.Errorf("Workspace missing fields: %+v", ws)
+	}
+	t.Logf("Workspace: id=%s name=%s", ws.ID, ws.Name)
+}
+
+func TestIntegration_StoryList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	params := map[string]string{
+		"workspace_id": wsID,
+		"entity_type":  "stories",
+		"limit":        "3",
+		"fields":       "id,name,status,owner,modified",
+	}
+	stories, err := c.ListStories(params)
+	if err != nil {
+		t.Fatalf("ListStories failed: %v", err)
+	}
+	t.Logf("Found %d stories", len(stories))
+	for _, s := range stories {
+		t.Logf("  Story: id=%v name=%v", s["id"], s["name"])
+	}
+}
+
+func TestIntegration_StoryCount(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	count, err := c.CountStories(map[string]string{
+		"workspace_id": wsID,
+		"entity_type":  "stories",
+	})
+	if err != nil {
+		t.Fatalf("CountStories failed: %v", err)
+	}
+	t.Logf("Story count: %d", count)
+}
+
+func TestIntegration_BugList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	params := map[string]string{
+		"workspace_id": wsID,
+		"limit":        "3",
+	}
+	bugs, err := c.ListBugs(params)
+	if err != nil {
+		t.Fatalf("ListBugs failed: %v", err)
+	}
+	t.Logf("Found %d bugs", len(bugs))
+}
+
+func TestIntegration_BugCount(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	count, err := c.CountBugs(map[string]string{
+		"workspace_id": wsID,
+	})
+	if err != nil {
+		t.Fatalf("CountBugs failed: %v", err)
+	}
+	t.Logf("Bug count: %d", count)
+}
+
+func TestIntegration_IterationList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	params := map[string]string{
+		"workspace_id": wsID,
+	}
+	iterations, err := c.ListIterations(params)
+	if err != nil {
+		t.Fatalf("ListIterations failed: %v", err)
+	}
+	t.Logf("Found %d iterations", len(iterations))
+}
+
+func TestIntegration_RunWorkspaceList(t *testing.T) {
+	skipIfNoCredentials(t)
+	setupIntegrationCmd(t)
+
+	var buf bytes.Buffer
+	err := runWorkspaceList(nil, nil)
+	if err != nil {
+		t.Fatalf("runWorkspaceList failed: %v", err)
+	}
+	_ = buf
+}
+
+func TestIntegration_RunWorkspaceInfo(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+
+	err := runWorkspaceInfo(nil, nil)
+	if err != nil {
+		t.Fatalf("runWorkspaceInfo failed: %v", err)
+	}
+}
+
+func TestIntegration_RunStoryList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+	flagOwner = ""
+	flagLimit = 3
+	flagPage = 1
+
+	err := runStoryList(nil, nil)
+	if err != nil {
+		t.Fatalf("runStoryList failed: %v", err)
+	}
+}
+
+func TestIntegration_RunStoryCount(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+
+	err := runStoryCount(nil, nil)
+	if err != nil {
+		t.Fatalf("runStoryCount failed: %v", err)
+	}
+}
+
+func TestIntegration_RunBugList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+	flagPriority = ""
+	flagSeverity = ""
+	flagLimit = 3
+	flagPage = 1
+
+	err := runBugList(nil, nil)
+	if err != nil {
+		t.Fatalf("runBugList failed: %v", err)
+	}
+}
+
+func TestIntegration_RunBugCount(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+
+	err := runBugCount(nil, nil)
+	if err != nil {
+		t.Fatalf("runBugCount failed: %v", err)
+	}
+}
+
+func TestIntegration_RunIterationList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+
+	err := runIterationList(nil, nil)
+	if err != nil {
+		t.Fatalf("runIterationList failed: %v", err)
+	}
+}
+
+func TestIntegration_RunTaskList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+	flagOwner = ""
+	flagLimit = 3
+	flagPage = 1
+
+	err := runTaskList(nil, nil)
+	if err != nil {
+		t.Fatalf("runTaskList failed: %v", err)
+	}
+}
+
+func TestIntegration_RunTaskCount(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagStatus = ""
+
+	err := runTaskCount(nil, nil)
+	if err != nil {
+		t.Fatalf("runTaskCount failed: %v", err)
+	}
+}
+
+func TestIntegration_RunSpec(t *testing.T) {
+	// spec 不需要凭据
+	flagPretty = false
+	err := runSpec(nil, nil)
+	if err != nil {
+		t.Fatalf("runSpec failed: %v", err)
+	}
+}
+
+func TestIntegration_SpecOutputValid(t *testing.T) {
+	flagPretty = false
+	// 捕获 stdout
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := runSpec(nil, nil)
+	if err != nil {
+		t.Fatalf("runSpec failed: %v", err)
+	}
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	buf.ReadFrom(r)
+
+	var tools []json.RawMessage
+	if err := json.Unmarshal(buf.Bytes(), &tools); err != nil {
+		t.Fatalf("spec output is not valid JSON array: %v\nOutput: %s", err, buf.String())
+	}
+	if len(tools) == 0 {
+		t.Fatal("spec output has no tools")
+	}
+	t.Logf("spec output contains %d tool definitions", len(tools))
+}
+
+// TestIntegration_E2E_CreateAndShowStory 创建一个需求然后查看详情（端到端）
+// 注意：TAPD API 没有删除接口，创建后通过 t.Cleanup 更新标题标记为废弃
+func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 创建
+	result, err := c.CreateStory(map[string]string{
+		"workspace_id": wsID,
+		"name":         "[tapd-ai-cli integration test] 自动化测试需求",
+	}, "stories")
+	if err != nil {
+		t.Fatalf("CreateStory failed: %v", err)
+	}
+	if !result.Success || result.ID == "" {
+		t.Fatalf("Expected success with ID, got: %+v", result)
+	}
+	t.Logf("Created story: id=%s url=%s", result.ID, result.URL)
+
+	// 清理：标记为废弃
+	t.Cleanup(func() {
+		_, err := c.UpdateStory(map[string]string{
+			"workspace_id": wsID,
+			"id":           result.ID,
+			"name":         "[已废弃-自动化测试] 请忽略此需求",
+		}, "stories")
+		if err != nil {
+			t.Logf("Cleanup: failed to mark story %s as deprecated: %v", result.ID, err)
+		} else {
+			t.Logf("Cleanup: marked story %s as deprecated", result.ID)
+		}
+	})
+
+	// 查看详情
+	story, err := c.GetStory(wsID, result.ID, "stories")
+	if err != nil {
+		t.Fatalf("GetStory failed: %v", err)
+	}
+	name, _ := story["name"].(string)
+	if name == "" {
+		t.Errorf("Story name is empty: %+v", story)
+	}
+	t.Logf("Story detail: name=%s status=%v", name, story["status"])
+}
+
+// TestIntegration_WorkspaceSwitch 测试 workspace switch 写入当前目录
+func TestIntegration_WorkspaceSwitch(t *testing.T) {
+	skipIfNoWorkspace(t)
+
+	// 切换到临时目录
+	tmpDir := t.TempDir()
+	origDir, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(origDir)
+
+	setupIntegrationCmd(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	err := runWorkspaceSwitch(nil, []string{wsID})
+	if err != nil {
+		t.Fatalf("runWorkspaceSwitch failed: %v", err)
+	}
+
+	// 验证 .tapd.json 被创建
+	data, err := os.ReadFile(".tapd.json")
+	if err != nil {
+		t.Fatalf("Failed to read .tapd.json: %v", err)
+	}
+
+	var cfg model.Config
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatalf("Failed to parse .tapd.json: %v", err)
+	}
+	if cfg.WorkspaceID != wsID {
+		t.Errorf("Expected workspace_id=%s, got=%s", wsID, cfg.WorkspaceID)
+	}
+	t.Logf("workspace switch wrote .tapd.json with workspace_id=%s", cfg.WorkspaceID)
+}

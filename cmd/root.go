@@ -1,0 +1,114 @@
+// Package cmd 定义了 tapd-ai-cli 的所有 Cobra 命令
+package cmd
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/config"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
+	"github.com/studyzy/tapd-ai-cli/internal/output"
+)
+
+var (
+	// 全局标志
+	flagWorkspaceID string
+	flagPretty      bool
+	flagAccessToken string
+	flagAPIUser     string
+	flagAPIPassword string
+
+	// 全局共享的客户端和配置
+	apiClient *client.Client
+	appConfig *model.Config
+)
+
+// rootCmd 是 CLI 的根命令
+var rootCmd = &cobra.Command{
+	Use:   "tapd",
+	Short: "面向 AI Agent 的 TAPD 命令行工具",
+	Long:  "tapd-ai-cli 是一个面向 AI Agent 的 TAPD 命令行工具，通过 TAPD Open API 实现项目管理核心操作。",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		// auth login 命令不需要预加载配置和客户端
+		if cmd.Name() == "login" || cmd.Name() == "spec" {
+			return nil
+		}
+		return initClientAndConfig(cmd)
+	},
+	SilenceUsage:  true,
+	SilenceErrors: true,
+}
+
+// Execute 执行根命令
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&flagWorkspaceID, "workspace-id", "", "指定工作区 ID（覆盖本地配置）")
+	rootCmd.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "输出格式化 JSON（带缩进，方便人类阅读）")
+	rootCmd.PersistentFlags().StringVar(&flagAccessToken, "access-token", "", "TAPD Access Token")
+	rootCmd.PersistentFlags().StringVar(&flagAPIUser, "api-user", "", "TAPD API 用户名")
+	rootCmd.PersistentFlags().StringVar(&flagAPIPassword, "api-password", "", "TAPD API 密码")
+}
+
+// initClientAndConfig 初始化配置和 API 客户端
+func initClientAndConfig(cmd *cobra.Command) error {
+	// 加载配置文件
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return err
+	}
+	appConfig = cfg
+
+	// 命令行标志覆盖配置
+	accessToken := flagAccessToken
+	apiUser := flagAPIUser
+	apiPassword := flagAPIPassword
+
+	if accessToken == "" {
+		accessToken = cfg.AccessToken
+	}
+	if apiUser == "" {
+		apiUser = cfg.APIUser
+	}
+	if apiPassword == "" {
+		apiPassword = cfg.APIPassword
+	}
+
+	// 检查是否有有效凭据
+	if accessToken == "" && (apiUser == "" || apiPassword == "") {
+		output.PrintError(os.Stderr, "authentication_required",
+			"No valid credentials found",
+			"Run 'tapd auth login --access-token <token>' or 'tapd auth login --api-user <user> --api-password <password>'. "+
+				"You can also set TAPD_ACCESS_TOKEN or TAPD_API_USER/TAPD_API_PASSWORD environment variables.")
+		os.Exit(output.ExitAuthError)
+	}
+
+	apiClient = client.NewClient(accessToken, apiUser, apiPassword)
+	if accessToken != "" {
+		apiClient.FetchNick()
+	}
+
+	// workspace-id 标志覆盖配置
+	if flagWorkspaceID == "" {
+		flagWorkspaceID = cfg.WorkspaceID
+	}
+
+	// 需要 workspace_id 的命令检查
+	needsWorkspace := cmd.Name() != "list" || (cmd.Parent() != nil && cmd.Parent().Name() != "workspace")
+	if needsWorkspace && cmd.Parent() != nil && cmd.Parent().Name() != "auth" && cmd.Parent().Name() != "workspace" {
+		if flagWorkspaceID == "" {
+			output.PrintError(os.Stderr, "workspace_required",
+				"No workspace ID configured",
+				fmt.Sprintf("Run 'tapd workspace switch <id>' or use --workspace-id flag."))
+			os.Exit(output.ExitParamError)
+		}
+	}
+
+	return nil
+}

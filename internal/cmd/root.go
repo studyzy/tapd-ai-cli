@@ -17,6 +17,7 @@ var (
 	flagWorkspaceID string
 	flagPretty      bool
 	flagJSON        bool
+	flagNoComments  bool
 	flagAccessToken string
 	flagAPIUser     string
 	flagAPIPassword string
@@ -56,6 +57,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&flagAccessToken, "access-token", "", "TAPD Access Token")
 	rootCmd.PersistentFlags().StringVar(&flagAPIUser, "api-user", "", "TAPD API 用户名")
 	rootCmd.PersistentFlags().StringVar(&flagAPIPassword, "api-password", "", "TAPD API 密码")
+	rootCmd.PersistentFlags().BoolVar(&flagNoComments, "no-comments", false, "不展示评论")
 }
 
 // initClientAndConfig 初始化配置和 API 客户端
@@ -127,4 +129,33 @@ func printDetail(data interface{}, bodyField string) error {
 		return output.PrintJSON(os.Stdout, data, !flagPretty)
 	}
 	return output.PrintMarkdown(os.Stdout, data, bodyField)
+}
+
+// printComments 获取并输出条目的评论列表
+// entryType 取值：stories|bug|tasks，entryID 为条目 ID
+// 当 --no-comments 标志启用或获取失败时静默跳过
+func printComments(workspaceID, entryType, entryID string) {
+	if flagNoComments {
+		return
+	}
+	comments, err := apiClient.ListComments(map[string]string{
+		"workspace_id": workspaceID,
+		"entry_type":   entryType,
+		"entry_id":     entryID,
+	})
+	if err != nil || len(comments) == 0 {
+		return
+	}
+	if useJSONOutput() {
+		fmt.Fprintln(os.Stdout)
+		output.PrintJSON(os.Stdout, map[string]interface{}{
+			"comments": comments,
+			"count":    len(comments),
+		}, !flagPretty)
+		return
+	}
+	fmt.Fprintf(os.Stdout, "\n## 评论 (%d)\n\n", len(comments))
+	for _, c := range comments {
+		fmt.Fprintf(os.Stdout, "**%s** (%s):\n%s\n\n", c.Author, c.Created, c.Description)
+	}
 }

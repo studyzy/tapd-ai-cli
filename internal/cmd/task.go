@@ -111,7 +111,11 @@ func runTaskShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printDetail(task, "description")
+	if err := printDetail(task, "description"); err != nil {
+		return err
+	}
+	printComments(flagWorkspaceID, "tasks", args[0])
+	return nil
 }
 
 func runTaskCreate(cmd *cobra.Command, args []string) error {

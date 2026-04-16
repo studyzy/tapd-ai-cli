@@ -188,7 +188,11 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 			handleAPIError(err)
 			return nil
 		}
-		return printDetail(result, "description")
+		if err := printDetail(result, "description"); err != nil {
+			return err
+		}
+		printComments(workspaceID, "stories", parsed.EntityID)
+		return nil
 
 	case "bug":
 		result, err := apiClient.GetBug(workspaceID, parsed.EntityID)
@@ -196,7 +200,11 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 			handleAPIError(err)
 			return nil
 		}
-		return printDetail(result, "description")
+		if err := printDetail(result, "description"); err != nil {
+			return err
+		}
+		printComments(workspaceID, "bug", parsed.EntityID)
+		return nil
 
 	case "task":
 		result, err := apiClient.GetStory(workspaceID, parsed.EntityID, "tasks")
@@ -204,7 +212,11 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 			handleAPIError(err)
 			return nil
 		}
-		return printDetail(result, "description")
+		if err := printDetail(result, "description"); err != nil {
+			return err
+		}
+		printComments(workspaceID, "tasks", parsed.EntityID)
+		return nil
 
 	case "wiki":
 		result, err := apiClient.GetWiki(workspaceID, parsed.EntityID)
@@ -212,7 +224,11 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 			handleAPIError(err)
 			return nil
 		}
-		return printDetail(result, "markdown_description")
+		if err := printDetail(result, "markdown_description"); err != nil {
+			return err
+		}
+		printComments(workspaceID, "wiki", parsed.EntityID)
+		return nil
 
 	default:
 		output.PrintError(os.Stderr, "unsupported_entity_type",

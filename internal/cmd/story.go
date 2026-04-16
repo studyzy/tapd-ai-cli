@@ -124,7 +124,11 @@ func runStoryShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printDetail(story, "description")
+	if err := printDetail(story, "description"); err != nil {
+		return err
+	}
+	printComments(flagWorkspaceID, "stories", args[0])
+	return nil
 }
 
 func runStoryCreate(cmd *cobra.Command, args []string) error {

@@ -137,7 +137,11 @@ func runWikiShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printDetail(wiki, "markdown_description")
+	if err := printDetail(wiki, "markdown_description"); err != nil {
+		return err
+	}
+	printComments(flagWorkspaceID, "wiki", args[0])
+	return nil
 }
 
 func runWikiCreate(cmd *cobra.Command, args []string) error {

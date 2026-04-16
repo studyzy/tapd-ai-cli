@@ -113,7 +113,11 @@ func runBugShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printDetail(bug, "description")
+	if err := printDetail(bug, "description"); err != nil {
+		return err
+	}
+	printComments(flagWorkspaceID, "bug", args[0])
+	return nil
 }
 
 func runBugCreate(cmd *cobra.Command, args []string) error {

@@ -167,6 +167,31 @@ func (c *Client) doRequest(req *http.Request) (json.RawMessage, error) {
 	return tapdResp.Data, nil
 }
 
+// doPostJSON 发送 JSON 格式的 POST 请求到指定 URL（用于企业微信等外部 API）
+func (c *Client) doPostJSON(url string, body []byte) error {
+	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(string(body)))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("HTTP request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		snippet := string(bodyBytes)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, snippet)
+	}
+	return nil
+}
+
 // mapHTTPError 将 HTTP 状态码映射到 CLI 退出码
 func (c *Client) mapHTTPError(statusCode int) int {
 	switch statusCode {

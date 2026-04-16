@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/JohannesKaufmann/dom v0.2.0 // indirect
+	github.com/gomarkdown/markdown v0.0.0-20260412113850-134a5b2cce7f // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

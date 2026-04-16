@@ -42,6 +42,7 @@ func runCommitMsgGet(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	flagCommitMsgObjectID = expandShortID(flagCommitMsgObjectID, flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"object_id":    flagCommitMsgObjectID,

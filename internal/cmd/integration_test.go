@@ -918,3 +918,31 @@ func TestIntegration_RunCommitMsgGet(t *testing.T) {
 		t.Fatalf("runCommitMsgGet failed: %v", err)
 	}
 }
+
+func TestIntegration_RunCategoryList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagCategoryName = ""
+
+	err := runCategoryList(nil, nil)
+	if err != nil {
+		t.Fatalf("runCategoryList failed: %v", err)
+	}
+}
+
+func TestIntegration_CategoryList_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	categories, err := c.ListCategories(map[string]string{
+		"workspace_id": wsID,
+	})
+	if err != nil {
+		t.Fatalf("ListCategories failed: %v", err)
+	}
+	t.Logf("Found %d categories", len(categories))
+	for _, cat := range categories {
+		t.Logf("  Category: id=%s name=%s", cat.ID, cat.Name)
+	}
+}

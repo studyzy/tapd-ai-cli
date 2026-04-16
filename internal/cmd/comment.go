@@ -77,6 +77,7 @@ func init() {
 }
 
 func runCommentList(cmd *cobra.Command, args []string) error {
+	flagEntryID = expandShortID(flagEntryID, flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 	}
@@ -121,6 +122,10 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	flagEntryID = expandShortID(flagEntryID, flagWorkspaceID)
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"entry_type":   flagEntryType,
@@ -157,6 +162,9 @@ func runCommentUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"id":           args[0],

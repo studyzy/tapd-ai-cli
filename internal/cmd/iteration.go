@@ -111,6 +111,9 @@ func runIterationCreate(cmd *cobra.Command, args []string) error {
 		"enddate":      flagEndDate,
 		"creator":      flagCreator,
 	}
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	addOptionalParam(params, "description", flagDescription)
 	addOptionalParam(params, "status", flagStatus)
 
@@ -130,6 +133,7 @@ func runIterationUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"id":           args[0],
@@ -138,6 +142,9 @@ func runIterationUpdate(cmd *cobra.Command, args []string) error {
 	addOptionalParam(params, "name", flagName)
 	addOptionalParam(params, "startdate", flagStartDate)
 	addOptionalParam(params, "enddate", flagEndDate)
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	addOptionalParam(params, "description", flagDescription)
 	addOptionalParam(params, "status", flagStatus)
 

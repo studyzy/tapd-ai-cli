@@ -107,6 +107,7 @@ func runBugList(cmd *cobra.Command, args []string) error {
 }
 
 func runBugShow(cmd *cobra.Command, args []string) error {
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	bug, err := apiClient.GetBug(flagWorkspaceID, args[0])
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
@@ -131,6 +132,9 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		"workspace_id": flagWorkspaceID,
 		"title":        flagTitle,
 	}
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	addOptionalParam(params, "description", flagDescription)
 	addOptionalParam(params, "priority_label", flagPriority)
 	addOptionalParam(params, "severity", flagSeverity)
@@ -145,6 +149,7 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 }
 
 func runBugUpdate(cmd *cobra.Command, args []string) error {
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"id":           args[0],

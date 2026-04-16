@@ -105,6 +105,7 @@ func runTaskList(cmd *cobra.Command, args []string) error {
 }
 
 func runTaskShow(cmd *cobra.Command, args []string) error {
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	task, err := apiClient.GetStory(flagWorkspaceID, args[0], "tasks")
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
@@ -129,6 +130,9 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		"workspace_id": flagWorkspaceID,
 		"name":         flagName,
 	}
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	addOptionalParam(params, "description", flagDescription)
 	addOptionalParam(params, "owner", flagOwner)
 	addOptionalParam(params, "priority_label", flagPriority)
@@ -144,6 +148,7 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 }
 
 func runTaskUpdate(cmd *cobra.Command, args []string) error {
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"id":           args[0],

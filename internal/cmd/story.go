@@ -118,6 +118,7 @@ func runStoryList(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryShow(cmd *cobra.Command, args []string) error {
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	story, err := apiClient.GetStory(flagWorkspaceID, args[0], "stories")
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
@@ -142,6 +143,9 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		"workspace_id": flagWorkspaceID,
 		"name":         flagName,
 	}
+	if flagDescription != "" {
+		flagDescription = markdownToHTML(flagDescription)
+	}
 	addOptionalParam(params, "description", flagDescription)
 	addOptionalParam(params, "owner", flagOwner)
 	addOptionalParam(params, "priority_label", flagPriority)
@@ -157,6 +161,7 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryUpdate(cmd *cobra.Command, args []string) error {
+	args[0] = expandShortID(args[0], flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"id":           args[0],

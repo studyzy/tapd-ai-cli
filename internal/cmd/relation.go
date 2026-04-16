@@ -57,6 +57,7 @@ func runRelationBugs(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	flagRelationStoryID = expandShortID(flagRelationStoryID, flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"story_id":     flagRelationStoryID,
@@ -81,6 +82,8 @@ func runRelationCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	flagRelationSourceID = expandShortID(flagRelationSourceID, flagWorkspaceID)
+	flagRelationTargetID = expandShortID(flagRelationTargetID, flagWorkspaceID)
 	params := map[string]string{
 		"workspace_id": flagWorkspaceID,
 		"source_type":  flagRelationSourceType,

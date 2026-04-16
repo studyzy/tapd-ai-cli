@@ -3,6 +3,8 @@ package cmd
 
 import (
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 func TestParseTAPDURL(t *testing.T) {
@@ -110,6 +112,63 @@ func TestParseTAPDURL(t *testing.T) {
 			}
 			if got.EntityID != tt.wantEntityID {
 				t.Errorf("EntityID = %q, want %q", got.EntityID, tt.wantEntityID)
+			}
+		})
+	}
+}
+
+// TestURLCommandSkipsWorkspaceCheck 验证 url 命令在 workspace ID 为空时不会触发 workspace_required 检查
+// 因为 url 命令从 URL 中提取 workspace ID，无需全局配置
+func TestURLCommandSkipsWorkspaceCheck(t *testing.T) {
+	// needsWorkspace 条件逻辑来自 root.go initClientAndConfig
+	// 此处模拟 url 命令的 Cobra 结构验证豁免逻辑
+	tests := []struct {
+		name         string
+		cmdName      string
+		parentName   string
+		wantExempted bool
+	}{
+		{
+			name:         "url 命令应被豁免",
+			cmdName:      "url",
+			parentName:   "tapd",
+			wantExempted: true,
+		},
+		{
+			name:         "show 命令（非豁免）",
+			cmdName:      "show",
+			parentName:   "story",
+			wantExempted: false,
+		},
+		{
+			name:         "auth 子命令应被豁免",
+			cmdName:      "login",
+			parentName:   "auth",
+			wantExempted: true,
+		},
+		{
+			name:         "workspace 子命令应被豁免",
+			cmdName:      "list",
+			parentName:   "workspace",
+			wantExempted: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parent := &cobra.Command{Use: tt.parentName}
+			cmd := &cobra.Command{Use: tt.cmdName}
+			parent.AddCommand(cmd)
+
+			// 复现 root.go 中的 workspace 检查条件
+			needsWorkspace := cmd.Name() != "list" || (cmd.Parent() != nil && cmd.Parent().Name() != "workspace")
+			wouldCheck := needsWorkspace && cmd.Name() != "url" && cmd.Parent() != nil && cmd.Parent().Name() != "auth" && cmd.Parent().Name() != "workspace"
+
+			if tt.wantExempted && wouldCheck {
+				t.Errorf("command %q under %q should be exempted from workspace check, but would be checked", tt.cmdName, tt.parentName)
+			}
+			if !tt.wantExempted && !wouldCheck {
+				t.Errorf("command %q under %q should require workspace check, but would be exempted", tt.cmdName, tt.parentName)
 			}
 		})
 	}

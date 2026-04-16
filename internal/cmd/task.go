@@ -34,14 +34,22 @@ var taskShowCmd = &cobra.Command{
 var taskCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "创建任务",
-	RunE:  runTaskCreate,
+	Long: `创建任务，描述支持三种输入方式：
+  1. --description <text>  直接传入描述文本
+  2. --file <path>         从本地文件读取描述内容
+  3. echo "..." | tapd task create --name <title>  通过 stdin 管道输入`,
+	RunE: runTaskCreate,
 }
 
 var taskUpdateCmd = &cobra.Command{
 	Use:   "update <task_id>",
 	Short: "更新任务",
-	Args:  cobra.ExactArgs(1),
-	RunE:  runTaskUpdate,
+	Long: `更新任务，描述支持三种输入方式：
+  1. --description <text>  直接传入描述文本
+  2. --file <path>         从本地文件读取描述内容
+  3. echo "..." | tapd task update <task_id>  通过 stdin 管道输入`,
+	Args: cobra.ExactArgs(1),
+	RunE: runTaskUpdate,
 }
 
 var taskCountCmd = &cobra.Command{
@@ -64,11 +72,14 @@ func init() {
 
 	taskCreateCmd.Flags().StringVar(&flagName, "name", "", "任务标题（必需）")
 	taskCreateCmd.Flags().StringVar(&flagDescription, "description", "", "描述")
+	taskCreateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	taskCreateCmd.Flags().StringVar(&flagOwner, "owner", "", "处理人")
 	taskCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级")
 	taskCreateCmd.Flags().StringVar(&flagStoryID, "story-id", "", "关联需求 ID")
 
 	taskUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
+	taskUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
+	taskUpdateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	taskUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（open/progressing/done）")
 	taskUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
 
@@ -135,11 +146,18 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	description, err := readDescription()
+	if err != nil {
+		output.PrintError(os.Stderr, "file_error", err.Error(), "Check that the file path is correct and readable")
+		os.Exit(output.ExitParamError)
+		return nil
+	}
+
 	req := &model.CreateStoryRequest{
 		WorkspaceID:   flagWorkspaceID,
 		Name:          flagName,
 		EntityType:    "tasks",
-		Description:   flagDescription,
+		Description:   description,
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
 		StoryID:       flagStoryID,
@@ -154,11 +172,19 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 }
 
 func runTaskUpdate(cmd *cobra.Command, args []string) error {
+	description, err := readDescription()
+	if err != nil {
+		output.PrintError(os.Stderr, "file_error", err.Error(), "Check that the file path is correct and readable")
+		os.Exit(output.ExitParamError)
+		return nil
+	}
+
 	req := &model.UpdateStoryRequest{
 		WorkspaceID: flagWorkspaceID,
 		ID:          args[0],
 		EntityType:  "tasks",
 		Name:        flagName,
+		Description: description,
 		Status:      flagStatus,
 		Owner:       flagOwner,
 	}

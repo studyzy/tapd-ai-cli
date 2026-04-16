@@ -115,8 +115,9 @@ func initClientAndConfig(cmd *cobra.Command) error {
 	}
 
 	// 需要 workspace_id 的命令检查
+	// url 命令从 URL 中提取 workspace ID，无需全局配置
 	needsWorkspace := cmd.Name() != "list" || (cmd.Parent() != nil && cmd.Parent().Name() != "workspace")
-	if needsWorkspace && cmd.Parent() != nil && cmd.Parent().Name() != "auth" && cmd.Parent().Name() != "workspace" {
+	if needsWorkspace && cmd.Name() != "url" && cmd.Parent() != nil && cmd.Parent().Name() != "auth" && cmd.Parent().Name() != "workspace" {
 		if flagWorkspaceID == "" {
 			output.PrintError(os.Stderr, "workspace_required",
 				"No workspace ID configured",

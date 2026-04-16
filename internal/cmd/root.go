@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 	Long:  "tapd-ai-cli 是一个面向 AI Agent 的 TAPD 命令行工具，通过 TAPD Open API 实现项目管理核心操作。",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// auth login 命令不需要预加载配置和客户端
-		if cmd.Name() == "login" || cmd.Name() == "spec" {
+		if cmd.Name() == "login" {
 			return nil
 		}
 		return initClientAndConfig(cmd)
@@ -51,6 +51,17 @@ func Execute() {
 }
 
 func init() {
+	// 根命令自定义 help：输出紧凑参考卡（原 spec 子命令的功能）
+	defaultHelp := rootCmd.HelpFunc()
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		if cmd != rootCmd {
+			defaultHelp(cmd, args)
+			return
+		}
+		lines := buildSpecLines(rootCmd)
+		printSpecOutput(os.Stdout, rootCmd, lines)
+	})
+
 	rootCmd.PersistentFlags().StringVar(&flagWorkspaceID, "workspace-id", "", "指定工作区 ID（覆盖本地配置）")
 	rootCmd.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "输出格式化 JSON（带缩进，方便人类阅读，隐含 --json）")
 	rootCmd.PersistentFlags().BoolVar(&flagJSON, "json", false, "以 JSON 格式输出（默认部分命令输出 Markdown）")

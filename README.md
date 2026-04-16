@@ -85,8 +85,8 @@ tapd url https://www.tapd.cn/tapd_fe/51081496/story/detail/1151081496001028684
 # 查询 Wiki 文档列表
 tapd wiki list
 
-# 获取 Tool Definition（供 AI 自发现）
-tapd spec
+# 查看所有命令参考（AI 自发现）
+tapd --help
 ```
 
 ## 命令一览
@@ -100,8 +100,7 @@ tapd
 ├── bug       list | show <id> | create | update <id> | count
 ├── wiki      list | show <id>
 ├── iteration list
-├── url       <tapd-url>
-└── spec
+└── url       <tapd-url>
 ```
 
 ## 全局标志

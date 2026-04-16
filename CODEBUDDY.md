@@ -53,7 +53,7 @@ make clean
 ```
 cmd/tapd/       # 入口 main.go（go install 目标）
 internal/
-  cmd/          # Cobra 命令定义（root、auth、workspace、story、task、bug、iteration、spec）
+  cmd/          # Cobra 命令定义（root、auth、workspace、story、task、bug、iteration）
   client/       # TAPD API HTTP 客户端封装（认证、请求构造、响应解析）
   config/       # 多来源凭据管理（CLI flags > env > ./.tapd.json > ~/.tapd.json）
   output/       # JSON 输出格式化（默认紧凑、omitempty、列表截断）
@@ -71,9 +71,10 @@ tapd
 ├── task  list | show <id> | create | update <id> | count
 ├── bug   list | show <id> | create | update <id> | count
 ├── iteration list
-└── spec    # 输出 OpenAI/Anthropic 兼容的 Tool Definition JSON
+└── iteration list
 
 全局标志：--workspace-id <id>，--pretty
+--help 输出紧凑命令参考卡（供 AI Agent 自发现）
 ```
 
 ### 核心设计原则

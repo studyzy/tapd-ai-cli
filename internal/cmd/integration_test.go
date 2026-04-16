@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
@@ -285,26 +286,14 @@ func TestIntegration_RunTaskCount(t *testing.T) {
 	}
 }
 
-func TestIntegration_RunSpec(t *testing.T) {
-	// spec 不需要凭据
-	flagPretty = false
-	err := runSpec(nil, nil)
-	if err != nil {
-		t.Fatalf("runSpec failed: %v", err)
-	}
-}
-
-func TestIntegration_SpecOutputValid(t *testing.T) {
-	flagPretty = false
-	// 捕获 stdout
+func TestIntegration_HelpOutputValid(t *testing.T) {
+	// 捕获 stdout：--help 通过自定义 HelpFunc 输出紧凑参考卡
 	old := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err := runSpec(nil, nil)
-	if err != nil {
-		t.Fatalf("runSpec failed: %v", err)
-	}
+	lines := buildSpecLines(rootCmd)
+	printSpecOutput(os.Stdout, rootCmd, lines)
 
 	w.Close()
 	os.Stdout = old
@@ -312,14 +301,27 @@ func TestIntegration_SpecOutputValid(t *testing.T) {
 	var buf bytes.Buffer
 	buf.ReadFrom(r)
 
-	var tools []json.RawMessage
-	if err := json.Unmarshal(buf.Bytes(), &tools); err != nil {
-		t.Fatalf("spec output is not valid JSON array: %v\nOutput: %s", err, buf.String())
+	output := buf.String()
+	if output == "" {
+		t.Fatal("help output is empty")
 	}
-	if len(tools) == 0 {
-		t.Fatal("spec output has no tools")
+	// 验证包含标题行
+	if !strings.Contains(output, "tapd -") {
+		t.Error("help output should contain title line 'tapd -'")
 	}
-	t.Logf("spec output contains %d tool definitions", len(tools))
+	// 验证包含 Global 行
+	if !strings.Contains(output, "Global:") {
+		t.Error("help output should contain 'Global:' line")
+	}
+	// 验证包含至少一些预期命令
+	expectedCmds := []string{"tapd auth login", "tapd story list", "tapd bug list"}
+	for _, cmd := range expectedCmds {
+		if !strings.Contains(output, cmd) {
+			t.Errorf("help output should contain %q", cmd)
+		}
+	}
+	outputLines := strings.Split(strings.TrimSpace(output), "\n")
+	t.Logf("help output contains %d lines", len(outputLines))
 }
 
 // TestIntegration_E2E_CreateAndShowStory 创建一个需求然后查看详情（端到端）
@@ -741,42 +743,39 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 
 // === 以下为新增命令的集成测试 ===
 
-func TestIntegration_RunTodoList(t *testing.T) {
+func TestIntegration_RunStoryTodo(t *testing.T) {
 	skipIfNoWorkspace(t)
 	setupIntegrationCmd(t)
-	flagTodoEntityType = "story"
 	flagLimit = 3
 	flagPage = 1
 
-	err := runTodoList(nil, nil)
+	err := runStoryTodo(nil, nil)
 	if err != nil {
-		t.Fatalf("runTodoList failed: %v", err)
+		t.Fatalf("runStoryTodo failed: %v", err)
 	}
 }
 
-func TestIntegration_RunTodoList_Bug(t *testing.T) {
+func TestIntegration_RunTaskTodo(t *testing.T) {
 	skipIfNoWorkspace(t)
 	setupIntegrationCmd(t)
-	flagTodoEntityType = "bug"
 	flagLimit = 3
 	flagPage = 1
 
-	err := runTodoList(nil, nil)
+	err := runTaskTodo(nil, nil)
 	if err != nil {
-		t.Fatalf("runTodoList(bug) failed: %v", err)
+		t.Fatalf("runTaskTodo failed: %v", err)
 	}
 }
 
-func TestIntegration_RunTodoList_Task(t *testing.T) {
+func TestIntegration_RunBugTodo(t *testing.T) {
 	skipIfNoWorkspace(t)
 	setupIntegrationCmd(t)
-	flagTodoEntityType = "task"
 	flagLimit = 3
 	flagPage = 1
 
-	err := runTodoList(nil, nil)
+	err := runBugTodo(nil, nil)
 	if err != nil {
-		t.Fatalf("runTodoList(task) failed: %v", err)
+		t.Fatalf("runBugTodo failed: %v", err)
 	}
 }
 
@@ -844,19 +843,61 @@ func TestIntegration_TimesheetList_Client(t *testing.T) {
 	}
 }
 
-func TestIntegration_TodoList_Client(t *testing.T) {
+func TestIntegration_TodoStories_Client(t *testing.T) {
 	skipIfNoWorkspace(t)
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	data, err := c.GetTodo(&model.GetTodoRequest{
+	stories, err := c.GetTodoStories(&model.GetTodoRequest{
 		WorkspaceID: wsID,
 		EntityType:  "story",
+		Limit:       "3",
 	})
 	if err != nil {
-		t.Fatalf("GetTodo failed: %v", err)
+		t.Fatalf("GetTodoStories failed: %v", err)
 	}
-	t.Logf("Todo data length: %d bytes", len(data))
+	t.Logf("Got %d todo stories", len(stories))
+	for _, s := range stories {
+		t.Logf("  Story: id=%s name=%s owner=%s", s.ID, s.Name, s.Owner)
+	}
+}
+
+func TestIntegration_TodoTasks_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	tasks, err := c.GetTodoTasks(&model.GetTodoRequest{
+		WorkspaceID: wsID,
+		EntityType:  "task",
+		Limit:       "3",
+	})
+	if err != nil {
+		t.Fatalf("GetTodoTasks failed: %v", err)
+	}
+	t.Logf("Got %d todo tasks", len(tasks))
+	for _, tk := range tasks {
+		t.Logf("  Task: id=%s name=%s owner=%s", tk.ID, tk.Name, tk.Owner)
+	}
+}
+
+func TestIntegration_TodoBugs_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	bugs, err := c.GetTodoBugs(&model.GetTodoRequest{
+		WorkspaceID: wsID,
+		EntityType:  "bug",
+		Limit:       "3",
+	})
+	if err != nil {
+		t.Fatalf("GetTodoBugs failed: %v", err)
+	}
+	t.Logf("Got %d todo bugs", len(bugs))
+	for _, b := range bugs {
+		t.Logf("  Bug: id=%s title=%s current_owner=%s", b.ID, b.Title, b.CurrentOwner)
+	}
 }
 
 func TestIntegration_CommitMsg_Client(t *testing.T) {

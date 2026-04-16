@@ -104,13 +104,17 @@ func TestIntegration_StoryList(t *testing.T) {
 		"limit":        "3",
 		"fields":       "id,name,status,owner,modified",
 	}
-	stories, err := c.ListStories(params)
+	result, err := c.ListStories(params)
 	if err != nil {
 		t.Fatalf("ListStories failed: %v", err)
 	}
+	stories, ok := result.([]model.Story)
+	if !ok {
+		t.Fatalf("expected []model.Story, got %T", result)
+	}
 	t.Logf("Found %d stories", len(stories))
 	for _, s := range stories {
-		t.Logf("  Story: id=%v name=%v", s["id"], s["name"])
+		t.Logf("  Story: id=%v name=%v", s.ID, s.Name)
 	}
 }
 
@@ -355,15 +359,18 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	})
 
 	// 查看详情
-	story, err := c.GetStory(wsID, result.ID, "stories")
+	detail, err := c.GetStory(wsID, result.ID, "stories")
 	if err != nil {
 		t.Fatalf("GetStory failed: %v", err)
 	}
-	name, _ := story["name"].(string)
-	if name == "" {
+	story, ok := detail.(*model.Story)
+	if !ok {
+		t.Fatalf("expected *model.Story, got %T", detail)
+	}
+	if story.Name == "" {
 		t.Errorf("Story name is empty: %+v", story)
 	}
-	t.Logf("Story detail: name=%s status=%v", name, story["status"])
+	t.Logf("Story detail: name=%s status=%v", story.Name, story.Status)
 }
 
 // TestIntegration_WorkspaceSwitch 测试 workspace switch 写入当前目录
@@ -428,7 +435,7 @@ func TestIntegration_WikiList_Client(t *testing.T) {
 	}
 	t.Logf("Found %d wikis", len(wikis))
 	for _, w := range wikis {
-		t.Logf("  Wiki: id=%v name=%v", w["id"], w["name"])
+		t.Logf("  Wiki: id=%v name=%v", w.ID, w.Name)
 	}
 }
 
@@ -450,7 +457,7 @@ func TestIntegration_RunWikiShow(t *testing.T) {
 		t.Skip("No wikis in workspace, skipping show test")
 	}
 
-	wikiID := wikis[0]["id"].(string)
+	wikiID := wikis[0].ID
 	t.Logf("Testing wiki show with id=%s", wikiID)
 
 	setupIntegrationCmd(t)
@@ -466,16 +473,20 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 获取一个真实 story id
-	stories, err := c.ListStories(map[string]string{
+	listResult, err := c.ListStories(map[string]string{
 		"workspace_id": wsID,
 		"entity_type":  "stories",
 		"limit":        "1",
 		"fields":       "id,name",
 	})
-	if err != nil || len(stories) == 0 {
+	if err != nil {
 		t.Skip("No stories available for URL test")
 	}
-	storyID := stories[0]["id"].(string)
+	storyList, ok := listResult.([]model.Story)
+	if !ok || len(storyList) == 0 {
+		t.Skip("No stories available for URL test")
+	}
+	storyID := storyList[0].ID
 	storyURL := "https://www.tapd.cn/tapd_fe/" + wsID + "/story/detail/" + storyID
 
 	// 验证 URL 解析
@@ -494,11 +505,15 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	}
 
 	// 验证实际 API 调用
-	result, err := c.GetStory(wsID, storyID, "stories")
+	urlResult, err := c.GetStory(wsID, storyID, "stories")
 	if err != nil {
 		t.Fatalf("GetStory via URL failed: %v", err)
 	}
-	t.Logf("URL→Story: id=%v name=%v", result["id"], result["name"])
+	urlStory, ok := urlResult.(*model.Story)
+	if !ok {
+		t.Fatalf("expected *model.Story, got %T", urlResult)
+	}
+	t.Logf("URL→Story: id=%v name=%v", urlStory.ID, urlStory.Name)
 }
 
 func TestIntegration_URLCommand_WikiURL(t *testing.T) {
@@ -515,7 +530,7 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	if err != nil || len(wikis) == 0 {
 		t.Skip("No wikis available for URL test")
 	}
-	wikiID := wikis[0]["id"].(string)
+	wikiID := wikis[0].ID
 	wikiURL := "https://www.tapd.cn/" + wsID + "/markdown_wikis/show/#" + wikiID
 
 	// 验证 URL 解析
@@ -535,5 +550,5 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetWiki via URL failed: %v", err)
 	}
-	t.Logf("URL→Wiki: id=%v name=%v", result["id"], result["name"])
+	t.Logf("URL→Wiki: id=%v name=%v", result.ID, result.Name)
 }

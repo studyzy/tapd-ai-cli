@@ -9,7 +9,8 @@ import (
 )
 
 // ListStories 查询需求或任务列表，通过 params 中的 entity_type 区分 stories/tasks
-func (c *Client) ListStories(params map[string]string) ([]map[string]interface{}, error) {
+// 返回强类型切片（[]model.Story 或 []model.Task），自动过滤 custom_field 等无用字段
+func (c *Client) ListStories(params map[string]string) (interface{}, error) {
 	entityType := params["entity_type"]
 	delete(params, "entity_type")
 
@@ -30,12 +31,25 @@ func (c *Client) ListStories(params map[string]string) ([]map[string]interface{}
 		return nil, fmt.Errorf("failed to parse list response: %w", err)
 	}
 
-	var results []map[string]interface{}
+	if entityType == "tasks" {
+		var results []model.Task
+		for _, item := range rawList {
+			if raw, ok := item[wrapperKey]; ok {
+				var task model.Task
+				if err := json.Unmarshal(raw, &task); err == nil {
+					results = append(results, task)
+				}
+			}
+		}
+		return results, nil
+	}
+
+	var results []model.Story
 	for _, item := range rawList {
 		if raw, ok := item[wrapperKey]; ok {
-			var obj map[string]interface{}
-			if err := json.Unmarshal(raw, &obj); err == nil {
-				results = append(results, obj)
+			var story model.Story
+			if err := json.Unmarshal(raw, &story); err == nil {
+				results = append(results, story)
 			}
 		}
 	}
@@ -43,7 +57,8 @@ func (c *Client) ListStories(params map[string]string) ([]map[string]interface{}
 }
 
 // GetStory 获取单个需求或任务的详情，description 字段自动从 HTML 转换为 Markdown
-func (c *Client) GetStory(workspaceID, id, entityType string) (map[string]interface{}, error) {
+// 返回强类型（*model.Story 或 *model.Task），自动过滤 custom_field 等无用字段
+func (c *Client) GetStory(workspaceID, id, entityType string) (interface{}, error) {
 	endpoint := "/stories"
 	wrapperKey := "Story"
 	if entityType == "tasks" {
@@ -75,27 +90,33 @@ func (c *Client) GetStory(workspaceID, id, entityType string) (map[string]interf
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return nil, fmt.Errorf("failed to parse entity: %w", err)
+	if entityType == "tasks" {
+		var task model.Task
+		if err := json.Unmarshal(raw, &task); err != nil {
+			return nil, fmt.Errorf("failed to parse task: %w", err)
+		}
+		if task.Description != "" {
+			md, err := htmltomarkdown.ConvertString(task.Description)
+			if err == nil {
+				task.Description = md
+			}
+		}
+		task.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", workspaceID, id)
+		return &task, nil
 	}
 
-	// HTML 转 Markdown
-	if desc, ok := result["description"].(string); ok && desc != "" {
-		md, err := htmltomarkdown.ConvertString(desc)
+	var story model.Story
+	if err := json.Unmarshal(raw, &story); err != nil {
+		return nil, fmt.Errorf("failed to parse story: %w", err)
+	}
+	if story.Description != "" {
+		md, err := htmltomarkdown.ConvertString(story.Description)
 		if err == nil {
-			result["description"] = md
+			story.Description = md
 		}
 	}
-
-	// 拼接 URL
-	if entityType == "tasks" {
-		result["url"] = fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", workspaceID, id)
-	} else {
-		result["url"] = fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", workspaceID, id)
-	}
-
-	return result, nil
+	story.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", workspaceID, id)
+	return &story, nil
 }
 
 // CreateStory 创建需求或任务
@@ -124,23 +145,24 @@ func (c *Client) CreateStory(params map[string]string, entityType string) (*mode
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created map[string]interface{}
+	var created struct {
+		ID string `json:"id"`
+	}
 	if err := json.Unmarshal(raw, &created); err != nil {
 		return nil, fmt.Errorf("failed to parse created entity: %w", err)
 	}
 
-	id := fmt.Sprintf("%v", created["id"])
 	wsID := params["workspace_id"]
 
 	return &model.SuccessResponse{
 		Success: true,
-		ID:      id,
-		URL:     fmt.Sprintf("https://www.tapd.cn/%s/%s/%s", wsID, urlPath, id),
+		ID:      created.ID,
+		URL:     fmt.Sprintf("https://www.tapd.cn/%s/%s/%s", wsID, urlPath, created.ID),
 	}, nil
 }
 
-// UpdateStory 更新需求或任务
-func (c *Client) UpdateStory(params map[string]string, entityType string) (map[string]interface{}, error) {
+// UpdateStory 更新需求或任务，返回强类型（*model.Story 或 *model.Task）
+func (c *Client) UpdateStory(params map[string]string, entityType string) (interface{}, error) {
 	endpoint := "/stories"
 	wrapperKey := "Story"
 	if entityType == "tasks" {
@@ -163,12 +185,19 @@ func (c *Client) UpdateStory(params map[string]string, entityType string) (map[s
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return nil, fmt.Errorf("failed to parse updated entity: %w", err)
+	if entityType == "tasks" {
+		var task model.Task
+		if err := json.Unmarshal(raw, &task); err != nil {
+			return nil, fmt.Errorf("failed to parse updated task: %w", err)
+		}
+		return &task, nil
 	}
 
-	return result, nil
+	var story model.Story
+	if err := json.Unmarshal(raw, &story); err != nil {
+		return nil, fmt.Errorf("failed to parse updated story: %w", err)
+	}
+	return &story, nil
 }
 
 // CountStories 查询需求或任务数量

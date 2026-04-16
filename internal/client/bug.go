@@ -8,8 +8,8 @@ import (
 	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
-// ListBugs 查询缺陷列表
-func (c *Client) ListBugs(params map[string]string) ([]map[string]interface{}, error) {
+// ListBugs 查询缺陷列表，返回强类型 Bug 切片，自动过滤 custom_field 等无用字段
+func (c *Client) ListBugs(params map[string]string) ([]model.Bug, error) {
 	data, err := c.doGet("/bugs", params)
 	if err != nil {
 		return nil, err
@@ -20,12 +20,12 @@ func (c *Client) ListBugs(params map[string]string) ([]map[string]interface{}, e
 		return nil, fmt.Errorf("failed to parse bug list: %w", err)
 	}
 
-	var results []map[string]interface{}
+	var results []model.Bug
 	for _, item := range rawList {
 		if raw, ok := item["Bug"]; ok {
-			var obj map[string]interface{}
-			if err := json.Unmarshal(raw, &obj); err == nil {
-				results = append(results, obj)
+			var bug model.Bug
+			if err := json.Unmarshal(raw, &bug); err == nil {
+				results = append(results, bug)
 			}
 		}
 	}
@@ -33,7 +33,7 @@ func (c *Client) ListBugs(params map[string]string) ([]map[string]interface{}, e
 }
 
 // GetBug 获取单个缺陷详情，description 字段自动从 HTML 转换为 Markdown
-func (c *Client) GetBug(workspaceID, id string) (map[string]interface{}, error) {
+func (c *Client) GetBug(workspaceID, id string) (*model.Bug, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,
 		"id":           id,
@@ -58,22 +58,22 @@ func (c *Client) GetBug(workspaceID, id string) (map[string]interface{}, error) 
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(raw, &result); err != nil {
+	var bug model.Bug
+	if err := json.Unmarshal(raw, &bug); err != nil {
 		return nil, fmt.Errorf("failed to parse bug: %w", err)
 	}
 
 	// HTML 转 Markdown
-	if desc, ok := result["description"].(string); ok && desc != "" {
-		md, err := htmltomarkdown.ConvertString(desc)
+	if bug.Description != "" {
+		md, err := htmltomarkdown.ConvertString(bug.Description)
 		if err == nil {
-			result["description"] = md
+			bug.Description = md
 		}
 	}
 
-	result["url"] = fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", workspaceID, id)
+	bug.URL = fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", workspaceID, id)
 
-	return result, nil
+	return &bug, nil
 }
 
 // CreateBug 创建缺陷
@@ -93,23 +93,22 @@ func (c *Client) CreateBug(params map[string]string) (*model.SuccessResponse, er
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created map[string]interface{}
+	var created model.Bug
 	if err := json.Unmarshal(raw, &created); err != nil {
 		return nil, fmt.Errorf("failed to parse created bug: %w", err)
 	}
 
-	id := fmt.Sprintf("%v", created["id"])
 	wsID := params["workspace_id"]
 
 	return &model.SuccessResponse{
 		Success: true,
-		ID:      id,
-		URL:     fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", wsID, id),
+		ID:      created.ID,
+		URL:     fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", wsID, created.ID),
 	}, nil
 }
 
 // UpdateBug 更新缺陷
-func (c *Client) UpdateBug(params map[string]string) (map[string]interface{}, error) {
+func (c *Client) UpdateBug(params map[string]string) (*model.Bug, error) {
 	data, err := c.doPost("/bugs", params)
 	if err != nil {
 		return nil, err
@@ -125,12 +124,12 @@ func (c *Client) UpdateBug(params map[string]string) (map[string]interface{}, er
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(raw, &result); err != nil {
+	var bug model.Bug
+	if err := json.Unmarshal(raw, &bug); err != nil {
 		return nil, fmt.Errorf("failed to parse updated bug: %w", err)
 	}
 
-	return result, nil
+	return &bug, nil
 }
 
 // CountBugs 查询缺陷数量

@@ -21,46 +21,6 @@ type Workspace struct {
 	Created  string `json:"created,omitempty"`
 }
 
-// Story 表示 TAPD 需求/工作项
-type Story struct {
-	ID          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Status      string `json:"status,omitempty"`
-	Owner       string `json:"owner,omitempty"`
-	Priority    string `json:"priority,omitempty"`
-	Description string `json:"description,omitempty"`
-	IterationID string `json:"iteration_id,omitempty"`
-	Modified    string `json:"modified,omitempty"`
-	URL         string `json:"url,omitempty"`
-}
-
-// Task 表示 TAPD 任务，状态仅有 open/progressing/done
-type Task struct {
-	ID          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Status      string `json:"status,omitempty"`
-	Owner       string `json:"owner,omitempty"`
-	Priority    string `json:"priority,omitempty"`
-	Description string `json:"description,omitempty"`
-	StoryID     string `json:"story_id,omitempty"`
-	Modified    string `json:"modified,omitempty"`
-	URL         string `json:"url,omitempty"`
-}
-
-// Bug 表示 TAPD 缺陷
-type Bug struct {
-	ID           string `json:"id,omitempty"`
-	Title        string `json:"title,omitempty"`
-	Status       string `json:"status,omitempty"`
-	Priority     string `json:"priority,omitempty"`
-	Severity     string `json:"severity,omitempty"`
-	Description  string `json:"description,omitempty"`
-	CurrentOwner string `json:"current_owner,omitempty"`
-	Reporter     string `json:"reporter,omitempty"`
-	Modified     string `json:"modified,omitempty"`
-	URL          string `json:"url,omitempty"`
-}
-
 // Iteration 表示 TAPD 迭代
 type Iteration struct {
 	ID        string `json:"id,omitempty"`

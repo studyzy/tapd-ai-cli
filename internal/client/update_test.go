@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestUpdateStory(t *testing.T) {
@@ -33,14 +34,18 @@ func TestUpdateStory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UpdateStory() unexpected error: %v", err)
 	}
-	if result["id"] != "100" {
-		t.Errorf("id = %v, want %q", result["id"], "100")
+	story, ok := result.(*model.Story)
+	if !ok {
+		t.Fatalf("expected *model.Story, got %T", result)
 	}
-	if result["name"] != "Updated" {
-		t.Errorf("name = %v, want %q", result["name"], "Updated")
+	if story.ID != "100" {
+		t.Errorf("id = %v, want %q", story.ID, "100")
 	}
-	if result["status"] != "done" {
-		t.Errorf("status = %v, want %q", result["status"], "done")
+	if story.Name != "Updated" {
+		t.Errorf("name = %v, want %q", story.Name, "Updated")
+	}
+	if story.Status != "done" {
+		t.Errorf("status = %v, want %q", story.Status, "done")
 	}
 }
 
@@ -68,14 +73,14 @@ func TestUpdateBug(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UpdateBug() unexpected error: %v", err)
 	}
-	if result["id"] != "500" {
-		t.Errorf("id = %v, want %q", result["id"], "500")
+	if result.ID != "500" {
+		t.Errorf("id = %v, want %q", result.ID, "500")
 	}
-	if result["title"] != "Fixed" {
-		t.Errorf("title = %v, want %q", result["title"], "Fixed")
+	if result.Title != "Fixed" {
+		t.Errorf("title = %v, want %q", result.Title, "Fixed")
 	}
-	if result["status"] != "resolved" {
-		t.Errorf("status = %v, want %q", result["status"], "resolved")
+	if result.Status != "resolved" {
+		t.Errorf("status = %v, want %q", result.Status, "resolved")
 	}
 }
 

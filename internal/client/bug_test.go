@@ -15,7 +15,7 @@ func TestListBugs(t *testing.T) {
 			t.Errorf("unexpected path: %s, want /bugs", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"500","title":"Bug1","status":"new","priority":"high"}}],"info":"success"}`))
+		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"500","title":"Bug1","status":"new","priority":"high","current_owner":"test","created":"2026-03-06"}}],"info":"success"}`))
 	}))
 	defer srv.Close()
 
@@ -30,17 +30,47 @@ func TestListBugs(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 bug, got %d", len(results))
 	}
-	if results[0]["id"] != "500" {
-		t.Errorf("bug id = %v, want %q", results[0]["id"], "500")
+	if results[0].ID != "500" {
+		t.Errorf("bug id = %v, want %q", results[0].ID, "500")
 	}
-	if results[0]["title"] != "Bug1" {
-		t.Errorf("bug title = %v, want %q", results[0]["title"], "Bug1")
+	if results[0].Title != "Bug1" {
+		t.Errorf("bug title = %v, want %q", results[0].Title, "Bug1")
 	}
-	if results[0]["status"] != "new" {
-		t.Errorf("bug status = %v, want %q", results[0]["status"], "new")
+	if results[0].Status != "new" {
+		t.Errorf("bug status = %v, want %q", results[0].Status, "new")
 	}
-	if results[0]["priority"] != "high" {
-		t.Errorf("bug priority = %v, want %q", results[0]["priority"], "high")
+	if results[0].Priority != "high" {
+		t.Errorf("bug priority = %v, want %q", results[0].Priority, "high")
+	}
+	if results[0].CurrentOwner != "test" {
+		t.Errorf("bug current_owner = %v, want %q", results[0].CurrentOwner, "test")
+	}
+	if results[0].Created != "2026-03-06" {
+		t.Errorf("bug created = %v, want %q", results[0].Created, "2026-03-06")
+	}
+}
+
+func TestListBugs_FiltersCustomFields(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		// 返回包含大量 custom_field 的数据，强类型反序列化应自动忽略
+		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"501","title":"Bug2","custom_field_1":"val1","custom_field_50":"val50","custom_field_100":"val100"}}],"info":"success"}`))
+	}))
+	defer srv.Close()
+
+	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	results, err := c.ListBugs(map[string]string{"workspace_id": "1"})
+	if err != nil {
+		t.Fatalf("ListBugs() unexpected error: %v", err)
+	}
+	if len(results) != 1 {
+		t.Fatalf("expected 1 bug, got %d", len(results))
+	}
+	if results[0].ID != "501" {
+		t.Errorf("bug id = %v, want %q", results[0].ID, "501")
+	}
+	if results[0].Title != "Bug2" {
+		t.Errorf("bug title = %v, want %q", results[0].Title, "Bug2")
 	}
 }
 
@@ -50,7 +80,7 @@ func TestGetBug_HTMLToMarkdown(t *testing.T) {
 			t.Errorf("unexpected path: %s, want /bugs", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"500","title":"Bug1","description":"<p>Steps to <em>reproduce</em></p>"}}],"info":"success"}`))
+		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"500","title":"Bug1","description":"<p>Steps to <em>reproduce</em></p>","current_owner":"DevinZeng","reporter":"tester","created":"2026-03-06 15:35:27","resolved":"2026-03-09 18:36:10","fixer":"DevinZeng","severity":"high","resolution":"fixed","iteration_id":"123"}}],"info":"success"}`))
 	}))
 	defer srv.Close()
 
@@ -60,20 +90,38 @@ func TestGetBug_HTMLToMarkdown(t *testing.T) {
 		t.Fatalf("GetBug() unexpected error: %v", err)
 	}
 
-	desc, ok := result["description"].(string)
-	if !ok {
-		t.Fatal("description is not a string")
-	}
-	if !strings.Contains(desc, "*reproduce*") {
-		t.Errorf("description = %q, want to contain %q", desc, "*reproduce*")
+	if !strings.Contains(result.Description, "*reproduce*") {
+		t.Errorf("description = %q, want to contain %q", result.Description, "*reproduce*")
 	}
 
-	urlStr, ok := result["url"].(string)
-	if !ok || urlStr == "" {
+	if result.URL == "" {
 		t.Error("url field should be populated")
 	}
-	if !strings.Contains(urlStr, "/1/bugtrace/bugs/view/500") {
-		t.Errorf("url = %q, want to contain %q", urlStr, "/1/bugtrace/bugs/view/500")
+	if !strings.Contains(result.URL, "/1/bugtrace/bugs/view/500") {
+		t.Errorf("url = %q, want to contain %q", result.URL, "/1/bugtrace/bugs/view/500")
+	}
+
+	// 验证新增字段正确映射
+	if result.CurrentOwner != "DevinZeng" {
+		t.Errorf("current_owner = %q, want %q", result.CurrentOwner, "DevinZeng")
+	}
+	if result.Reporter != "tester" {
+		t.Errorf("reporter = %q, want %q", result.Reporter, "tester")
+	}
+	if result.Created != "2026-03-06 15:35:27" {
+		t.Errorf("created = %q, want %q", result.Created, "2026-03-06 15:35:27")
+	}
+	if result.Resolved != "2026-03-09 18:36:10" {
+		t.Errorf("resolved = %q, want %q", result.Resolved, "2026-03-09 18:36:10")
+	}
+	if result.Fixer != "DevinZeng" {
+		t.Errorf("fixer = %q, want %q", result.Fixer, "DevinZeng")
+	}
+	if result.Resolution != "fixed" {
+		t.Errorf("resolution = %q, want %q", result.Resolution, "fixed")
+	}
+	if result.IterationID != "123" {
+		t.Errorf("iteration_id = %q, want %q", result.IterationID, "123")
 	}
 }
 

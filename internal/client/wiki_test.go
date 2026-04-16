@@ -29,11 +29,11 @@ func TestListWikis(t *testing.T) {
 	if len(results) != 1 {
 		t.Fatalf("expected 1 wiki, got %d", len(results))
 	}
-	if results[0]["id"] != "1151081496001001503" {
-		t.Errorf("wiki id = %v, want %q", results[0]["id"], "1151081496001001503")
+	if results[0].ID != "1151081496001001503" {
+		t.Errorf("wiki id = %v, want %q", results[0].ID, "1151081496001001503")
 	}
-	if results[0]["name"] != "技术架构" {
-		t.Errorf("wiki name = %v, want %q", results[0]["name"], "技术架构")
+	if results[0].Name != "技术架构" {
+		t.Errorf("wiki name = %v, want %q", results[0].Name, "技术架构")
 	}
 }
 
@@ -55,14 +55,14 @@ func TestGetWiki_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetWiki() unexpected error: %v", err)
 	}
-	if result["id"] != "1151081496001001503" {
-		t.Errorf("id = %v, want %q", result["id"], "1151081496001001503")
+	if result.ID != "1151081496001001503" {
+		t.Errorf("id = %v, want %q", result.ID, "1151081496001001503")
 	}
-	if result["name"] != "技术架构" {
-		t.Errorf("name = %v, want %q", result["name"], "技术架构")
+	if result.Name != "技术架构" {
+		t.Errorf("name = %v, want %q", result.Name, "技术架构")
 	}
-	if result["markdown_description"] == nil {
-		t.Error("markdown_description should not be nil")
+	if result.MarkdownDescription == "" {
+		t.Error("markdown_description should not be empty")
 	}
 }
 

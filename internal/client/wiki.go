@@ -4,10 +4,13 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+
+	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
-// ListWikis 查询 Wiki 文档列表
-func (c *Client) ListWikis(params map[string]string) ([]map[string]interface{}, error) {
+// ListWikis 查询 Wiki 文档列表，返回强类型 []model.Wiki
+func (c *Client) ListWikis(params map[string]string) ([]model.Wiki, error) {
 	data, err := c.doGet("/tapd_wikis", params)
 	if err != nil {
 		return nil, err
@@ -18,20 +21,21 @@ func (c *Client) ListWikis(params map[string]string) ([]map[string]interface{}, 
 		return nil, fmt.Errorf("failed to parse wiki list: %w", err)
 	}
 
-	var results []map[string]interface{}
+	var results []model.Wiki
 	for _, item := range rawList {
 		if raw, ok := item["Wiki"]; ok {
-			var obj map[string]interface{}
-			if err := json.Unmarshal(raw, &obj); err == nil {
-				results = append(results, obj)
+			var wiki model.Wiki
+			if err := json.Unmarshal(raw, &wiki); err == nil {
+				results = append(results, wiki)
 			}
 		}
 	}
 	return results, nil
 }
 
-// GetWiki 获取单个 Wiki 文档详情，返回包含 markdown_description 字段的完整内容
-func (c *Client) GetWiki(workspaceID, id string) (map[string]interface{}, error) {
+// GetWiki 获取单个 Wiki 文档详情，description 字段自动从 HTML 转换为 Markdown
+// 返回强类型 *model.Wiki，自动过滤无用字段
+func (c *Client) GetWiki(workspaceID, id string) (*model.Wiki, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,
 		"id":           id,
@@ -56,10 +60,18 @@ func (c *Client) GetWiki(workspaceID, id string) (map[string]interface{}, error)
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(raw, &result); err != nil {
+	var wiki model.Wiki
+	if err := json.Unmarshal(raw, &wiki); err != nil {
 		return nil, fmt.Errorf("failed to parse wiki: %w", err)
 	}
 
-	return result, nil
+	if wiki.Description != "" {
+		md, err := htmltomarkdown.ConvertString(wiki.Description)
+		if err == nil {
+			wiki.Description = md
+		}
+	}
+	wiki.URL = fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", workspaceID, id)
+
+	return &wiki, nil
 }

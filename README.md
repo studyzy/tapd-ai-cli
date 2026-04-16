@@ -79,6 +79,12 @@ tapd task list
 # 查看迭代列表
 tapd iteration list
 
+# 通过 URL 查询任意条目（需求/缺陷/任务/Wiki）
+tapd url https://www.tapd.cn/tapd_fe/51081496/story/detail/1151081496001028684
+
+# 查询 Wiki 文档列表
+tapd wiki list
+
 # 获取 Tool Definition（供 AI 自发现）
 tapd spec
 ```
@@ -87,12 +93,14 @@ tapd spec
 
 ```
 tapd
-├── auth login --access-token <token> | --api-user <user> --api-password <pwd> [--local]
+├── auth      login --access-token <token> | --api-user <user> --api-password <pwd> [--local]
 ├── workspace list | switch <id> | info
 ├── story     list | show <id> | create | update <id> | count
 ├── task      list | show <id> | create | update <id> | count
 ├── bug       list | show <id> | create | update <id> | count
+├── wiki      list | show <id>
 ├── iteration list
+├── url       <tapd-url>
 └── spec
 ```
 

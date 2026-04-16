@@ -399,3 +399,141 @@ func TestIntegration_WorkspaceSwitch(t *testing.T) {
 	}
 	t.Logf("workspace switch wrote .tapd.json with workspace_id=%s", cfg.WorkspaceID)
 }
+
+func TestIntegration_RunWikiList(t *testing.T) {
+	skipIfNoWorkspace(t)
+	setupIntegrationCmd(t)
+	flagLimit = 3
+	flagPage = 1
+	flagWikiName = ""
+
+	err := runWikiList(nil, nil)
+	if err != nil {
+		t.Fatalf("runWikiList failed: %v", err)
+	}
+}
+
+func TestIntegration_WikiList_Client(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	wikis, err := c.ListWikis(map[string]string{
+		"workspace_id": wsID,
+		"limit":        "3",
+		"fields":       "id,name,creator,modified",
+	})
+	if err != nil {
+		t.Fatalf("ListWikis failed: %v", err)
+	}
+	t.Logf("Found %d wikis", len(wikis))
+	for _, w := range wikis {
+		t.Logf("  Wiki: id=%v name=%v", w["id"], w["name"])
+	}
+}
+
+func TestIntegration_RunWikiShow(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 先获取一个真实 wiki id
+	wikis, err := c.ListWikis(map[string]string{
+		"workspace_id": wsID,
+		"limit":        "1",
+		"fields":       "id,name",
+	})
+	if err != nil {
+		t.Fatalf("ListWikis failed: %v", err)
+	}
+	if len(wikis) == 0 {
+		t.Skip("No wikis in workspace, skipping show test")
+	}
+
+	wikiID := wikis[0]["id"].(string)
+	t.Logf("Testing wiki show with id=%s", wikiID)
+
+	setupIntegrationCmd(t)
+	err = runWikiShow(nil, []string{wikiID})
+	if err != nil {
+		t.Fatalf("runWikiShow failed: %v", err)
+	}
+}
+
+func TestIntegration_URLCommand_StoryURL(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 获取一个真实 story id
+	stories, err := c.ListStories(map[string]string{
+		"workspace_id": wsID,
+		"entity_type":  "stories",
+		"limit":        "1",
+		"fields":       "id,name",
+	})
+	if err != nil || len(stories) == 0 {
+		t.Skip("No stories available for URL test")
+	}
+	storyID := stories[0]["id"].(string)
+	storyURL := "https://www.tapd.cn/tapd_fe/" + wsID + "/story/detail/" + storyID
+
+	// 验证 URL 解析
+	parsed, err := parseTAPDURL(storyURL)
+	if err != nil {
+		t.Fatalf("parseTAPDURL(%q) failed: %v", storyURL, err)
+	}
+	if parsed.EntityType != "story" {
+		t.Errorf("EntityType = %q, want %q", parsed.EntityType, "story")
+	}
+	if parsed.EntityID != storyID {
+		t.Errorf("EntityID = %q, want %q", parsed.EntityID, storyID)
+	}
+	if parsed.WorkspaceID != wsID {
+		t.Errorf("WorkspaceID = %q, want %q", parsed.WorkspaceID, wsID)
+	}
+
+	// 验证实际 API 调用
+	result, err := c.GetStory(wsID, storyID, "stories")
+	if err != nil {
+		t.Fatalf("GetStory via URL failed: %v", err)
+	}
+	t.Logf("URL→Story: id=%v name=%v", result["id"], result["name"])
+}
+
+func TestIntegration_URLCommand_WikiURL(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 获取一个真实 wiki id
+	wikis, err := c.ListWikis(map[string]string{
+		"workspace_id": wsID,
+		"limit":        "1",
+		"fields":       "id,name",
+	})
+	if err != nil || len(wikis) == 0 {
+		t.Skip("No wikis available for URL test")
+	}
+	wikiID := wikis[0]["id"].(string)
+	wikiURL := "https://www.tapd.cn/" + wsID + "/markdown_wikis/show/#" + wikiID
+
+	// 验证 URL 解析
+	parsed, err := parseTAPDURL(wikiURL)
+	if err != nil {
+		t.Fatalf("parseTAPDURL(%q) failed: %v", wikiURL, err)
+	}
+	if parsed.EntityType != "wiki" {
+		t.Errorf("EntityType = %q, want %q", parsed.EntityType, "wiki")
+	}
+	if parsed.EntityID != wikiID {
+		t.Errorf("EntityID = %q, want %q", parsed.EntityID, wikiID)
+	}
+
+	// 验证实际 API 调用
+	result, err := c.GetWiki(wsID, wikiID)
+	if err != nil {
+		t.Fatalf("GetWiki via URL failed: %v", err)
+	}
+	t.Logf("URL→Wiki: id=%v name=%v", result["id"], result["name"])
+}

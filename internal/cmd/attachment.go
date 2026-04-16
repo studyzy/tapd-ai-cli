@@ -94,7 +94,7 @@ func runImageGet(cmd *cobra.Command, args []string) error {
 
 	req := &model.GetImageRequest{
 		WorkspaceID: flagWorkspaceID,
-		ImageID:     flagImagePath,
+		ImagePath:   flagImagePath,
 	}
 
 	img, err := apiClient.GetImage(req)

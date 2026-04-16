@@ -28,19 +28,12 @@ const (
 
 // PrintJSON 将数据以 JSON 格式写入 writer，支持紧凑和缩进两种模式
 func PrintJSON(w io.Writer, data interface{}, compact bool) error {
-	var b []byte
-	var err error
-	if compact {
-		b, err = json.Marshal(data)
-	} else {
-		b, err = json.MarshalIndent(data, "", "  ")
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	if !compact {
+		enc.SetIndent("", "  ")
 	}
-	if err != nil {
-		return err
-	}
-	b = append(b, '\n')
-	_, err = w.Write(b)
-	return err
+	return enc.Encode(data)
 }
 
 // PrintError 将错误信息以 JSON 格式写入 writer（始终使用紧凑模式）
@@ -50,9 +43,9 @@ func PrintError(w io.Writer, code string, message string, hint string) {
 		Message: message,
 		Hint:    hint,
 	}
-	b, _ := json.Marshal(resp)
-	b = append(b, '\n')
-	w.Write(b)
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	enc.Encode(resp)
 }
 
 // PrintSuccess 将成功响应以紧凑 JSON 格式写入 writer

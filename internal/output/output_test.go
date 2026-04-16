@@ -86,6 +86,19 @@ func TestPrintError(t *testing.T) {
 	}
 }
 
+func TestPrintError_NoHTMLEscape(t *testing.T) {
+	var buf bytes.Buffer
+	output.PrintError(&buf, "auth_error", "invalid", "run 'tapd auth login --api-user <user>'")
+	got := buf.String()
+	// 确保尖括号不被转义为 \u003c / \u003e
+	if strings.Contains(got, `\u003c`) || strings.Contains(got, `\u003e`) {
+		t.Errorf("angle brackets should not be HTML-escaped, got: %s", got)
+	}
+	if !strings.Contains(got, "<user>") {
+		t.Errorf("expected literal <user> in output, got: %s", got)
+	}
+}
+
 func TestPrintError_EmptyHint(t *testing.T) {
 	var buf bytes.Buffer
 	output.PrintError(&buf, "not_found", "resource not found", "")

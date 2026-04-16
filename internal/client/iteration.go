@@ -27,3 +27,59 @@ func (c *Client) ListIterations(params map[string]string) ([]model.Iteration, er
 	}
 	return iterations, nil
 }
+
+// CreateIteration 创建迭代
+func (c *Client) CreateIteration(params map[string]string) (*model.SuccessResponse, error) {
+	data, err := c.doPost("/iterations", params)
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper map[string]json.RawMessage
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return nil, fmt.Errorf("failed to parse create iteration response: %w", err)
+	}
+
+	raw, ok := wrapper["Iteration"]
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+
+	var created model.Iteration
+	if err := json.Unmarshal(raw, &created); err != nil {
+		return nil, fmt.Errorf("failed to parse created iteration: %w", err)
+	}
+
+	wsID := params["workspace_id"]
+
+	return &model.SuccessResponse{
+		Success:     true,
+		ID:          created.ID,
+		WorkspaceID: wsID,
+	}, nil
+}
+
+// UpdateIteration 更新迭代
+func (c *Client) UpdateIteration(params map[string]string) (*model.Iteration, error) {
+	data, err := c.doPost("/iterations", params)
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper map[string]json.RawMessage
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return nil, fmt.Errorf("failed to parse update iteration response: %w", err)
+	}
+
+	raw, ok := wrapper["Iteration"]
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+
+	var iteration model.Iteration
+	if err := json.Unmarshal(raw, &iteration); err != nil {
+		return nil, fmt.Errorf("failed to parse updated iteration: %w", err)
+	}
+
+	return &iteration, nil
+}

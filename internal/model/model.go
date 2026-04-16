@@ -23,11 +23,17 @@ type Workspace struct {
 
 // Iteration 表示 TAPD 迭代
 type Iteration struct {
-	ID        string `json:"id,omitempty"`
-	Name      string `json:"name,omitempty"`
-	Status    string `json:"status,omitempty"`
-	StartDate string `json:"startdate,omitempty"`
-	EndDate   string `json:"enddate,omitempty"`
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Status      string `json:"status,omitempty"`
+	StartDate   string `json:"startdate,omitempty"`
+	EndDate     string `json:"enddate,omitempty"`
+	Description string `json:"description,omitempty"`
+	Creator     string `json:"creator,omitempty"`
+	Created     string `json:"created,omitempty"`
+	Modified    string `json:"modified,omitempty"`
+	Completed   string `json:"completed,omitempty"`
+	WorkspaceID string `json:"workspace_id,omitempty"`
 }
 
 // ListResponse 表示列表查询的通用响应结构

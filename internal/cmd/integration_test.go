@@ -516,6 +516,188 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	t.Logf("URL→Story: id=%v name=%v", urlStory.ID, urlStory.Name)
 }
 
+// TestIntegration_E2E_StoryCommentFlow 创建需求后，对其进行添加评论、查询评论、更新评论、查询评论数量的端到端测试
+func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 步骤 1：创建需求
+	storyResult, err := c.CreateStory(map[string]string{
+		"workspace_id": wsID,
+		"name":         "[tapd-ai-cli integration test] 评论功能测试需求",
+	}, "stories")
+	if err != nil {
+		t.Fatalf("CreateStory failed: %v", err)
+	}
+	if !storyResult.Success || storyResult.ID == "" {
+		t.Fatalf("Expected success with ID, got: %+v", storyResult)
+	}
+	storyID := storyResult.ID
+	t.Logf("Step 1: Created story id=%s", storyID)
+
+	// 清理：标记需求为废弃
+	t.Cleanup(func() {
+		_, err := c.UpdateStory(map[string]string{
+			"workspace_id": wsID,
+			"id":           storyID,
+			"name":         "[已废弃-自动化测试] 评论功能测试需求-请忽略",
+		}, "stories")
+		if err != nil {
+			t.Logf("Cleanup: failed to mark story %s as deprecated: %v", storyID, err)
+		} else {
+			t.Logf("Cleanup: marked story %s as deprecated", storyID)
+		}
+	})
+
+	// 步骤 2：添加评论（API 客户端层）
+	c.FetchNick()
+	author := c.Nick
+	if author == "" {
+		author = os.Getenv("TAPD_API_USER")
+	}
+	t.Logf("Step 2: using author=%q for comment", author)
+	comment, err := c.AddComment(map[string]string{
+		"workspace_id": wsID,
+		"entry_type":   "stories",
+		"entry_id":     storyID,
+		"description":  "这是一条自动化测试评论",
+		"author":       author,
+	})
+	if err != nil {
+		t.Fatalf("AddComment failed: %v", err)
+	}
+	if comment.ID == "" {
+		t.Fatalf("Expected comment ID, got empty")
+	}
+	commentID := comment.ID
+	t.Logf("Step 2: Added comment id=%s author=%s", commentID, comment.Author)
+
+	// 步骤 3：查询评论列表
+	comments, err := c.ListComments(map[string]string{
+		"workspace_id": wsID,
+		"entry_type":   "stories",
+		"entry_id":     storyID,
+	})
+	if err != nil {
+		t.Fatalf("ListComments failed: %v", err)
+	}
+	if len(comments) == 0 {
+		t.Fatal("Expected at least 1 comment, got 0")
+	}
+	found := false
+	for _, cm := range comments {
+		if cm.ID == commentID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("Comment %s not found in list results", commentID)
+	}
+	t.Logf("Step 3: Listed %d comments, found target comment=%s", len(comments), commentID)
+
+	// 步骤 4：更新评论
+	updated, err := c.UpdateComment(map[string]string{
+		"workspace_id":   wsID,
+		"id":             commentID,
+		"description":    "这是更新后的自动化测试评论",
+		"change_creator": c.Nick,
+	})
+	if err != nil {
+		t.Fatalf("UpdateComment failed: %v", err)
+	}
+	if updated.ID != commentID {
+		t.Errorf("Updated comment id=%q, want %q", updated.ID, commentID)
+	}
+	if updated.Description == "" {
+		t.Error("Updated comment description should not be empty")
+	}
+	t.Logf("Step 4: Updated comment id=%s description=%s", updated.ID, updated.Description)
+
+	// 步骤 5：查询评论数量
+	count, err := c.CountComments(map[string]string{
+		"workspace_id": wsID,
+		"entry_type":   "stories",
+		"entry_id":     storyID,
+	})
+	if err != nil {
+		t.Fatalf("CountComments failed: %v", err)
+	}
+	if count < 1 {
+		t.Errorf("Expected count >= 1, got %d", count)
+	}
+	t.Logf("Step 5: Comment count=%d", count)
+}
+
+// TestIntegration_E2E_StoryCommentFlow_Cmd 使用命令层函数完成评论的端到端测试
+func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
+	skipIfNoWorkspace(t)
+	c := setupIntegrationClient(t)
+	wsID := os.Getenv("TAPD_WORKSPACE_ID")
+
+	// 创建需求
+	storyResult, err := c.CreateStory(map[string]string{
+		"workspace_id": wsID,
+		"name":         "[tapd-ai-cli integration test] 评论命令层测试需求",
+	}, "stories")
+	if err != nil {
+		t.Fatalf("CreateStory failed: %v", err)
+	}
+	storyID := storyResult.ID
+	t.Logf("Created story id=%s for cmd-level comment test", storyID)
+
+	t.Cleanup(func() {
+		_, err := c.UpdateStory(map[string]string{
+			"workspace_id": wsID,
+			"id":           storyID,
+			"name":         "[已废弃-自动化测试] 评论命令层测试需求-请忽略",
+		}, "stories")
+		if err != nil {
+			t.Logf("Cleanup: failed to mark story %s as deprecated: %v", storyID, err)
+		}
+	})
+
+	setupIntegrationCmd(t)
+	if apiClient.Nick == "" {
+		apiClient.FetchNick()
+	}
+
+	// 测试 runCommentAdd
+	flagEntryType = "stories"
+	flagEntryID = storyID
+	flagDescription = "命令层集成测试评论"
+	flagCommentAuthor = ""
+	flagReplyID = ""
+	err = runCommentAdd(nil, nil)
+	if err != nil {
+		t.Fatalf("runCommentAdd failed: %v", err)
+	}
+	t.Log("runCommentAdd succeeded")
+
+	// 测试 runCommentList
+	flagEntryType = "stories"
+	flagEntryID = storyID
+	flagCommentAuthor = ""
+	flagOrder = ""
+	flagLimit = 10
+	flagPage = 1
+	err = runCommentList(nil, nil)
+	if err != nil {
+		t.Fatalf("runCommentList failed: %v", err)
+	}
+	t.Log("runCommentList succeeded")
+
+	// 测试 runCommentCount
+	flagEntryType = "stories"
+	flagEntryID = storyID
+	err = runCommentCount(nil, nil)
+	if err != nil {
+		t.Fatalf("runCommentCount failed: %v", err)
+	}
+	t.Log("runCommentCount succeeded")
+}
+
 func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	skipIfNoWorkspace(t)
 	c := setupIntegrationClient(t)

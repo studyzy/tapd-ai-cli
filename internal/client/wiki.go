@@ -75,3 +75,57 @@ func (c *Client) GetWiki(workspaceID, id string) (*model.Wiki, error) {
 
 	return &wiki, nil
 }
+
+// CreateWiki 创建 Wiki 文档
+func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.SuccessResponse, error) {
+	data, err := c.doPost("/tapd_wikis", req.ToParams())
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper map[string]json.RawMessage
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return nil, fmt.Errorf("failed to parse create wiki response: %w", err)
+	}
+
+	raw, ok := wrapper["Wiki"]
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+
+	var created model.Wiki
+	if err := json.Unmarshal(raw, &created); err != nil {
+		return nil, fmt.Errorf("failed to parse created wiki: %w", err)
+	}
+
+	return &model.SuccessResponse{
+		Success: true,
+		ID:      created.ID,
+		URL:     fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", req.WorkspaceID, created.ID),
+	}, nil
+}
+
+// UpdateWiki 更新 Wiki 文档
+func (c *Client) UpdateWiki(req *model.UpdateWikiRequest) (*model.Wiki, error) {
+	data, err := c.doPost("/tapd_wikis", req.ToParams())
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper map[string]json.RawMessage
+	if err := json.Unmarshal(data, &wrapper); err != nil {
+		return nil, fmt.Errorf("failed to parse update wiki response: %w", err)
+	}
+
+	raw, ok := wrapper["Wiki"]
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+
+	var wiki model.Wiki
+	if err := json.Unmarshal(raw, &wiki); err != nil {
+		return nil, fmt.Errorf("failed to parse updated wiki: %w", err)
+	}
+
+	return &wiki, nil
+}

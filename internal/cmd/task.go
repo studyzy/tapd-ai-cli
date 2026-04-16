@@ -50,6 +50,12 @@ var taskCountCmd = &cobra.Command{
 	RunE:  runTaskCount,
 }
 
+var taskTodoCmd = &cobra.Command{
+	Use:   "todo",
+	Short: "查询当前用户待办任务",
+	RunE:  runTaskTodo,
+}
+
 func init() {
 	taskListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/progressing/done）")
 	taskListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
@@ -68,7 +74,10 @@ func init() {
 
 	taskCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
 
-	taskCmd.AddCommand(taskListCmd, taskShowCmd, taskCreateCmd, taskUpdateCmd, taskCountCmd)
+	taskTodoCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
+	taskTodoCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
+
+	taskCmd.AddCommand(taskListCmd, taskShowCmd, taskCreateCmd, taskUpdateCmd, taskCountCmd, taskTodoCmd)
 	rootCmd.AddCommand(taskCmd)
 }
 
@@ -175,4 +184,26 @@ func runTaskCount(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 	return output.PrintJSON(os.Stdout, &model.CountResponse{Count: count}, !flagPretty)
+}
+
+func runTaskTodo(cmd *cobra.Command, args []string) error {
+	req := &model.GetTodoRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  "task",
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
+	}
+	tasks, err := apiClient.GetTodoTasks(req)
+	if err != nil {
+		output.PrintError(os.Stderr, "api_error", err.Error(), "")
+		os.Exit(output.ExitAPIError)
+		return nil
+	}
+
+	resp := &model.ListResponse{
+		Items: tasks,
+		Page:  flagPage,
+		Limit: flagLimit,
+	}
+	return output.PrintJSON(os.Stdout, resp, !flagPretty)
 }

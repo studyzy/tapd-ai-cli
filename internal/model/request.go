@@ -63,16 +63,26 @@ func (r *GetCommitMsgRequest) ToParams() map[string]string {
 }
 
 // GetTodoRequest 获取用户待办事项的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/user/get_user_todo_story.html
 type GetTodoRequest struct {
 	WorkspaceID string // 必填：项目 ID
 	EntityType  string // 必填：对象类型（story/bug/task）
+	Limit       string // 可选：返回数量限制（默认 30，最大 200）
+	Page        string // 可选：页码（默认 1）
+	Order       string // 可选：排序规则
+	Fields      string // 可选：返回字段列表（逗号分隔）
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
 func (r *GetTodoRequest) ToParams() map[string]string {
-	return map[string]string{
+	params := map[string]string{
 		"workspace_id": r.WorkspaceID,
 	}
+	setOptional(params, "limit", r.Limit)
+	setOptional(params, "page", r.Page)
+	setOptional(params, "order", r.Order)
+	setOptional(params, "fields", r.Fields)
+	return params
 }
 
 // GetRelatedBugsRequest 获取需求关联缺陷的请求参数

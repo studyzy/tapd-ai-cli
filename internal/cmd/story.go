@@ -59,6 +59,12 @@ var storyCountCmd = &cobra.Command{
 	RunE:  runStoryCount,
 }
 
+var storyTodoCmd = &cobra.Command{
+	Use:   "todo",
+	Short: "查询当前用户待办需求",
+	RunE:  runStoryTodo,
+}
+
 func init() {
 	storyListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
 	storyListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
@@ -79,7 +85,10 @@ func init() {
 
 	storyCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
 
-	storyCmd.AddCommand(storyListCmd, storyShowCmd, storyCreateCmd, storyUpdateCmd, storyCountCmd)
+	storyTodoCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
+	storyTodoCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
+
+	storyCmd.AddCommand(storyListCmd, storyShowCmd, storyCreateCmd, storyUpdateCmd, storyCountCmd, storyTodoCmd)
 	rootCmd.AddCommand(storyCmd)
 }
 
@@ -188,6 +197,28 @@ func runStoryCount(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 	return output.PrintJSON(os.Stdout, &model.CountResponse{Count: count}, !flagPretty)
+}
+
+func runStoryTodo(cmd *cobra.Command, args []string) error {
+	req := &model.GetTodoRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  "story",
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
+	}
+	stories, err := apiClient.GetTodoStories(req)
+	if err != nil {
+		output.PrintError(os.Stderr, "api_error", err.Error(), "")
+		os.Exit(output.ExitAPIError)
+		return nil
+	}
+
+	resp := &model.ListResponse{
+		Items: stories,
+		Page:  flagPage,
+		Limit: flagLimit,
+	}
+	return output.PrintJSON(os.Stdout, resp, !flagPretty)
 }
 
 // addOptionalParam 当值非空时添加到参数 map

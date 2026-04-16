@@ -53,6 +53,12 @@ var bugCountCmd = &cobra.Command{
 	RunE:  runBugCount,
 }
 
+var bugTodoCmd = &cobra.Command{
+	Use:   "todo",
+	Short: "查询当前用户待办缺陷",
+	RunE:  runBugTodo,
+}
+
 func init() {
 	bugListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
 	bugListCmd.Flags().StringVar(&flagPriority, "priority", "", "按优先级筛选（urgent/high/medium/low/insignificant）")
@@ -72,7 +78,10 @@ func init() {
 
 	bugCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
 
-	bugCmd.AddCommand(bugListCmd, bugShowCmd, bugCreateCmd, bugUpdateCmd, bugCountCmd)
+	bugTodoCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
+	bugTodoCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
+
+	bugCmd.AddCommand(bugListCmd, bugShowCmd, bugCreateCmd, bugUpdateCmd, bugCountCmd, bugTodoCmd)
 	rootCmd.AddCommand(bugCmd)
 }
 
@@ -174,4 +183,26 @@ func runBugCount(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 	return output.PrintJSON(os.Stdout, &model.CountResponse{Count: count}, !flagPretty)
+}
+
+func runBugTodo(cmd *cobra.Command, args []string) error {
+	req := &model.GetTodoRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  "bug",
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
+	}
+	bugs, err := apiClient.GetTodoBugs(req)
+	if err != nil {
+		output.PrintError(os.Stderr, "api_error", err.Error(), "")
+		os.Exit(output.ExitAPIError)
+		return nil
+	}
+
+	resp := &model.ListResponse{
+		Items: bugs,
+		Page:  flagPage,
+		Limit: flagLimit,
+	}
+	return output.PrintJSON(os.Stdout, resp, !flagPretty)
 }

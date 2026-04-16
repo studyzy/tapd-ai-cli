@@ -95,75 +95,127 @@ func TestListReleases_Empty(t *testing.T) {
 	}
 }
 
-func TestGetTodo_Story(t *testing.T) {
+func TestGetTodoStories(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/user_oauth/get_user_todo_story" {
 			t.Errorf("unexpected path: %s, want /user_oauth/get_user_todo_story", r.URL.Path)
 		}
-		// entity_type 应已被删除，不作为查询参数传递
-		if r.URL.Query().Get("entity_type") != "" {
-			t.Errorf("entity_type should be removed from params, got %q", r.URL.Query().Get("entity_type"))
+		if r.URL.Query().Get("workspace_id") != "1" {
+			t.Errorf("workspace_id = %q, want %q", r.URL.Query().Get("workspace_id"), "1")
+		}
+		if r.URL.Query().Get("limit") != "5" {
+			t.Errorf("limit = %q, want %q", r.URL.Query().Get("limit"), "5")
+		}
+		if r.URL.Query().Get("page") != "2" {
+			t.Errorf("page = %q, want %q", r.URL.Query().Get("page"), "2")
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":[{"id":"100","name":"待办需求"}],"info":"success"}`))
+		w.Write([]byte(`{"status":1,"data":[{"Story":{"id":"100","name":"待办需求","status":"open","owner":"user1"}}],"info":"success"}`))
 	}))
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetTodo(&model.GetTodoRequest{
+	stories, err := c.GetTodoStories(&model.GetTodoRequest{
 		WorkspaceID: "1",
 		EntityType:  "story",
+		Limit:       "5",
+		Page:        "2",
 	})
 	if err != nil {
-		t.Fatalf("GetTodo() unexpected error: %v", err)
+		t.Fatalf("GetTodoStories() unexpected error: %v", err)
 	}
-
-	var data []map[string]interface{}
-	if err := json.Unmarshal(result, &data); err != nil {
-		t.Fatalf("failed to parse result: %v", err)
+	if len(stories) != 1 {
+		t.Fatalf("expected 1 story, got %d", len(stories))
 	}
-	if len(data) != 1 {
-		t.Fatalf("expected 1 item, got %d", len(data))
+	if stories[0].ID != "100" {
+		t.Errorf("story id = %q, want %q", stories[0].ID, "100")
+	}
+	if stories[0].Name != "待办需求" {
+		t.Errorf("story name = %q, want %q", stories[0].Name, "待办需求")
+	}
+	if stories[0].Owner != "user1" {
+		t.Errorf("story owner = %q, want %q", stories[0].Owner, "user1")
 	}
 }
 
-func TestGetTodo_Bug(t *testing.T) {
+func TestGetTodoStories_Empty(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/user_oauth/get_user_todo_bug" {
-			t.Errorf("unexpected path: %s, want /user_oauth/get_user_todo_bug", r.URL.Path)
-		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":1,"data":[],"info":"success"}`))
 	}))
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.GetTodo(&model.GetTodoRequest{
+	stories, err := c.GetTodoStories(&model.GetTodoRequest{
 		WorkspaceID: "1",
-		EntityType:  "bug",
+		EntityType:  "story",
 	})
 	if err != nil {
-		t.Fatalf("GetTodo(bug) unexpected error: %v", err)
+		t.Fatalf("GetTodoStories() unexpected error: %v", err)
+	}
+	if len(stories) != 0 {
+		t.Errorf("expected 0 stories, got %d", len(stories))
 	}
 }
 
-func TestGetTodo_Task(t *testing.T) {
+func TestGetTodoTasks(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/user_oauth/get_user_todo_task" {
 			t.Errorf("unexpected path: %s, want /user_oauth/get_user_todo_task", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":[],"info":"success"}`))
+		w.Write([]byte(`{"status":1,"data":[{"Task":{"id":"200","name":"待办任务","status":"open","owner":"user2"}}],"info":"success"}`))
 	}))
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	_, err := c.GetTodo(&model.GetTodoRequest{
+	tasks, err := c.GetTodoTasks(&model.GetTodoRequest{
 		WorkspaceID: "1",
 		EntityType:  "task",
 	})
 	if err != nil {
-		t.Fatalf("GetTodo(task) unexpected error: %v", err)
+		t.Fatalf("GetTodoTasks() unexpected error: %v", err)
+	}
+	if len(tasks) != 1 {
+		t.Fatalf("expected 1 task, got %d", len(tasks))
+	}
+	if tasks[0].ID != "200" {
+		t.Errorf("task id = %q, want %q", tasks[0].ID, "200")
+	}
+	if tasks[0].Name != "待办任务" {
+		t.Errorf("task name = %q, want %q", tasks[0].Name, "待办任务")
+	}
+}
+
+func TestGetTodoBugs(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/user_oauth/get_user_todo_bug" {
+			t.Errorf("unexpected path: %s, want /user_oauth/get_user_todo_bug", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"300","title":"待办缺陷","status":"new","current_owner":"user3","severity":"normal"}}],"info":"success"}`))
+	}))
+	defer srv.Close()
+
+	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	bugs, err := c.GetTodoBugs(&model.GetTodoRequest{
+		WorkspaceID: "1",
+		EntityType:  "bug",
+	})
+	if err != nil {
+		t.Fatalf("GetTodoBugs() unexpected error: %v", err)
+	}
+	if len(bugs) != 1 {
+		t.Fatalf("expected 1 bug, got %d", len(bugs))
+	}
+	if bugs[0].ID != "300" {
+		t.Errorf("bug id = %q, want %q", bugs[0].ID, "300")
+	}
+	if bugs[0].Title != "待办缺陷" {
+		t.Errorf("bug title = %q, want %q", bugs[0].Title, "待办缺陷")
+	}
+	if bugs[0].Severity != "normal" {
+		t.Errorf("bug severity = %q, want %q", bugs[0].Severity, "normal")
 	}
 }
 

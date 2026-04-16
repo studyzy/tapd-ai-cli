@@ -175,6 +175,7 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		EntityType:    "stories",
 		Description:   description,
 		Owner:         flagOwner,
+		Creator:       apiClient.Nick,
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
 		ParentID:      flagParentID,

@@ -159,6 +159,7 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		EntityType:    "tasks",
 		Description:   description,
 		Owner:         flagOwner,
+		Creator:       apiClient.Nick,
 		PriorityLabel: flagPriority,
 		StoryID:       flagStoryID,
 	}

@@ -159,6 +159,7 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		WorkspaceID:   flagWorkspaceID,
 		Title:         flagTitle,
 		Description:   description,
+		Reporter:      apiClient.Nick,
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 	}

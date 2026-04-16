@@ -68,7 +68,7 @@ export TAPD_API_PASSWORD=<password>
 ## 全局标志
 
 - `--workspace-id <id>` — 指定工作区 ID（覆盖本地配置）
-- `--compact` — 输出紧凑 JSON（节省 token）
+- `--pretty` — 输出格式化 JSON（带缩进，方便人类阅读；默认输出紧凑 JSON 以节省 token）
 
 ## 许可证
 

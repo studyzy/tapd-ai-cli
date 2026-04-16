@@ -18,7 +18,7 @@ tapd-ai-cli is a Go CLI tool that interacts with the TAPD (Tencent Agile Product
 
 ```bash
 # Build
-go build -o tapd .
+go build -o tapd ./cmd/tapd/
 
 # Run all tests
 go test ./...
@@ -41,11 +41,12 @@ go vet ./...
 ### Planned Directory Structure
 
 ```
-cmd/           # Cobra 命令定义 (root, auth, workspace, story, task, bug, iteration, spec)
+cmd/tapd/       # 入口 main.go (go install 目标)
 internal/
+  cmd/         # Cobra 命令定义 (root, auth, workspace, story, task, bug, iteration, spec)
   client/      # TAPD API HTTP 客户端封装 (认证、请求构造、响应解析)
   config/      # 多来源凭据管理 (CLI flags > env > ./.tapd.json > ~/.tapd.json)
-  output/      # JSON 输出格式化 (compact、omitempty、列表截断)
+  output/      # JSON 输出格式化 (默认紧凑、omitempty、列表截断)
   model/       # TAPD 数据模型 (Workspace, Story, Task, Bug, Iteration)
 docs/          # 需求文档
 ```
@@ -62,15 +63,15 @@ tapd
 ├── iteration list
 └── spec    # 输出 OpenAI/Anthropic 兼容的 Tool Definition JSON
 
-Global flags: --workspace-id <id>, --compact
+Global flags: --workspace-id <id>, --pretty
 ```
 
 ### Key Design Patterns
 
-1. **Command layer (cmd/)**: Parameter parsing and output formatting only. MUST NOT construct HTTP requests directly.
-2. **API client layer (internal/client/)**: Unified HTTP wrapper handling auth headers, error mapping, and retry. All TAPD API calls go through here.
+1. **Command layer (internal/cmd/)**: Parameter parsing and output formatting only. MUST NOT construct HTTP requests directly.
+2. **API client layer (internal/client/)**: Unified HTTP wrapper handling auth headers, error mapping. All TAPD API calls go through here.
 3. **Execution flow per command**: Argument parsing -> API call -> Response transformation -> Formatted output.
-4. **Output format**: Default JSON with `omitempty` on all structs. `--compact` flag strips whitespace. Lists truncated to 10 items by default with pagination hint.
+4. **Output format**: Default compact JSON with `omitempty` on all structs. `--pretty` flag adds indentation for human reading. Lists truncated to 10 items by default with pagination hint.
 5. **Error handling**: Distinct exit codes (0=success, 1=auth error, 2=not found, 3=param error, 4=API error). Errors to stderr with actionable hints.
 6. **Credential resolution order**: CLI flags > env vars (`TAPD_ACCESS_TOKEN` or `TAPD_API_USER`/`TAPD_API_PASSWORD`) > `./.tapd.json` > `~/.tapd.json`. Within same level, access_token takes priority over api_user/api_password. Strict priority, no merging.
 

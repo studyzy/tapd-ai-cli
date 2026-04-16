@@ -12,13 +12,13 @@ import (
 )
 
 var (
-	flagTCaseID     string
-	flagPrecondition string
-	flagSteps       string
-	flagExpectation string
-	flagType        string
-	flagCreator     string
-	flagTCasesJSON  string
+	flagTCaseID       string
+	flagTCasePrecondition string
+	flagTCaseSteps       string
+	flagTCaseExpectation string
+	flagTCaseType        string
+	flagTCaseCreator     string
+	flagTCasesJSON    string
 )
 
 // tcaseCmd 是 tcase 父命令
@@ -48,19 +48,19 @@ var tcaseBatchCreateCmd = &cobra.Command{
 func init() {
 	tcaseListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（updating|abandon|normal）")
 	tcaseListCmd.Flags().StringVar(&flagPriority, "priority", "", "按等级筛选")
-	tcaseListCmd.Flags().StringVar(&flagCreator, "creator", "", "按创建人筛选")
+	tcaseListCmd.Flags().StringVar(&flagTCaseCreator, "creator", "", "按创建人筛选")
 	tcaseListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	tcaseListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 
 	tcaseCreateCmd.Flags().StringVar(&flagTCaseID, "id", "", "测试用例 ID（有值时为更新，无值时为创建）")
 	tcaseCreateCmd.Flags().StringVar(&flagName, "name", "", "用例名称（创建时必需）")
 	tcaseCreateCmd.Flags().StringVar(&flagStatus, "status", "", "状态（updating|abandon|normal）")
-	tcaseCreateCmd.Flags().StringVar(&flagPrecondition, "precondition", "", "前置条件")
-	tcaseCreateCmd.Flags().StringVar(&flagSteps, "steps", "", "用例步骤")
-	tcaseCreateCmd.Flags().StringVar(&flagExpectation, "expectation", "", "预期结果")
-	tcaseCreateCmd.Flags().StringVar(&flagType, "type", "", "用例类型")
+	tcaseCreateCmd.Flags().StringVar(&flagTCasePrecondition, "precondition", "", "前置条件")
+	tcaseCreateCmd.Flags().StringVar(&flagTCaseSteps, "steps", "", "用例步骤")
+	tcaseCreateCmd.Flags().StringVar(&flagTCaseExpectation, "expectation", "", "预期结果")
+	tcaseCreateCmd.Flags().StringVar(&flagTCaseType, "type", "", "用例类型")
 	tcaseCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "用例等级")
-	tcaseCreateCmd.Flags().StringVar(&flagCreator, "creator", "", "创建人")
+	tcaseCreateCmd.Flags().StringVar(&flagTCaseCreator, "creator", "", "创建人")
 
 	tcaseBatchCreateCmd.Flags().StringVar(&flagTCasesJSON, "tcases", "", "测试用例 JSON 数组（必需）")
 
@@ -74,7 +74,7 @@ func runTCaseList(cmd *cobra.Command, args []string) error {
 	}
 	addOptionalParam(params, "status", flagStatus)
 	addOptionalParam(params, "priority", flagPriority)
-	addOptionalParam(params, "creator", flagCreator)
+	addOptionalParam(params, "creator", flagTCaseCreator)
 	addPaginationParams(params, flagLimit, flagPage)
 
 	tcases, err := apiClient.ListTCases(params)
@@ -89,7 +89,7 @@ func runTCaseList(cmd *cobra.Command, args []string) error {
 	}
 	addOptionalParam(countParams, "status", flagStatus)
 	addOptionalParam(countParams, "priority", flagPriority)
-	addOptionalParam(countParams, "creator", flagCreator)
+	addOptionalParam(countParams, "creator", flagTCaseCreator)
 	total, _ := apiClient.CountTCases(countParams)
 
 	resp := &model.ListResponse{
@@ -117,12 +117,12 @@ func runTCaseCreate(cmd *cobra.Command, args []string) error {
 	addOptionalParam(params, "id", flagTCaseID)
 	addOptionalParam(params, "name", flagName)
 	addOptionalParam(params, "status", flagStatus)
-	addOptionalParam(params, "precondition", flagPrecondition)
-	addOptionalParam(params, "steps", flagSteps)
-	addOptionalParam(params, "expectation", flagExpectation)
-	addOptionalParam(params, "type", flagType)
+	addOptionalParam(params, "precondition", flagTCasePrecondition)
+	addOptionalParam(params, "steps", flagTCaseSteps)
+	addOptionalParam(params, "expectation", flagTCaseExpectation)
+	addOptionalParam(params, "type", flagTCaseType)
 	addOptionalParam(params, "priority", flagPriority)
-	addOptionalParam(params, "creator", flagCreator)
+	addOptionalParam(params, "creator", flagTCaseCreator)
 
 	result, err := apiClient.CreateTCase(params)
 	if err != nil {

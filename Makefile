@@ -1,4 +1,4 @@
-.PHONY: build test test-integration lint coverage clean fmt
+.PHONY: build test test-integration lint coverage clean fmt install
 
 BINARY_NAME=tapd
 
@@ -22,6 +22,9 @@ fmt:
 coverage:
 	go test ./... -coverprofile=coverage.out
 	go tool cover -func=coverage.out
+
+install:
+	go install ./cmd/tapd/
 
 clean:
 	rm -f $(BINARY_NAME) coverage.out

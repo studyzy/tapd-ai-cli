@@ -33,14 +33,22 @@ var commentListCmd = &cobra.Command{
 var commentAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "添加评论",
-	RunE:  runCommentAdd,
+	Long: `添加评论，评论内容支持三种输入方式：
+  1. --description <text>  直接传入评论内容
+  2. --file <path>         从本地文件读取评论内容
+  3. echo "..." | tapd comment add --entry-type <type> --entry-id <id>  通过 stdin 管道输入`,
+	RunE: runCommentAdd,
 }
 
 var commentUpdateCmd = &cobra.Command{
 	Use:   "update <comment_id>",
 	Short: "更新评论",
-	Args:  cobra.ExactArgs(1),
-	RunE:  runCommentUpdate,
+	Long: `更新评论，评论内容支持三种输入方式：
+  1. --description <text>  直接传入评论内容
+  2. --file <path>         从本地文件读取评论内容
+  3. echo "..." | tapd comment update <comment_id>  通过 stdin 管道输入`,
+	Args: cobra.ExactArgs(1),
+	RunE: runCommentUpdate,
 }
 
 var commentCountCmd = &cobra.Command{
@@ -61,12 +69,14 @@ func init() {
 	// add 子命令
 	commentAddCmd.Flags().StringVar(&flagEntryType, "entry-type", "", "评论类型（stories|bug|tasks，必需）")
 	commentAddCmd.Flags().StringVar(&flagEntryID, "entry-id", "", "条目 ID（必需）")
-	commentAddCmd.Flags().StringVar(&flagDescription, "description", "", "评论内容（必需）")
+	commentAddCmd.Flags().StringVar(&flagDescription, "description", "", "评论内容")
+	commentAddCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取评论内容")
 	commentAddCmd.Flags().StringVar(&flagCommentAuthor, "author", "", "评论人（可选，默认使用当前登录用户）")
 	commentAddCmd.Flags().StringVar(&flagReplyID, "reply-id", "", "回复的评论 ID（可选）")
 
 	// update 子命令
-	commentUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新的评论内容（必需）")
+	commentUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新的评论内容")
+	commentUpdateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取评论内容")
 
 	// count 子命令
 	commentCountCmd.Flags().StringVar(&flagEntryType, "entry-type", "", "评论类型（stories|bug|tasks）")
@@ -112,9 +122,16 @@ func runCommentList(cmd *cobra.Command, args []string) error {
 }
 
 func runCommentAdd(cmd *cobra.Command, args []string) error {
-	if flagEntryType == "" || flagEntryID == "" || flagDescription == "" {
+	description, err := readDescription()
+	if err != nil {
+		output.PrintError(os.Stderr, "file_error", err.Error(), "Check that the file path is correct and readable")
+		os.Exit(output.ExitParamError)
+		return nil
+	}
+
+	if flagEntryType == "" || flagEntryID == "" || description == "" {
 		output.PrintError(os.Stderr, "missing_parameter",
-			"--entry-type, --entry-id and --description are required",
+			"--entry-type, --entry-id and description are required",
 			"Usage: tapd comment add --entry-type <stories|bug|tasks> --entry-id <id> --description <content>")
 		os.Exit(output.ExitParamError)
 		return nil
@@ -129,7 +146,7 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		EntryType:   flagEntryType,
 		EntryID:     flagEntryID,
-		Description: flagDescription,
+		Description: description,
 		Author:      author,
 		ReplyID:     flagReplyID,
 	}
@@ -143,9 +160,16 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 }
 
 func runCommentUpdate(cmd *cobra.Command, args []string) error {
-	if flagDescription == "" {
+	description, err := readDescription()
+	if err != nil {
+		output.PrintError(os.Stderr, "file_error", err.Error(), "Check that the file path is correct and readable")
+		os.Exit(output.ExitParamError)
+		return nil
+	}
+
+	if description == "" {
 		output.PrintError(os.Stderr, "missing_parameter",
-			"--description is required",
+			"description is required",
 			fmt.Sprintf("Usage: tapd comment update %s --description <content>", args[0]))
 		os.Exit(output.ExitParamError)
 		return nil
@@ -154,7 +178,7 @@ func runCommentUpdate(cmd *cobra.Command, args []string) error {
 	req := &model.UpdateCommentRequest{
 		WorkspaceID:   flagWorkspaceID,
 		ID:            args[0],
-		Description:   flagDescription,
+		Description:   description,
 		ChangeCreator: apiClient.Nick,
 	}
 	result, err := apiClient.UpdateComment(req)

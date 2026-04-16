@@ -3,6 +3,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -18,6 +19,7 @@ var (
 	flagPage        int
 	flagName        string
 	flagDescription string
+	flagDescFile    string
 	flagPriority    string
 )
 
@@ -43,14 +45,22 @@ var storyShowCmd = &cobra.Command{
 var storyCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "创建需求",
-	RunE:  runStoryCreate,
+	Long: `创建需求，描述支持三种输入方式：
+  1. --description <text>  直接传入描述文本
+  2. --file <path>         从本地文件读取描述内容
+  3. echo "..." | tapd story create --name <title>  通过 stdin 管道输入`,
+	RunE: runStoryCreate,
 }
 
 var storyUpdateCmd = &cobra.Command{
 	Use:   "update <story_id>",
 	Short: "更新需求",
-	Args:  cobra.ExactArgs(1),
-	RunE:  runStoryUpdate,
+	Long: `更新需求，描述支持三种输入方式：
+  1. --description <text>  直接传入描述文本
+  2. --file <path>         从本地文件读取描述内容
+  3. echo "..." | tapd story update <story_id>  通过 stdin 管道输入`,
+	Args: cobra.ExactArgs(1),
+	RunE: runStoryUpdate,
 }
 
 var storyCountCmd = &cobra.Command{
@@ -74,11 +84,14 @@ func init() {
 
 	storyCreateCmd.Flags().StringVar(&flagName, "name", "", "需求标题（必需）")
 	storyCreateCmd.Flags().StringVar(&flagDescription, "description", "", "描述")
+	storyCreateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	storyCreateCmd.Flags().StringVar(&flagOwner, "owner", "", "处理人")
 	storyCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（High/Middle/Low/Nice To Have）")
 	storyCreateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "关联迭代 ID")
 
 	storyUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
+	storyUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
+	storyUpdateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	storyUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态")
 	storyUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
 	storyUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级")
@@ -147,11 +160,18 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	description, err := readDescription()
+	if err != nil {
+		output.PrintError(os.Stderr, "file_error", err.Error(), "Check that the file path is correct and readable")
+		os.Exit(output.ExitParamError)
+		return nil
+	}
+
 	req := &model.CreateStoryRequest{
 		WorkspaceID:   flagWorkspaceID,
 		Name:          flagName,
 		EntityType:    "stories",
-		Description:   flagDescription,
+		Description:   description,
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
@@ -166,11 +186,19 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryUpdate(cmd *cobra.Command, args []string) error {
+	description, err := readDescription()
+	if err != nil {
+		output.PrintError(os.Stderr, "file_error", err.Error(), "Check that the file path is correct and readable")
+		os.Exit(output.ExitParamError)
+		return nil
+	}
+
 	req := &model.UpdateStoryRequest{
 		WorkspaceID:   flagWorkspaceID,
 		ID:            args[0],
 		EntityType:    "stories",
 		Name:          flagName,
+		Description:   description,
 		VStatus:       flagStatus,
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
@@ -219,6 +247,31 @@ func runStoryTodo(cmd *cobra.Command, args []string) error {
 		Limit: flagLimit,
 	}
 	return output.PrintJSON(os.Stdout, resp, !flagPretty)
+}
+
+// readDescription 从 --description、--file 或 stdin 读取描述内容
+// 优先级：--description > --file > stdin
+func readDescription() (string, error) {
+	if flagDescription != "" {
+		return flagDescription, nil
+	}
+	if flagDescFile != "" {
+		data, err := os.ReadFile(flagDescFile)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+	// 尝试从 stdin 读取（仅当 stdin 不是终端时）
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		data, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+	return "", nil
 }
 
 // addOptionalParam 当值非空时添加到参数 map

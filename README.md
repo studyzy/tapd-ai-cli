@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-go install github.com/studyzy/tapd-ai-cli@latest
+go install github.com/studyzy/tapd-ai-cli/cmd/tapd@latest
 ```
 
 或从源码构建：

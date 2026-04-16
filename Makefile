@@ -3,7 +3,7 @@
 BINARY_NAME=tapd
 
 build:
-	go build -o $(BINARY_NAME) .
+	go build -o $(BINARY_NAME) ./cmd/tapd/
 
 test:
 	go test ./...

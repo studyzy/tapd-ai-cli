@@ -16,6 +16,7 @@ var (
 	// 全局标志
 	flagWorkspaceID string
 	flagPretty      bool
+	flagJSON        bool
 	flagAccessToken string
 	flagAPIUser     string
 	flagAPIPassword string
@@ -50,7 +51,8 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&flagWorkspaceID, "workspace-id", "", "指定工作区 ID（覆盖本地配置）")
-	rootCmd.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "输出格式化 JSON（带缩进，方便人类阅读）")
+	rootCmd.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "输出格式化 JSON（带缩进，方便人类阅读，隐含 --json）")
+	rootCmd.PersistentFlags().BoolVar(&flagJSON, "json", false, "以 JSON 格式输出（默认部分命令输出 Markdown）")
 	rootCmd.PersistentFlags().StringVar(&flagAccessToken, "access-token", "", "TAPD Access Token")
 	rootCmd.PersistentFlags().StringVar(&flagAPIUser, "api-user", "", "TAPD API 用户名")
 	rootCmd.PersistentFlags().StringVar(&flagAPIPassword, "api-password", "", "TAPD API 密码")
@@ -111,4 +113,18 @@ func initClientAndConfig(cmd *cobra.Command) error {
 	}
 
 	return nil
+}
+
+// useJSONOutput 判断是否应使用 JSON 格式输出，--pretty 隐含 --json
+func useJSONOutput() bool {
+	return flagJSON || flagPretty
+}
+
+// printDetail 输出单条详情，默认 Markdown 格式，--json/--pretty 时输出 JSON
+// bodyField 指定作为 Markdown body 的字段名（JSON tag 名称）
+func printDetail(data interface{}, bodyField string) error {
+	if useJSONOutput() {
+		return output.PrintJSON(os.Stdout, data, !flagPretty)
+	}
+	return output.PrintMarkdown(os.Stdout, data, bodyField)
 }

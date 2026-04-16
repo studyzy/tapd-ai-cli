@@ -71,5 +71,5 @@ func runWikiShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, wiki, !flagPretty)
+	return printDetail(wiki, "markdown_description")
 }

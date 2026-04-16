@@ -124,7 +124,7 @@ func runStoryShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, story, !flagPretty)
+	return printDetail(story, "description")
 }
 
 func runStoryCreate(cmd *cobra.Command, args []string) error {

@@ -3,6 +3,7 @@ package output_test
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/model"
@@ -143,5 +144,147 @@ func TestExitCodes(t *testing.T) {
 				t.Errorf("%s = %d, want %d", tt.name, tt.code, tt.want)
 			}
 		})
+	}
+}
+
+func TestPrintMarkdown_StoryWithDescription(t *testing.T) {
+	var buf bytes.Buffer
+	story := model.Story{
+		ID:          "123",
+		Name:        "登录优化",
+		Status:      "open",
+		Owner:       "张三",
+		Description: "# 需求背景\n\n这是一个登录优化需求。",
+	}
+	err := output.PrintMarkdown(&buf, story, "description")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	got := buf.String()
+
+	// 应以 YAML frontmatter 开头
+	if !strings.HasPrefix(got, "---\n") {
+		t.Errorf("expected output to start with ---\\n, got %q", got[:20])
+	}
+
+	// frontmatter 中应包含元数据字段
+	if !strings.Contains(got, "id: 123") {
+		t.Errorf("expected frontmatter to contain id: 123, got:\n%s", got)
+	}
+	if !strings.Contains(got, "name: 登录优化") {
+		t.Errorf("expected frontmatter to contain name: 登录优化, got:\n%s", got)
+	}
+	if !strings.Contains(got, "status: open") {
+		t.Errorf("expected frontmatter to contain status: open, got:\n%s", got)
+	}
+	if !strings.Contains(got, "owner: 张三") {
+		t.Errorf("expected frontmatter to contain owner: 张三, got:\n%s", got)
+	}
+
+	// description 不应出现在 frontmatter 中
+	parts := strings.SplitN(got, "---\n", 3)
+	if len(parts) < 3 {
+		t.Fatalf("expected output to have frontmatter and body, got:\n%s", got)
+	}
+	frontmatter := parts[1]
+	if strings.Contains(frontmatter, "description:") {
+		t.Errorf("description should not appear in frontmatter, got:\n%s", frontmatter)
+	}
+
+	// body 部分应包含描述内容
+	body := parts[2]
+	if !strings.Contains(body, "# 需求背景") {
+		t.Errorf("expected body to contain description content, got:\n%s", body)
+	}
+}
+
+func TestPrintMarkdown_OmitEmpty(t *testing.T) {
+	var buf bytes.Buffer
+	story := model.Story{ID: "456", Name: "测试需求"}
+	err := output.PrintMarkdown(&buf, story, "description")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	got := buf.String()
+
+	// 空字段不应出现在 frontmatter 中
+	if strings.Contains(got, "status:") {
+		t.Errorf("empty status should be omitted, got:\n%s", got)
+	}
+	if strings.Contains(got, "owner:") {
+		t.Errorf("empty owner should be omitted, got:\n%s", got)
+	}
+
+	// 非空字段应存在
+	if !strings.Contains(got, "id: 456") {
+		t.Errorf("expected id: 456 in output, got:\n%s", got)
+	}
+}
+
+func TestPrintMarkdown_NoDescription(t *testing.T) {
+	var buf bytes.Buffer
+	story := model.Story{ID: "789", Name: "无描述需求", Status: "done"}
+	err := output.PrintMarkdown(&buf, story, "description")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	got := buf.String()
+
+	// 应有 frontmatter，但没有 body
+	if !strings.HasPrefix(got, "---\n") {
+		t.Errorf("expected output to start with ---\\n")
+	}
+	// frontmatter 结束后不应有多余内容（除了结尾换行）
+	parts := strings.SplitN(got, "---\n", 3)
+	if len(parts) < 3 {
+		t.Fatalf("expected frontmatter format, got:\n%s", got)
+	}
+	body := strings.TrimSpace(parts[2])
+	if body != "" {
+		t.Errorf("expected empty body when no description, got: %q", body)
+	}
+}
+
+func TestPrintMarkdown_BugWithDescription(t *testing.T) {
+	var buf bytes.Buffer
+	bug := model.Bug{
+		ID:          "100",
+		Title:       "登录崩溃",
+		Status:      "new",
+		Severity:    "fatal",
+		Description: "## 复现步骤\n\n1. 打开登录页\n2. 点击提交",
+	}
+	err := output.PrintMarkdown(&buf, bug, "description")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	got := buf.String()
+
+	if !strings.Contains(got, "title: 登录崩溃") {
+		t.Errorf("expected title in frontmatter, got:\n%s", got)
+	}
+	if !strings.Contains(got, "## 复现步骤") {
+		t.Errorf("expected description content in body, got:\n%s", got)
+	}
+}
+
+func TestPrintMarkdown_Pointer(t *testing.T) {
+	var buf bytes.Buffer
+	story := &model.Story{ID: "111", Name: "指针测试"}
+	err := output.PrintMarkdown(&buf, story, "description")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	got := buf.String()
+	if !strings.Contains(got, "id: 111") {
+		t.Errorf("expected id in output for pointer input, got:\n%s", got)
+	}
+}
+
+func TestPrintMarkdown_NonStruct(t *testing.T) {
+	var buf bytes.Buffer
+	err := output.PrintMarkdown(&buf, "not a struct", "description")
+	if err == nil {
+		t.Fatal("expected error for non-struct input, got nil")
 	}
 }

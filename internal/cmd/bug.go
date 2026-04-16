@@ -113,7 +113,7 @@ func runBugShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, bug, !flagPretty)
+	return printDetail(bug, "description")
 }
 
 func runBugCreate(cmd *cobra.Command, args []string) error {

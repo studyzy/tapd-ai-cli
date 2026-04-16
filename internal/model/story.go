@@ -119,6 +119,7 @@ type CreateStoryRequest struct {
 	Creator       string // 可选：创建人
 	IterationID   string // 可选：迭代 ID
 	StoryID       string // 可选：关联需求 ID（仅 tasks 使用）
+	ParentID      string // 可选：父需求 ID（创建子需求时使用）
 	Label         string // 可选：标签
 }
 
@@ -134,6 +135,7 @@ func (r *CreateStoryRequest) ToParams() map[string]string {
 	setOptional(params, "creator", r.Creator)
 	setOptional(params, "iteration_id", r.IterationID)
 	setOptional(params, "story_id", r.StoryID)
+	setOptional(params, "parent_id", r.ParentID)
 	setOptional(params, "label", r.Label)
 	return params
 }

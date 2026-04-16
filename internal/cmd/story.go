@@ -21,6 +21,7 @@ var (
 	flagDescription string
 	flagDescFile    string
 	flagPriority    string
+	flagParentID    string
 )
 
 // storyCmd 是 story 父命令
@@ -88,6 +89,7 @@ func init() {
 	storyCreateCmd.Flags().StringVar(&flagOwner, "owner", "", "处理人")
 	storyCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（High/Middle/Low/Nice To Have）")
 	storyCreateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "关联迭代 ID")
+	storyCreateCmd.Flags().StringVar(&flagParentID, "parent-id", "", "父需求 ID（创建子需求时使用）")
 
 	storyUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
 	storyUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
@@ -175,6 +177,7 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
+		ParentID:      flagParentID,
 	}
 	result, err := apiClient.CreateStory(req)
 	if err != nil {

@@ -183,7 +183,7 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 
 	switch parsed.EntityType {
 	case "story":
-		result, err := apiClient.GetStory(workspaceID, parsed.EntityID, "stories")
+		result, err := apiClient.GetStory(workspaceID, parsed.EntityID)
 		if err != nil {
 			handleAPIError(err)
 			return nil
@@ -207,7 +207,7 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 		return nil
 
 	case "task":
-		result, err := apiClient.GetStory(workspaceID, parsed.EntityID, "tasks")
+		result, err := apiClient.GetTask(workspaceID, parsed.EntityID)
 		if err != nil {
 			handleAPIError(err)
 			return nil

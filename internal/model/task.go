@@ -46,3 +46,138 @@ type Task struct {
 	// 附加信息
 	URL string `json:"url,omitempty"`
 }
+
+// ListTasksRequest 查询任务列表的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/get_tasks.html
+type ListTasksRequest struct {
+	WorkspaceID   string // 必填：项目 ID
+	ID            string // 可选：任务 ID
+	Name          string // 可选：标题（支持模糊匹配）
+	Status        string // 可选：状态（open/progressing/done）
+	Owner         string // 可选：处理人
+	Creator       string // 可选：创建人
+	StoryID       string // 可选：关联需求 ID
+	IterationID   string // 可选：迭代 ID
+	PriorityLabel string // 可选：优先级
+	Label         string // 可选：标签
+	Fields        string // 可选：返回字段列表
+	Limit         string // 可选：返回数量限制（默认 30，最大 200）
+	Page          string // 可选：页码
+	Order         string // 可选：排序规则
+}
+
+// ToParams 将请求结构体转换为 TAPD API 参数 map
+func (r *ListTasksRequest) ToParams() map[string]string {
+	params := map[string]string{
+		"workspace_id": r.WorkspaceID,
+	}
+	setOptional(params, "id", r.ID)
+	setOptional(params, "name", r.Name)
+	setOptional(params, "status", r.Status)
+	setOptional(params, "owner", r.Owner)
+	setOptional(params, "creator", r.Creator)
+	setOptional(params, "story_id", r.StoryID)
+	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority_label", r.PriorityLabel)
+	setOptional(params, "label", r.Label)
+	setOptional(params, "fields", r.Fields)
+	setOptional(params, "limit", r.Limit)
+	setOptional(params, "page", r.Page)
+	setOptional(params, "order", r.Order)
+	return params
+}
+
+// CreateTaskRequest 创建任务的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/add_task.html
+type CreateTaskRequest struct {
+	WorkspaceID   string // 必填：项目 ID
+	Name          string // 必填：任务标题
+	Description   string // 可选：详细描述
+	Owner         string // 可选：处理人
+	Creator       string // 可选：创建人
+	CC            string // 可选：抄送人
+	Begin         string // 可选：预计开始日期
+	Due           string // 可选：预计结束日期
+	StoryID       string // 可选：关联需求 ID
+	IterationID   string // 可选：迭代 ID
+	PriorityLabel string // 可选：优先级（推荐使用）
+	Effort        string // 可选：预估工时
+	Label         string // 可选：标签
+}
+
+// ToParams 将请求结构体转换为 TAPD API 参数 map
+func (r *CreateTaskRequest) ToParams() map[string]string {
+	params := map[string]string{
+		"workspace_id": r.WorkspaceID,
+		"name":         r.Name,
+	}
+	setOptional(params, "description", r.Description)
+	setOptional(params, "owner", r.Owner)
+	setOptional(params, "creator", r.Creator)
+	setOptional(params, "cc", r.CC)
+	setOptional(params, "begin", r.Begin)
+	setOptional(params, "due", r.Due)
+	setOptional(params, "story_id", r.StoryID)
+	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority_label", r.PriorityLabel)
+	setOptional(params, "effort", r.Effort)
+	setOptional(params, "label", r.Label)
+	return params
+}
+
+// UpdateTaskRequest 更新任务的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/update_task.html
+type UpdateTaskRequest struct {
+	WorkspaceID   string // 必填：项目 ID
+	ID            string // 必填：任务 ID
+	Name          string // 可选：任务标题
+	Description   string // 可选：详细描述
+	Status        string // 可选：状态（open/progressing/done）
+	Owner         string // 可选：处理人
+	CurrentUser   string // 可选：操作人
+	CC            string // 可选：抄送人
+	Begin         string // 可选：预计开始日期
+	Due           string // 可选：预计结束日期
+	StoryID       string // 可选：关联需求 ID
+	IterationID   string // 可选：迭代 ID
+	PriorityLabel string // 可选：优先级（推荐使用）
+	Effort        string // 可选：预估工时
+	Label         string // 可选：标签
+}
+
+// ToParams 将请求结构体转换为 TAPD API 参数 map
+func (r *UpdateTaskRequest) ToParams() map[string]string {
+	params := map[string]string{
+		"workspace_id": r.WorkspaceID,
+		"id":           r.ID,
+	}
+	setOptional(params, "name", r.Name)
+	setOptional(params, "description", r.Description)
+	setOptional(params, "status", r.Status)
+	setOptional(params, "owner", r.Owner)
+	setOptional(params, "current_user", r.CurrentUser)
+	setOptional(params, "cc", r.CC)
+	setOptional(params, "begin", r.Begin)
+	setOptional(params, "due", r.Due)
+	setOptional(params, "story_id", r.StoryID)
+	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority_label", r.PriorityLabel)
+	setOptional(params, "effort", r.Effort)
+	setOptional(params, "label", r.Label)
+	return params
+}
+
+// CountTasksRequest 查询任务数量的请求参数
+type CountTasksRequest struct {
+	WorkspaceID string // 必填：项目 ID
+	Status      string // 可选：状态
+}
+
+// ToParams 将请求结构体转换为 TAPD API 参数 map
+func (r *CountTasksRequest) ToParams() map[string]string {
+	params := map[string]string{
+		"workspace_id": r.WorkspaceID,
+	}
+	setOptional(params, "status", r.Status)
+	return params
+}

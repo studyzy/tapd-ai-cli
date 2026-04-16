@@ -72,7 +72,6 @@ type Story struct {
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/get_stories.html
 type ListStoriesRequest struct {
 	WorkspaceID   string // 必填：项目 ID
-	EntityType    string // 必填：实体类型（stories 或 tasks）
 	ID            string // 可选：需求 ID
 	Name          string // 可选：标题（支持模糊匹配）
 	PriorityLabel string // 可选：优先级
@@ -112,13 +111,11 @@ func (r *ListStoriesRequest) ToParams() map[string]string {
 type CreateStoryRequest struct {
 	WorkspaceID   string // 必填：项目 ID
 	Name          string // 必填：标题
-	EntityType    string // 必填：实体类型（stories 或 tasks）
 	Description   string // 可选：详细描述
 	PriorityLabel string // 可选：优先级
 	Owner         string // 可选：处理人
 	Creator       string // 可选：创建人
 	IterationID   string // 可选：迭代 ID
-	StoryID       string // 可选：关联需求 ID（仅 tasks 使用）
 	ParentID      string // 可选：父需求 ID（创建子需求时使用）
 	Label         string // 可选：标签
 }
@@ -134,7 +131,6 @@ func (r *CreateStoryRequest) ToParams() map[string]string {
 	setOptional(params, "owner", r.Owner)
 	setOptional(params, "creator", r.Creator)
 	setOptional(params, "iteration_id", r.IterationID)
-	setOptional(params, "story_id", r.StoryID)
 	setOptional(params, "parent_id", r.ParentID)
 	setOptional(params, "label", r.Label)
 	return params
@@ -145,7 +141,6 @@ func (r *CreateStoryRequest) ToParams() map[string]string {
 type UpdateStoryRequest struct {
 	WorkspaceID   string // 必填：项目 ID
 	ID            string // 必填：需求 ID
-	EntityType    string // 必填：实体类型（stories 或 tasks）
 	Name          string // 可选：标题
 	Status        string // 可选：状态
 	VStatus       string // 可选：中文状态名
@@ -176,7 +171,6 @@ func (r *UpdateStoryRequest) ToParams() map[string]string {
 // CountStoriesRequest 查询需求数量的请求参数
 type CountStoriesRequest struct {
 	WorkspaceID string // 必填：项目 ID
-	EntityType  string // 必填：实体类型（stories 或 tasks）
 	Status      string // 可选：状态
 }
 

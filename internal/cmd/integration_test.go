@@ -101,17 +101,12 @@ func TestIntegration_StoryList(t *testing.T) {
 
 	params := &model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		EntityType:  "stories",
 		Limit:       "3",
 		Fields:      "id,name,status,owner,modified",
 	}
-	result, err := c.ListStories(params)
+	stories, err := c.ListStories(params)
 	if err != nil {
 		t.Fatalf("ListStories failed: %v", err)
-	}
-	stories, ok := result.([]model.Story)
-	if !ok {
-		t.Fatalf("expected []model.Story, got %T", result)
 	}
 	t.Logf("Found %d stories", len(stories))
 	for _, s := range stories {
@@ -126,7 +121,6 @@ func TestIntegration_StoryCount(t *testing.T) {
 
 	count, err := c.CountStories(&model.CountStoriesRequest{
 		WorkspaceID: wsID,
-		EntityType:  "stories",
 	})
 	if err != nil {
 		t.Fatalf("CountStories failed: %v", err)
@@ -335,7 +329,6 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	result, err := c.CreateStory(&model.CreateStoryRequest{
 		WorkspaceID: wsID,
 		Name:        "[tapd-ai-cli integration test] 自动化测试需求",
-		EntityType:  "stories",
 	})
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
@@ -350,7 +343,6 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 		_, err := c.UpdateStory(&model.UpdateStoryRequest{
 			WorkspaceID: wsID,
 			ID:          result.ID,
-			EntityType:  "stories",
 			Name:        "[已废弃-自动化测试] 请忽略此需求",
 		})
 		if err != nil {
@@ -361,13 +353,9 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	})
 
 	// 查看详情
-	detail, err := c.GetStory(wsID, result.ID, "stories")
+	story, err := c.GetStory(wsID, result.ID)
 	if err != nil {
 		t.Fatalf("GetStory failed: %v", err)
-	}
-	story, ok := detail.(*model.Story)
-	if !ok {
-		t.Fatalf("expected *model.Story, got %T", detail)
 	}
 	if story.Name == "" {
 		t.Errorf("Story name is empty: %+v", story)
@@ -475,17 +463,15 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 获取一个真实 story id
-	listResult, err := c.ListStories(&model.ListStoriesRequest{
+	storyList, err := c.ListStories(&model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		EntityType:  "stories",
 		Limit:       "1",
 		Fields:      "id,name",
 	})
 	if err != nil {
 		t.Skip("No stories available for URL test")
 	}
-	storyList, ok := listResult.([]model.Story)
-	if !ok || len(storyList) == 0 {
+	if len(storyList) == 0 {
 		t.Skip("No stories available for URL test")
 	}
 	storyID := storyList[0].ID
@@ -507,13 +493,9 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	}
 
 	// 验证实际 API 调用
-	urlResult, err := c.GetStory(wsID, storyID, "stories")
+	urlStory, err := c.GetStory(wsID, storyID)
 	if err != nil {
 		t.Fatalf("GetStory via URL failed: %v", err)
-	}
-	urlStory, ok := urlResult.(*model.Story)
-	if !ok {
-		t.Fatalf("expected *model.Story, got %T", urlResult)
 	}
 	t.Logf("URL→Story: id=%v name=%v", urlStory.ID, urlStory.Name)
 }
@@ -528,7 +510,6 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	storyResult, err := c.CreateStory(&model.CreateStoryRequest{
 		WorkspaceID: wsID,
 		Name:        "[tapd-ai-cli integration test] 评论功能测试需求",
-		EntityType:  "stories",
 	})
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
@@ -544,7 +525,6 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 		_, err := c.UpdateStory(&model.UpdateStoryRequest{
 			WorkspaceID: wsID,
 			ID:          storyID,
-			EntityType:  "stories",
 			Name:        "[已废弃-自动化测试] 评论功能测试需求-请忽略",
 		})
 		if err != nil {
@@ -644,7 +624,6 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 	storyResult, err := c.CreateStory(&model.CreateStoryRequest{
 		WorkspaceID: wsID,
 		Name:        "[tapd-ai-cli integration test] 评论命令层测试需求",
-		EntityType:  "stories",
 	})
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
@@ -656,7 +635,6 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 		_, err := c.UpdateStory(&model.UpdateStoryRequest{
 			WorkspaceID: wsID,
 			ID:          storyID,
-			EntityType:  "stories",
 			Name:        "[已废弃-自动化测试] 评论命令层测试需求-请忽略",
 		})
 		if err != nil {
@@ -906,17 +884,15 @@ func TestIntegration_CommitMsg_Client(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 story ID
-	listResult, err := c.ListStories(&model.ListStoriesRequest{
+	stories, err := c.ListStories(&model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		EntityType:  "stories",
 		Limit:       "1",
 		Fields:      "id",
 	})
 	if err != nil {
 		t.Skip("No stories available for commit-msg test")
 	}
-	stories, ok := listResult.([]model.Story)
-	if !ok || len(stories) == 0 {
+	if len(stories) == 0 {
 		t.Skip("No stories available for commit-msg test")
 	}
 	storyID := stories[0].ID
@@ -938,17 +914,15 @@ func TestIntegration_RunCommitMsgGet(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 story ID
-	listResult, err := c.ListStories(&model.ListStoriesRequest{
+	stories, err := c.ListStories(&model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		EntityType:  "stories",
 		Limit:       "1",
 		Fields:      "id",
 	})
 	if err != nil {
 		t.Skip("No stories available for commit-msg test")
 	}
-	stories, ok := listResult.([]model.Story)
-	if !ok || len(stories) == 0 {
+	if len(stories) == 0 {
 		t.Skip("No stories available for commit-msg test")
 	}
 

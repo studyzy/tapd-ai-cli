@@ -24,13 +24,9 @@ func TestListStories(t *testing.T) {
 	req := &model.ListStoriesRequest{
 		WorkspaceID: "1",
 	}
-	result, err := c.ListStories(req)
+	stories, err := c.ListStories(req)
 	if err != nil {
 		t.Fatalf("ListStories() unexpected error: %v", err)
-	}
-	stories, ok := result.([]model.Story)
-	if !ok {
-		t.Fatalf("expected []model.Story, got %T", result)
 	}
 	if len(stories) != 1 {
 		t.Fatalf("expected 1 story, got %d", len(stories))
@@ -66,14 +62,9 @@ func TestGetStory_HTMLToMarkdown(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetStory("1", "100", "stories")
+	story, err := c.GetStory("1", "100")
 	if err != nil {
 		t.Fatalf("GetStory() unexpected error: %v", err)
-	}
-
-	story, ok := result.(*model.Story)
-	if !ok {
-		t.Fatalf("expected *model.Story, got %T", result)
 	}
 
 	if !strings.Contains(story.Description, "**World**") {
@@ -94,43 +85,6 @@ func TestGetStory_HTMLToMarkdown(t *testing.T) {
 	}
 }
 
-func TestGetStory_Task(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/tasks" {
-			t.Errorf("unexpected path: %s, want /tasks", r.URL.Path)
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":[{"Task":{"id":"300","name":"Test Task","description":"<p>Task desc</p>","story_id":"100","creator":"dev1","iteration_id":"50"}}],"info":"success"}`))
-	}))
-	defer srv.Close()
-
-	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	result, err := c.GetStory("1", "300", "tasks")
-	if err != nil {
-		t.Fatalf("GetStory(tasks) unexpected error: %v", err)
-	}
-
-	task, ok := result.(*model.Task)
-	if !ok {
-		t.Fatalf("expected *model.Task, got %T", result)
-	}
-	if task.ID != "300" {
-		t.Errorf("task id = %q, want %q", task.ID, "300")
-	}
-	if task.StoryID != "100" {
-		t.Errorf("task story_id = %q, want %q", task.StoryID, "100")
-	}
-	if !strings.Contains(task.URL, "/1/prong/tasks/view/300") {
-		t.Errorf("url = %q, want to contain %q", task.URL, "/1/prong/tasks/view/300")
-	}
-	if task.Creator != "dev1" {
-		t.Errorf("creator = %q, want %q", task.Creator, "dev1")
-	}
-	if task.IterationID != "50" {
-		t.Errorf("iteration_id = %q, want %q", task.IterationID, "50")
-	}
-}
-
 func TestCreateStory(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -148,7 +102,6 @@ func TestCreateStory(t *testing.T) {
 	req := &model.CreateStoryRequest{
 		WorkspaceID: "1",
 		Name:        "New",
-		EntityType:  "stories",
 	}
 	resp, err := c.CreateStory(req)
 	if err != nil {
@@ -188,39 +141,34 @@ func TestCountStories(t *testing.T) {
 	}
 }
 
-func TestListStories_Tasks(t *testing.T) {
+func TestUpdateStory(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/tasks" {
-			t.Errorf("unexpected path: %s, want /tasks", r.URL.Path)
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/stories" {
+			t.Errorf("unexpected path: %s, want /stories", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":[{"Task":{"id":"300","name":"Test Task","story_id":"100"}}],"info":"success"}`))
+		w.Write([]byte(`{"status":1,"data":{"Story":{"id":"100","name":"Updated","status":"done"}},"info":"success"}`))
 	}))
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	req := &model.ListStoriesRequest{
+	req := &model.UpdateStoryRequest{
 		WorkspaceID: "1",
-		EntityType:  "tasks",
+		ID:          "100",
+		Name:        "Updated",
+		Status:      "done",
 	}
-	result, err := c.ListStories(req)
+	story, err := c.UpdateStory(req)
 	if err != nil {
-		t.Fatalf("ListStories(tasks) unexpected error: %v", err)
+		t.Fatalf("UpdateStory() unexpected error: %v", err)
 	}
-	tasks, ok := result.([]model.Task)
-	if !ok {
-		t.Fatalf("expected []model.Task, got %T", result)
+	if story.ID != "100" {
+		t.Errorf("story id = %q, want %q", story.ID, "100")
 	}
-	if len(tasks) != 1 {
-		t.Fatalf("expected 1 task, got %d", len(tasks))
-	}
-	if tasks[0].ID != "300" {
-		t.Errorf("task id = %v, want %q", tasks[0].ID, "300")
-	}
-	if tasks[0].Name != "Test Task" {
-		t.Errorf("task name = %v, want %q", tasks[0].Name, "Test Task")
-	}
-	if tasks[0].StoryID != "100" {
-		t.Errorf("task story_id = %v, want %q", tasks[0].StoryID, "100")
+	if story.Name != "Updated" {
+		t.Errorf("story name = %q, want %q", story.Name, "Updated")
 	}
 }

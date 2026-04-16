@@ -110,7 +110,6 @@ func init() {
 func runStoryList(cmd *cobra.Command, args []string) error {
 	req := &model.ListStoriesRequest{
 		WorkspaceID: flagWorkspaceID,
-		EntityType:  "stories",
 		Status:      flagStatus,
 		Owner:       flagOwner,
 		IterationID: flagIterationID,
@@ -127,7 +126,6 @@ func runStoryList(cmd *cobra.Command, args []string) error {
 
 	total, _ := apiClient.CountStories(&model.CountStoriesRequest{
 		WorkspaceID: flagWorkspaceID,
-		EntityType:  "stories",
 		Status:      flagStatus,
 	})
 
@@ -142,7 +140,7 @@ func runStoryList(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryShow(cmd *cobra.Command, args []string) error {
-	story, err := apiClient.GetStory(flagWorkspaceID, args[0], "stories")
+	story, err := apiClient.GetStory(flagWorkspaceID, args[0])
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -172,7 +170,6 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 	req := &model.CreateStoryRequest{
 		WorkspaceID:   flagWorkspaceID,
 		Name:          flagName,
-		EntityType:    "stories",
 		Description:   description,
 		Owner:         flagOwner,
 		Creator:       apiClient.Nick,
@@ -200,7 +197,6 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 	req := &model.UpdateStoryRequest{
 		WorkspaceID:   flagWorkspaceID,
 		ID:            args[0],
-		EntityType:    "stories",
 		Name:          flagName,
 		Description:   description,
 		VStatus:       flagStatus,
@@ -219,7 +215,6 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 func runStoryCount(cmd *cobra.Command, args []string) error {
 	req := &model.CountStoriesRequest{
 		WorkspaceID: flagWorkspaceID,
-		EntityType:  "stories",
 		Status:      flagStatus,
 	}
 	count, err := apiClient.CountStories(req)

@@ -21,10 +21,10 @@ func TestListStories(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
+	req := &model.ListStoriesRequest{
+		WorkspaceID: "1",
 	}
-	result, err := c.ListStories(params)
+	result, err := c.ListStories(req)
 	if err != nil {
 		t.Fatalf("ListStories() unexpected error: %v", err)
 	}
@@ -145,11 +145,12 @@ func TestCreateStory(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"name":         "New",
+	req := &model.CreateStoryRequest{
+		WorkspaceID: "1",
+		Name:        "New",
+		EntityType:  "stories",
 	}
-	resp, err := c.CreateStory(params, "stories")
+	resp, err := c.CreateStory(req)
 	if err != nil {
 		t.Fatalf("CreateStory() unexpected error: %v", err)
 	}
@@ -175,10 +176,10 @@ func TestCountStories(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
+	req := &model.CountStoriesRequest{
+		WorkspaceID: "1",
 	}
-	count, err := c.CountStories(params)
+	count, err := c.CountStories(req)
 	if err != nil {
 		t.Fatalf("CountStories() unexpected error: %v", err)
 	}
@@ -198,11 +199,11 @@ func TestListStories_Tasks(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"entity_type":  "tasks",
+	req := &model.ListStoriesRequest{
+		WorkspaceID: "1",
+		EntityType:  "tasks",
 	}
-	result, err := c.ListStories(params)
+	result, err := c.ListStories(req)
 	if err != nil {
 		t.Fatalf("ListStories(tasks) unexpected error: %v", err)
 	}

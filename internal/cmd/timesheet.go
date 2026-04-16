@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -71,15 +72,15 @@ func init() {
 }
 
 func runTimesheetList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.ListTimesheetsRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  flagTimesheetEntityType,
+		EntityID:    flagTimesheetEntityID,
+		Owner:       flagTimesheetOwner,
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
 	}
-	addOptionalParam(params, "entity_type", flagTimesheetEntityType)
-	addOptionalParam(params, "entity_id", flagTimesheetEntityID)
-	addOptionalParam(params, "owner", flagTimesheetOwner)
-	addPaginationParams(params, flagLimit, flagPage)
-
-	timesheets, err := apiClient.ListTimesheets(params)
+	timesheets, err := apiClient.ListTimesheets(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -97,27 +98,22 @@ func runTimesheetAdd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"entity_type":  flagTimesheetEntityType,
-		"entity_id":    flagTimesheetEntityID,
-		"timespent":    flagTimesheetSpent,
-	}
-
 	// owner 优先使用命令行参数，否则使用当前登录用户昵称
 	owner := flagTimesheetOwner
 	if owner == "" {
 		owner = apiClient.Nick
 	}
-	if owner != "" {
-		params["owner"] = owner
+	req := &model.AddTimesheetRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  flagTimesheetEntityType,
+		EntityID:    flagTimesheetEntityID,
+		Timespent:   flagTimesheetSpent,
+		Owner:       owner,
+		Timeremain:  flagTimesheetRemain,
+		Spentdate:   flagTimesheetDate,
+		Memo:        flagTimesheetMemo,
 	}
-
-	addOptionalParam(params, "spentdate", flagTimesheetDate)
-	addOptionalParam(params, "memo", flagTimesheetMemo)
-	addOptionalParam(params, "timeremain", flagTimesheetRemain)
-
-	result, err := apiClient.AddTimesheet(params)
+	result, err := apiClient.AddTimesheet(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -135,15 +131,14 @@ func runTimesheetUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"id":           args[0],
+	req := &model.UpdateTimesheetRequest{
+		WorkspaceID: flagWorkspaceID,
+		ID:          args[0],
+		Timespent:   flagTimesheetSpent,
+		Timeremain:  flagTimesheetRemain,
+		Memo:        flagTimesheetMemo,
 	}
-	addOptionalParam(params, "timespent", flagTimesheetSpent)
-	addOptionalParam(params, "timeremain", flagTimesheetRemain)
-	addOptionalParam(params, "memo", flagTimesheetMemo)
-
-	result, err := apiClient.UpdateTimesheet(params)
+	result, err := apiClient.UpdateTimesheet(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

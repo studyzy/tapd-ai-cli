@@ -32,6 +32,34 @@ type Wiki struct {
 	URL string `json:"url,omitempty"`
 }
 
+// ListWikisRequest 查询 Wiki 列表的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/wiki/get_tapd_wikis.html
+type ListWikisRequest struct {
+	WorkspaceID string // 必填：项目 ID
+	ID          string // 可选：Wiki ID
+	Name        string // 可选：标题
+	Creator     string // 可选：创建人
+	Fields      string // 可选：返回字段列表
+	Limit       string // 可选：返回数量限制
+	Page        string // 可选：页码
+	Order       string // 可选：排序规则
+}
+
+// ToParams 将请求结构体转换为 TAPD API 参数 map
+func (r *ListWikisRequest) ToParams() map[string]string {
+	params := map[string]string{
+		"workspace_id": r.WorkspaceID,
+	}
+	setOptional(params, "id", r.ID)
+	setOptional(params, "name", r.Name)
+	setOptional(params, "creator", r.Creator)
+	setOptional(params, "fields", r.Fields)
+	setOptional(params, "limit", r.Limit)
+	setOptional(params, "page", r.Page)
+	setOptional(params, "order", r.Order)
+	return params
+}
+
 // CreateWikiRequest 创建 Wiki 的请求参数
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/wiki/add_tapd_wiki.html
 type CreateWikiRequest struct {

@@ -8,11 +8,10 @@ import (
 	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
-// ListStories 查询需求或任务列表，通过 params 中的 entity_type 区分 stories/tasks
+// ListStories 查询需求或任务列表，通过 req.EntityType 区分 stories/tasks
 // 返回强类型切片（[]model.Story 或 []model.Task），自动过滤 custom_field 等无用字段
-func (c *Client) ListStories(params map[string]string) (interface{}, error) {
-	entityType := params["entity_type"]
-	delete(params, "entity_type")
+func (c *Client) ListStories(req *model.ListStoriesRequest) (interface{}, error) {
+	entityType := req.EntityType
 
 	endpoint := "/stories"
 	wrapperKey := "Story"
@@ -21,7 +20,7 @@ func (c *Client) ListStories(params map[string]string) (interface{}, error) {
 		wrapperKey = "Task"
 	}
 
-	data, err := c.doGet(endpoint, params)
+	data, err := c.doGet(endpoint, req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +119,8 @@ func (c *Client) GetStory(workspaceID, id, entityType string) (interface{}, erro
 }
 
 // CreateStory 创建需求或任务
-func (c *Client) CreateStory(params map[string]string, entityType string) (*model.SuccessResponse, error) {
+func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.SuccessResponse, error) {
+	entityType := req.EntityType
 	endpoint := "/stories"
 	wrapperKey := "Story"
 	urlPath := "prong/stories/view"
@@ -130,7 +130,7 @@ func (c *Client) CreateStory(params map[string]string, entityType string) (*mode
 		urlPath = "prong/tasks/view"
 	}
 
-	data, err := c.doPost(endpoint, params)
+	data, err := c.doPost(endpoint, req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (c *Client) CreateStory(params map[string]string, entityType string) (*mode
 		return nil, fmt.Errorf("failed to parse created entity: %w", err)
 	}
 
-	wsID := params["workspace_id"]
+	wsID := req.WorkspaceID
 
 	return &model.SuccessResponse{
 		Success: true,
@@ -162,7 +162,8 @@ func (c *Client) CreateStory(params map[string]string, entityType string) (*mode
 }
 
 // UpdateStory 更新需求或任务，返回强类型（*model.Story 或 *model.Task）
-func (c *Client) UpdateStory(params map[string]string, entityType string) (interface{}, error) {
+func (c *Client) UpdateStory(req *model.UpdateStoryRequest) (interface{}, error) {
+	entityType := req.EntityType
 	endpoint := "/stories"
 	wrapperKey := "Story"
 	if entityType == "tasks" {
@@ -170,7 +171,7 @@ func (c *Client) UpdateStory(params map[string]string, entityType string) (inter
 		wrapperKey = "Task"
 	}
 
-	data, err := c.doPost(endpoint, params)
+	data, err := c.doPost(endpoint, req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -201,16 +202,15 @@ func (c *Client) UpdateStory(params map[string]string, entityType string) (inter
 }
 
 // CountStories 查询需求或任务数量
-func (c *Client) CountStories(params map[string]string) (int, error) {
-	entityType := params["entity_type"]
-	delete(params, "entity_type")
+func (c *Client) CountStories(req *model.CountStoriesRequest) (int, error) {
+	entityType := req.EntityType
 
 	endpoint := "/stories/count"
 	if entityType == "tasks" {
 		endpoint = "/tasks/count"
 	}
 
-	data, err := c.doGet(endpoint, params)
+	data, err := c.doGet(endpoint, req.ToParams())
 	if err != nil {
 		return 0, err
 	}

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -76,12 +77,12 @@ func runCustomFieldList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"entity_type":  flagEntityType,
+	req := &model.GetCustomFieldsRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  flagEntityType,
 	}
 
-	data, err := apiClient.GetCustomFields(params)
+	data, err := apiClient.GetCustomFields(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -91,11 +92,11 @@ func runCustomFieldList(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryFieldLabel(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.WorkspaceIDRequest{
+		WorkspaceID: flagWorkspaceID,
 	}
 
-	data, err := apiClient.GetStoryFieldsLabel(params)
+	data, err := apiClient.GetStoryFieldsLabel(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -105,11 +106,11 @@ func runStoryFieldLabel(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryFieldInfo(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.WorkspaceIDRequest{
+		WorkspaceID: flagWorkspaceID,
 	}
 
-	data, err := apiClient.GetStoryFieldsInfo(params)
+	data, err := apiClient.GetStoryFieldsInfo(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -119,13 +120,11 @@ func runStoryFieldInfo(cmd *cobra.Command, args []string) error {
 }
 
 func runWorkitemTypeList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.WorkspaceIDRequest{
+		WorkspaceID: flagWorkspaceID,
 	}
-	addOptionalParam(params, "name", flagName)
-	addPaginationParams(params, flagLimit, flagPage)
 
-	data, err := apiClient.GetWorkitemTypes(params)
+	data, err := apiClient.GetWorkitemTypes(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

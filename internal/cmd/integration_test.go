@@ -98,11 +98,11 @@ func TestIntegration_StoryList(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	params := map[string]string{
-		"workspace_id": wsID,
-		"entity_type":  "stories",
-		"limit":        "3",
-		"fields":       "id,name,status,owner,modified",
+	params := &model.ListStoriesRequest{
+		WorkspaceID: wsID,
+		EntityType:  "stories",
+		Limit:       "3",
+		Fields:      "id,name,status,owner,modified",
 	}
 	result, err := c.ListStories(params)
 	if err != nil {
@@ -123,9 +123,9 @@ func TestIntegration_StoryCount(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	count, err := c.CountStories(map[string]string{
-		"workspace_id": wsID,
-		"entity_type":  "stories",
+	count, err := c.CountStories(&model.CountStoriesRequest{
+		WorkspaceID: wsID,
+		EntityType:  "stories",
 	})
 	if err != nil {
 		t.Fatalf("CountStories failed: %v", err)
@@ -138,11 +138,10 @@ func TestIntegration_BugList(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	params := map[string]string{
-		"workspace_id": wsID,
-		"limit":        "3",
-	}
-	bugs, err := c.ListBugs(params)
+	bugs, err := c.ListBugs(&model.ListBugsRequest{
+		WorkspaceID: wsID,
+		Limit:       "3",
+	})
 	if err != nil {
 		t.Fatalf("ListBugs failed: %v", err)
 	}
@@ -154,8 +153,8 @@ func TestIntegration_BugCount(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	count, err := c.CountBugs(map[string]string{
-		"workspace_id": wsID,
+	count, err := c.CountBugs(&model.CountBugsRequest{
+		WorkspaceID: wsID,
 	})
 	if err != nil {
 		t.Fatalf("CountBugs failed: %v", err)
@@ -168,10 +167,9 @@ func TestIntegration_IterationList(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	params := map[string]string{
-		"workspace_id": wsID,
-	}
-	iterations, err := c.ListIterations(params)
+	iterations, err := c.ListIterations(&model.ListIterationsRequest{
+		WorkspaceID: wsID,
+	})
 	if err != nil {
 		t.Fatalf("ListIterations failed: %v", err)
 	}
@@ -332,10 +330,11 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 创建
-	result, err := c.CreateStory(map[string]string{
-		"workspace_id": wsID,
-		"name":         "[tapd-ai-cli integration test] 自动化测试需求",
-	}, "stories")
+	result, err := c.CreateStory(&model.CreateStoryRequest{
+		WorkspaceID: wsID,
+		Name:        "[tapd-ai-cli integration test] 自动化测试需求",
+		EntityType:  "stories",
+	})
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
 	}
@@ -346,11 +345,12 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 
 	// 清理：标记为废弃
 	t.Cleanup(func() {
-		_, err := c.UpdateStory(map[string]string{
-			"workspace_id": wsID,
-			"id":           result.ID,
-			"name":         "[已废弃-自动化测试] 请忽略此需求",
-		}, "stories")
+		_, err := c.UpdateStory(&model.UpdateStoryRequest{
+			WorkspaceID: wsID,
+			ID:          result.ID,
+			EntityType:  "stories",
+			Name:        "[已废弃-自动化测试] 请忽略此需求",
+		})
 		if err != nil {
 			t.Logf("Cleanup: failed to mark story %s as deprecated: %v", result.ID, err)
 		} else {
@@ -425,10 +425,10 @@ func TestIntegration_WikiList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	wikis, err := c.ListWikis(map[string]string{
-		"workspace_id": wsID,
-		"limit":        "3",
-		"fields":       "id,name,creator,modified",
+	wikis, err := c.ListWikis(&model.ListWikisRequest{
+		WorkspaceID: wsID,
+		Limit:       "3",
+		Fields:      "id,name,creator,modified",
 	})
 	if err != nil {
 		t.Fatalf("ListWikis failed: %v", err)
@@ -445,10 +445,10 @@ func TestIntegration_RunWikiShow(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 wiki id
-	wikis, err := c.ListWikis(map[string]string{
-		"workspace_id": wsID,
-		"limit":        "1",
-		"fields":       "id,name",
+	wikis, err := c.ListWikis(&model.ListWikisRequest{
+		WorkspaceID: wsID,
+		Limit:       "1",
+		Fields:      "id,name",
 	})
 	if err != nil {
 		t.Fatalf("ListWikis failed: %v", err)
@@ -473,11 +473,11 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 获取一个真实 story id
-	listResult, err := c.ListStories(map[string]string{
-		"workspace_id": wsID,
-		"entity_type":  "stories",
-		"limit":        "1",
-		"fields":       "id,name",
+	listResult, err := c.ListStories(&model.ListStoriesRequest{
+		WorkspaceID: wsID,
+		EntityType:  "stories",
+		Limit:       "1",
+		Fields:      "id,name",
 	})
 	if err != nil {
 		t.Skip("No stories available for URL test")
@@ -523,10 +523,11 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 步骤 1：创建需求
-	storyResult, err := c.CreateStory(map[string]string{
-		"workspace_id": wsID,
-		"name":         "[tapd-ai-cli integration test] 评论功能测试需求",
-	}, "stories")
+	storyResult, err := c.CreateStory(&model.CreateStoryRequest{
+		WorkspaceID: wsID,
+		Name:        "[tapd-ai-cli integration test] 评论功能测试需求",
+		EntityType:  "stories",
+	})
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
 	}
@@ -538,11 +539,12 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 
 	// 清理：标记需求为废弃
 	t.Cleanup(func() {
-		_, err := c.UpdateStory(map[string]string{
-			"workspace_id": wsID,
-			"id":           storyID,
-			"name":         "[已废弃-自动化测试] 评论功能测试需求-请忽略",
-		}, "stories")
+		_, err := c.UpdateStory(&model.UpdateStoryRequest{
+			WorkspaceID: wsID,
+			ID:          storyID,
+			EntityType:  "stories",
+			Name:        "[已废弃-自动化测试] 评论功能测试需求-请忽略",
+		})
 		if err != nil {
 			t.Logf("Cleanup: failed to mark story %s as deprecated: %v", storyID, err)
 		} else {
@@ -557,12 +559,12 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 		author = os.Getenv("TAPD_API_USER")
 	}
 	t.Logf("Step 2: using author=%q for comment", author)
-	comment, err := c.AddComment(map[string]string{
-		"workspace_id": wsID,
-		"entry_type":   "stories",
-		"entry_id":     storyID,
-		"description":  "这是一条自动化测试评论",
-		"author":       author,
+	comment, err := c.AddComment(&model.AddCommentRequest{
+		WorkspaceID: wsID,
+		EntryType:   "stories",
+		EntryID:     storyID,
+		Description: "这是一条自动化测试评论",
+		Author:      author,
 	})
 	if err != nil {
 		t.Fatalf("AddComment failed: %v", err)
@@ -574,10 +576,10 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	t.Logf("Step 2: Added comment id=%s author=%s", commentID, comment.Author)
 
 	// 步骤 3：查询评论列表
-	comments, err := c.ListComments(map[string]string{
-		"workspace_id": wsID,
-		"entry_type":   "stories",
-		"entry_id":     storyID,
+	comments, err := c.ListComments(&model.ListCommentsRequest{
+		WorkspaceID: wsID,
+		EntryType:   "stories",
+		EntryID:     storyID,
 	})
 	if err != nil {
 		t.Fatalf("ListComments failed: %v", err)
@@ -598,11 +600,11 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	t.Logf("Step 3: Listed %d comments, found target comment=%s", len(comments), commentID)
 
 	// 步骤 4：更新评论
-	updated, err := c.UpdateComment(map[string]string{
-		"workspace_id":   wsID,
-		"id":             commentID,
-		"description":    "这是更新后的自动化测试评论",
-		"change_creator": c.Nick,
+	updated, err := c.UpdateComment(&model.UpdateCommentRequest{
+		WorkspaceID:   wsID,
+		ID:            commentID,
+		Description:   "这是更新后的自动化测试评论",
+		ChangeCreator: c.Nick,
 	})
 	if err != nil {
 		t.Fatalf("UpdateComment failed: %v", err)
@@ -616,10 +618,10 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	t.Logf("Step 4: Updated comment id=%s description=%s", updated.ID, updated.Description)
 
 	// 步骤 5：查询评论数量
-	count, err := c.CountComments(map[string]string{
-		"workspace_id": wsID,
-		"entry_type":   "stories",
-		"entry_id":     storyID,
+	count, err := c.CountComments(&model.CountCommentsRequest{
+		WorkspaceID: wsID,
+		EntryType:   "stories",
+		EntryID:     storyID,
 	})
 	if err != nil {
 		t.Fatalf("CountComments failed: %v", err)
@@ -637,10 +639,11 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 创建需求
-	storyResult, err := c.CreateStory(map[string]string{
-		"workspace_id": wsID,
-		"name":         "[tapd-ai-cli integration test] 评论命令层测试需求",
-	}, "stories")
+	storyResult, err := c.CreateStory(&model.CreateStoryRequest{
+		WorkspaceID: wsID,
+		Name:        "[tapd-ai-cli integration test] 评论命令层测试需求",
+		EntityType:  "stories",
+	})
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
 	}
@@ -648,11 +651,12 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 	t.Logf("Created story id=%s for cmd-level comment test", storyID)
 
 	t.Cleanup(func() {
-		_, err := c.UpdateStory(map[string]string{
-			"workspace_id": wsID,
-			"id":           storyID,
-			"name":         "[已废弃-自动化测试] 评论命令层测试需求-请忽略",
-		}, "stories")
+		_, err := c.UpdateStory(&model.UpdateStoryRequest{
+			WorkspaceID: wsID,
+			ID:          storyID,
+			EntityType:  "stories",
+			Name:        "[已废弃-自动化测试] 评论命令层测试需求-请忽略",
+		})
 		if err != nil {
 			t.Logf("Cleanup: failed to mark story %s as deprecated: %v", storyID, err)
 		}
@@ -704,10 +708,10 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 获取一个真实 wiki id
-	wikis, err := c.ListWikis(map[string]string{
-		"workspace_id": wsID,
-		"limit":        "1",
-		"fields":       "id,name",
+	wikis, err := c.ListWikis(&model.ListWikisRequest{
+		WorkspaceID: wsID,
+		Limit:       "1",
+		Fields:      "id,name",
 	})
 	if err != nil || len(wikis) == 0 {
 		t.Skip("No wikis available for URL test")
@@ -810,9 +814,8 @@ func TestIntegration_ReleaseList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	releases, err := c.ListReleases(map[string]string{
-		"workspace_id": wsID,
-		"limit":        "3",
+	releases, err := c.ListReleases(&model.WorkspaceIDRequest{
+		WorkspaceID: wsID,
 	})
 	if err != nil {
 		t.Fatalf("ListReleases failed: %v", err)
@@ -828,9 +831,9 @@ func TestIntegration_TimesheetList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	timesheets, err := c.ListTimesheets(map[string]string{
-		"workspace_id": wsID,
-		"limit":        "3",
+	timesheets, err := c.ListTimesheets(&model.ListTimesheetsRequest{
+		WorkspaceID: wsID,
+		Limit:       "3",
 	})
 	if err != nil {
 		t.Fatalf("ListTimesheets failed: %v", err)
@@ -846,10 +849,9 @@ func TestIntegration_TodoList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	data, err := c.GetTodo(map[string]string{
-		"workspace_id": wsID,
-		"entity_type":  "story",
-		"limit":        "3",
+	data, err := c.GetTodo(&model.GetTodoRequest{
+		WorkspaceID: wsID,
+		EntityType:  "story",
 	})
 	if err != nil {
 		t.Fatalf("GetTodo failed: %v", err)
@@ -863,11 +865,11 @@ func TestIntegration_CommitMsg_Client(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 story ID
-	listResult, err := c.ListStories(map[string]string{
-		"workspace_id": wsID,
-		"entity_type":  "stories",
-		"limit":        "1",
-		"fields":       "id",
+	listResult, err := c.ListStories(&model.ListStoriesRequest{
+		WorkspaceID: wsID,
+		EntityType:  "stories",
+		Limit:       "1",
+		Fields:      "id",
 	})
 	if err != nil {
 		t.Skip("No stories available for commit-msg test")
@@ -878,10 +880,10 @@ func TestIntegration_CommitMsg_Client(t *testing.T) {
 	}
 	storyID := stories[0].ID
 
-	data, err := c.GetCommitMsg(map[string]string{
-		"workspace_id": wsID,
-		"object_id":    storyID,
-		"type":         "story",
+	data, err := c.GetCommitMsg(&model.GetCommitMsgRequest{
+		WorkspaceID: wsID,
+		ObjectID:    storyID,
+		Type:        "story",
 	})
 	if err != nil {
 		t.Fatalf("GetCommitMsg failed: %v", err)
@@ -895,11 +897,11 @@ func TestIntegration_RunCommitMsgGet(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 story ID
-	listResult, err := c.ListStories(map[string]string{
-		"workspace_id": wsID,
-		"entity_type":  "stories",
-		"limit":        "1",
-		"fields":       "id",
+	listResult, err := c.ListStories(&model.ListStoriesRequest{
+		WorkspaceID: wsID,
+		EntityType:  "stories",
+		Limit:       "1",
+		Fields:      "id",
 	})
 	if err != nil {
 		t.Skip("No stories available for commit-msg test")

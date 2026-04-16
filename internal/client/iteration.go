@@ -8,8 +8,8 @@ import (
 )
 
 // ListIterations 查询迭代列表
-func (c *Client) ListIterations(params map[string]string) ([]model.Iteration, error) {
-	data, err := c.doGet("/iterations", params)
+func (c *Client) ListIterations(req *model.ListIterationsRequest) ([]model.Iteration, error) {
+	data, err := c.doGet("/iterations", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +29,8 @@ func (c *Client) ListIterations(params map[string]string) ([]model.Iteration, er
 }
 
 // CreateIteration 创建迭代
-func (c *Client) CreateIteration(params map[string]string) (*model.SuccessResponse, error) {
-	data, err := c.doPost("/iterations", params)
+func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.SuccessResponse, error) {
+	data, err := c.doPost("/iterations", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *Client) CreateIteration(params map[string]string) (*model.SuccessRespon
 		return nil, fmt.Errorf("failed to parse created iteration: %w", err)
 	}
 
-	wsID := params["workspace_id"]
+	wsID := req.WorkspaceID
 
 	return &model.SuccessResponse{
 		Success:     true,
@@ -60,8 +60,8 @@ func (c *Client) CreateIteration(params map[string]string) (*model.SuccessRespon
 }
 
 // UpdateIteration 更新迭代
-func (c *Client) UpdateIteration(params map[string]string) (*model.Iteration, error) {
-	data, err := c.doPost("/iterations", params)
+func (c *Client) UpdateIteration(req *model.UpdateIterationRequest) (*model.Iteration, error) {
+	data, err := c.doPost("/iterations", req.ToParams())
 	if err != nil {
 		return nil, err
 	}

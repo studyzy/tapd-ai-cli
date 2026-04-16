@@ -9,8 +9,8 @@ import (
 )
 
 // ListTimesheets 查询花费工时列表
-func (c *Client) ListTimesheets(params map[string]string) ([]model.Timesheet, error) {
-	data, err := c.doGet("/timesheets", params)
+func (c *Client) ListTimesheets(req *model.ListTimesheetsRequest) ([]model.Timesheet, error) {
+	data, err := c.doGet("/timesheets", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +33,8 @@ func (c *Client) ListTimesheets(params map[string]string) ([]model.Timesheet, er
 }
 
 // AddTimesheet 填写花费工时
-func (c *Client) AddTimesheet(params map[string]string) (*model.Timesheet, error) {
-	data, err := c.doPost("/timesheets", params)
+func (c *Client) AddTimesheet(req *model.AddTimesheetRequest) (*model.Timesheet, error) {
+	data, err := c.doPost("/timesheets", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +57,8 @@ func (c *Client) AddTimesheet(params map[string]string) (*model.Timesheet, error
 }
 
 // UpdateTimesheet 更新花费工时
-func (c *Client) UpdateTimesheet(params map[string]string) (*model.Timesheet, error) {
-	data, err := c.doPost("/timesheets", params)
+func (c *Client) UpdateTimesheet(req *model.UpdateTimesheetRequest) (*model.Timesheet, error) {
+	data, err := c.doPost("/timesheets", req.ToParams())
 	if err != nil {
 		return nil, err
 	}

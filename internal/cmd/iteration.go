@@ -63,12 +63,11 @@ func init() {
 }
 
 func runIterationList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
+	req := &model.ListIterationsRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
 	}
-	addOptionalParam(params, "status", flagStatus)
-
-	iterations, err := apiClient.ListIterations(params)
+	iterations, err := apiClient.ListIterations(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -104,20 +103,16 @@ func runIterationCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"name":         flagName,
-		"startdate":    flagStartDate,
-		"enddate":      flagEndDate,
-		"creator":      flagCreator,
+	req := &model.CreateIterationRequest{
+		WorkspaceID: flagWorkspaceID,
+		Name:        flagName,
+		StartDate:   flagStartDate,
+		EndDate:     flagEndDate,
+		Creator:     flagCreator,
+		Description: flagDescription,
+		Status:      flagStatus,
 	}
-	if flagDescription != "" {
-		flagDescription = markdownToHTML(flagDescription)
-	}
-	addOptionalParam(params, "description", flagDescription)
-	addOptionalParam(params, "status", flagStatus)
-
-	result, err := apiClient.CreateIteration(params)
+	result, err := apiClient.CreateIteration(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -133,22 +128,17 @@ func runIterationUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	args[0] = expandShortID(args[0], flagWorkspaceID)
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"id":           args[0],
-		"current_user": flagCurrentUser,
+	req := &model.UpdateIterationRequest{
+		WorkspaceID: flagWorkspaceID,
+		ID:          args[0],
+		CurrentUser: flagCurrentUser,
+		Name:        flagName,
+		StartDate:   flagStartDate,
+		EndDate:     flagEndDate,
+		Description: flagDescription,
+		Status:      flagStatus,
 	}
-	addOptionalParam(params, "name", flagName)
-	addOptionalParam(params, "startdate", flagStartDate)
-	addOptionalParam(params, "enddate", flagEndDate)
-	if flagDescription != "" {
-		flagDescription = markdownToHTML(flagDescription)
-	}
-	addOptionalParam(params, "description", flagDescription)
-	addOptionalParam(params, "status", flagStatus)
-
-	result, err := apiClient.UpdateIteration(params)
+	result, err := apiClient.UpdateIteration(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -57,13 +58,12 @@ func runRelationBugs(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	flagRelationStoryID = expandShortID(flagRelationStoryID, flagWorkspaceID)
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"story_id":     flagRelationStoryID,
+	req := &model.GetRelatedBugsRequest{
+		WorkspaceID: flagWorkspaceID,
+		StoryID:     flagRelationStoryID,
 	}
 
-	data, err := apiClient.GetRelatedBugs(params)
+	data, err := apiClient.GetRelatedBugs(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -82,17 +82,15 @@ func runRelationCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	flagRelationSourceID = expandShortID(flagRelationSourceID, flagWorkspaceID)
-	flagRelationTargetID = expandShortID(flagRelationTargetID, flagWorkspaceID)
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"source_type":  flagRelationSourceType,
-		"target_type":  flagRelationTargetType,
-		"source_id":    flagRelationSourceID,
-		"target_id":    flagRelationTargetID,
+	req := &model.CreateRelationRequest{
+		WorkspaceID: flagWorkspaceID,
+		SourceType:  flagRelationSourceType,
+		TargetType:  flagRelationTargetType,
+		SourceID:    flagRelationSourceID,
+		TargetID:    flagRelationTargetID,
 	}
 
-	data, err := apiClient.CreateRelation(params)
+	data, err := apiClient.CreateRelation(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestListBugs(t *testing.T) {
@@ -20,10 +21,7 @@ func TestListBugs(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-	}
-	results, err := c.ListBugs(params)
+	results, err := c.ListBugs(&model.ListBugsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListBugs() unexpected error: %v", err)
 	}
@@ -59,7 +57,7 @@ func TestListBugs_FiltersCustomFields(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	results, err := c.ListBugs(map[string]string{"workspace_id": "1"})
+	results, err := c.ListBugs(&model.ListBugsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListBugs() unexpected error: %v", err)
 	}
@@ -139,11 +137,10 @@ func TestCreateBug(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"title":        "New Bug",
-	}
-	resp, err := c.CreateBug(params)
+	resp, err := c.CreateBug(&model.CreateBugRequest{
+		WorkspaceID: "1",
+		Title:       "New Bug",
+	})
 	if err != nil {
 		t.Fatalf("CreateBug() unexpected error: %v", err)
 	}
@@ -169,10 +166,7 @@ func TestCountBugs(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-	}
-	count, err := c.CountBugs(params)
+	count, err := c.CountBugs(&model.CountBugsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("CountBugs() unexpected error: %v", err)
 	}

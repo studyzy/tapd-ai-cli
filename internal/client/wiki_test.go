@@ -20,10 +20,7 @@ func TestListWikis(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "51081496",
-	}
-	results, err := c.ListWikis(params)
+	results, err := c.ListWikis(&model.ListWikisRequest{WorkspaceID: "51081496"})
 	if err != nil {
 		t.Fatalf("ListWikis() unexpected error: %v", err)
 	}

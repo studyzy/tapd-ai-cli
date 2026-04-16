@@ -9,8 +9,8 @@ import (
 )
 
 // ListComments 查询评论列表，返回强类型 Comment 切片
-func (c *Client) ListComments(params map[string]string) ([]model.Comment, error) {
-	data, err := c.doGet("/comments", params)
+func (c *Client) ListComments(req *model.ListCommentsRequest) ([]model.Comment, error) {
+	data, err := c.doGet("/comments", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func (c *Client) ListComments(params map[string]string) ([]model.Comment, error)
 }
 
 // AddComment 添加评论，返回新建的评论对象
-func (c *Client) AddComment(params map[string]string) (*model.Comment, error) {
-	data, err := c.doPost("/comments", params)
+func (c *Client) AddComment(req *model.AddCommentRequest) (*model.Comment, error) {
+	data, err := c.doPost("/comments", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +65,8 @@ func (c *Client) AddComment(params map[string]string) (*model.Comment, error) {
 }
 
 // UpdateComment 更新评论，返回更新后的评论对象
-func (c *Client) UpdateComment(params map[string]string) (*model.Comment, error) {
-	data, err := c.doPost("/comments", params)
+func (c *Client) UpdateComment(req *model.UpdateCommentRequest) (*model.Comment, error) {
+	data, err := c.doPost("/comments", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +96,8 @@ func (c *Client) UpdateComment(params map[string]string) (*model.Comment, error)
 }
 
 // CountComments 查询评论数量
-func (c *Client) CountComments(params map[string]string) (int, error) {
-	data, err := c.doGet("/comments/count", params)
+func (c *Client) CountComments(req *model.CountCommentsRequest) (int, error) {
+	data, err := c.doGet("/comments/count", req.ToParams())
 	if err != nil {
 		return 0, err
 	}

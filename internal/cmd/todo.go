@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -34,13 +35,12 @@ func init() {
 }
 
 func runTodoList(cmd *cobra.Command, args []string) error {
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"entity_type":  flagTodoEntityType,
+	req := &model.GetTodoRequest{
+		WorkspaceID: flagWorkspaceID,
+		EntityType:  flagTodoEntityType,
 	}
-	addPaginationParams(params, flagLimit, flagPage)
 
-	data, err := apiClient.GetTodo(params)
+	data, err := apiClient.GetTodo(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

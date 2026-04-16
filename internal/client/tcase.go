@@ -9,8 +9,8 @@ import (
 )
 
 // ListTCases 查询测试用例列表
-func (c *Client) ListTCases(params map[string]string) ([]model.TCase, error) {
-	data, err := c.doGet("/tcases", params)
+func (c *Client) ListTCases(req *model.ListTCasesRequest) ([]model.TCase, error) {
+	data, err := c.doGet("/tcases", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +33,8 @@ func (c *Client) ListTCases(params map[string]string) ([]model.TCase, error) {
 }
 
 // CountTCases 查询测试用例数量
-func (c *Client) CountTCases(params map[string]string) (int, error) {
-	data, err := c.doGet("/tcases/count", params)
+func (c *Client) CountTCases(req *model.CountTCasesRequest) (int, error) {
+	data, err := c.doGet("/tcases/count", req.ToParams())
 	if err != nil {
 		return 0, err
 	}
@@ -51,8 +51,8 @@ func (c *Client) CountTCases(params map[string]string) (int, error) {
 }
 
 // CreateTCase 创建或更新测试用例
-func (c *Client) CreateTCase(params map[string]string) (*model.TCase, error) {
-	data, err := c.doPost("/tcases", params)
+func (c *Client) CreateTCase(req *model.CreateTCaseRequest) (*model.TCase, error) {
+	data, err := c.doPost("/tcases", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +75,6 @@ func (c *Client) CreateTCase(params map[string]string) (*model.TCase, error) {
 }
 
 // BatchCreateTCases 批量创建测试用例
-func (c *Client) BatchCreateTCases(params map[string]string) (json.RawMessage, error) {
-	return c.doPost("/tcases/batch_save", params)
+func (c *Client) BatchCreateTCases(req *model.BatchCreateTCasesRequest) (json.RawMessage, error) {
+	return c.doPost("/tcases/batch_save", req.ToParams())
 }

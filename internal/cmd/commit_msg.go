@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
 )
 
@@ -42,14 +43,13 @@ func runCommitMsgGet(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	flagCommitMsgObjectID = expandShortID(flagCommitMsgObjectID, flagWorkspaceID)
-	params := map[string]string{
-		"workspace_id": flagWorkspaceID,
-		"object_id":    flagCommitMsgObjectID,
-		"type":         flagCommitMsgType,
+	req := &model.GetCommitMsgRequest{
+		WorkspaceID: flagWorkspaceID,
+		ObjectID:    flagCommitMsgObjectID,
+		Type:        flagCommitMsgType,
 	}
 
-	data, err := apiClient.GetCommitMsg(params)
+	data, err := apiClient.GetCommitMsg(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

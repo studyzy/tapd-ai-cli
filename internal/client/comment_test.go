@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/client"
+	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 func TestListComments(t *testing.T) {
@@ -20,10 +21,9 @@ func TestListComments(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-	}
-	results, err := c.ListComments(params)
+	results, err := c.ListComments(&model.ListCommentsRequest{
+		WorkspaceID: "1",
+	})
 	if err != nil {
 		t.Fatalf("ListComments() unexpected error: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestListComments_HTMLToMarkdown(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	results, err := c.ListComments(map[string]string{"workspace_id": "1"})
+	results, err := c.ListComments(&model.ListCommentsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListComments() unexpected error: %v", err)
 	}
@@ -81,14 +81,13 @@ func TestAddComment(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"entry_type":   "stories",
-		"entry_id":     "200",
-		"description":  "test comment",
-		"author":       "tester",
-	}
-	result, err := c.AddComment(params)
+	result, err := c.AddComment(&model.AddCommentRequest{
+		WorkspaceID: "1",
+		EntryType:   "stories",
+		EntryID:     "200",
+		Description: "test comment",
+		Author:      "tester",
+	})
 	if err != nil {
 		t.Fatalf("AddComment() unexpected error: %v", err)
 	}
@@ -118,12 +117,11 @@ func TestUpdateComment(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"id":           "102",
-		"description":  "updated content",
-	}
-	result, err := c.UpdateComment(params)
+	result, err := c.UpdateComment(&model.UpdateCommentRequest{
+		WorkspaceID: "1",
+		ID:          "102",
+		Description: "updated content",
+	})
 	if err != nil {
 		t.Fatalf("UpdateComment() unexpected error: %v", err)
 	}
@@ -149,10 +147,9 @@ func TestCountComments(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-	}
-	count, err := c.CountComments(params)
+	count, err := c.CountComments(&model.CountCommentsRequest{
+		WorkspaceID: "1",
+	})
 	if err != nil {
 		t.Fatalf("CountComments() unexpected error: %v", err)
 	}

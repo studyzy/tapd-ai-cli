@@ -24,13 +24,14 @@ func TestUpdateStory(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"id":           "100",
-		"name":         "Updated",
-		"status":       "done",
+	req := &model.UpdateStoryRequest{
+		WorkspaceID: "1",
+		ID:          "100",
+		EntityType:  "stories",
+		Name:        "Updated",
+		Status:      "done",
 	}
-	result, err := c.UpdateStory(params, "stories")
+	result, err := c.UpdateStory(req)
 	if err != nil {
 		t.Fatalf("UpdateStory() unexpected error: %v", err)
 	}
@@ -63,13 +64,12 @@ func TestUpdateBug(t *testing.T) {
 	defer srv.Close()
 
 	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	params := map[string]string{
-		"workspace_id": "1",
-		"id":           "500",
-		"title":        "Fixed",
-		"status":       "resolved",
-	}
-	result, err := c.UpdateBug(params)
+	result, err := c.UpdateBug(&model.UpdateBugRequest{
+		WorkspaceID: "1",
+		ID:          "500",
+		Title:       "Fixed",
+		Status:      "resolved",
+	})
 	if err != nil {
 		t.Fatalf("UpdateBug() unexpected error: %v", err)
 	}

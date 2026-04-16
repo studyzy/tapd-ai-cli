@@ -10,8 +10,8 @@ import (
 )
 
 // ListWikis 查询 Wiki 文档列表，返回强类型 []model.Wiki
-func (c *Client) ListWikis(params map[string]string) ([]model.Wiki, error) {
-	data, err := c.doGet("/tapd_wikis", params)
+func (c *Client) ListWikis(req *model.ListWikisRequest) ([]model.Wiki, error) {
+	data, err := c.doGet("/tapd_wikis", req.ToParams())
 	if err != nil {
 		return nil, err
 	}

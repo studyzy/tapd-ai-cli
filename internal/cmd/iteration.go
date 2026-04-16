@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -41,8 +42,16 @@ var iterationUpdateCmd = &cobra.Command{
 	RunE:  runIterationUpdate,
 }
 
+var iterationCountCmd = &cobra.Command{
+	Use:   "count",
+	Short: "查询迭代数量",
+	RunE:  runIterationCount,
+}
+
 func init() {
 	iterationListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/done）")
+	iterationListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
+	iterationListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 
 	iterationCreateCmd.Flags().StringVar(&flagName, "name", "", "迭代标题（必需）")
 	iterationCreateCmd.Flags().StringVar(&flagStartDate, "startdate", "", "开始日期（必需，格式：2006-01-02）")
@@ -58,7 +67,9 @@ func init() {
 	iterationUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
 	iterationUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（open/done）")
 
-	iterationCmd.AddCommand(iterationListCmd, iterationCreateCmd, iterationUpdateCmd)
+	iterationCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+
+	iterationCmd.AddCommand(iterationListCmd, iterationCreateCmd, iterationUpdateCmd, iterationCountCmd)
 	rootCmd.AddCommand(iterationCmd)
 }
 
@@ -66,6 +77,9 @@ func runIterationList(cmd *cobra.Command, args []string) error {
 	req := &model.ListIterationsRequest{
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
+		Fields:      "id,name,status,startdate,enddate,modified",
+		Limit:       fmt.Sprintf("%d", flagLimit),
+		Page:        fmt.Sprintf("%d", flagPage),
 	}
 	iterations, err := apiClient.ListIterations(req)
 	if err != nil {
@@ -74,9 +88,17 @@ func runIterationList(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	total, _ := apiClient.CountIterations(&model.CountIterationsRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
+	})
+
 	resp := &model.ListResponse{
-		Items: iterations,
-		Total: len(iterations),
+		Items:   iterations,
+		Total:   total,
+		Page:    flagPage,
+		Limit:   flagLimit,
+		HasMore: total > flagPage*flagLimit,
 	}
 	return output.PrintJSON(os.Stdout, resp, !flagPretty)
 }
@@ -145,4 +167,18 @@ func runIterationUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 	return output.PrintJSON(os.Stdout, result, !flagPretty)
+}
+
+func runIterationCount(cmd *cobra.Command, args []string) error {
+	req := &model.CountIterationsRequest{
+		WorkspaceID: flagWorkspaceID,
+		Status:      flagStatus,
+	}
+	count, err := apiClient.CountIterations(req)
+	if err != nil {
+		output.PrintError(os.Stderr, "api_error", err.Error(), "")
+		os.Exit(output.ExitAPIError)
+		return nil
+	}
+	return output.PrintJSON(os.Stdout, &model.CountResponse{Count: count}, !flagPretty)
 }

@@ -174,3 +174,37 @@ func TestCountBugs(t *testing.T) {
 		t.Errorf("count = %d, want 17", count)
 	}
 }
+
+func TestUpdateBug(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/bugs" {
+			t.Errorf("unexpected path: %s, want /bugs", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":{"Bug":{"id":"500","title":"Fixed","status":"resolved"}},"info":"success"}`))
+	}))
+	defer srv.Close()
+
+	c := client.NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	result, err := c.UpdateBug(&model.UpdateBugRequest{
+		WorkspaceID: "1",
+		ID:          "500",
+		Title:       "Fixed",
+		Status:      "resolved",
+	})
+	if err != nil {
+		t.Fatalf("UpdateBug() unexpected error: %v", err)
+	}
+	if result.ID != "500" {
+		t.Errorf("id = %v, want %q", result.ID, "500")
+	}
+	if result.Title != "Fixed" {
+		t.Errorf("title = %v, want %q", result.Title, "Fixed")
+	}
+	if result.Status != "resolved" {
+		t.Errorf("status = %v, want %q", result.Status, "resolved")
+	}
+}

@@ -69,6 +69,7 @@ var bugTodoCmd = &cobra.Command{
 
 func init() {
 	bugListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	bugListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
 	bugListCmd.Flags().StringVar(&flagPriority, "priority", "", "按优先级筛选（urgent/high/medium/low/insignificant）")
 	bugListCmd.Flags().StringVar(&flagSeverity, "severity", "", "按严重程度筛选（fatal/serious/normal/prompt/advice）")
 	bugListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
@@ -99,9 +100,11 @@ func init() {
 func runBugList(cmd *cobra.Command, args []string) error {
 	req := &model.ListBugsRequest{
 		WorkspaceID:   flagWorkspaceID,
+		CurrentOwner:  flagOwner,
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 		Status:        flagStatus,
+		Fields:        "id,title,status,current_owner,severity,modified",
 		Limit:         fmt.Sprintf("%d", flagLimit),
 		Page:          fmt.Sprintf("%d", flagPage),
 	}

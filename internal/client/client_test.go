@@ -195,3 +195,15 @@ func TestDoGet_ParsesDataCorrectly(t *testing.T) {
 		t.Fatalf("expected successful GET request, got error: %v", err)
 	}
 }
+
+func TestTAPDError_Error(t *testing.T) {
+	e := &client.TAPDError{
+		HTTPStatus: 400,
+		ExitCode:   3,
+		Message:    "bad request",
+	}
+	got := e.Error()
+	if got != "bad request" {
+		t.Errorf("Error() = %q, want %q", got, "bad request")
+	}
+}

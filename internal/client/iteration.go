@@ -7,22 +7,25 @@ import (
 	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
-// ListIterations 查询迭代列表
+// ListIterations 查询迭代列表，返回强类型 Iteration 切片
 func (c *Client) ListIterations(req *model.ListIterationsRequest) ([]model.Iteration, error) {
 	data, err := c.doGet("/iterations", req.ToParams())
 	if err != nil {
 		return nil, err
 	}
 
-	var rawList []map[string]model.Iteration
+	var rawList []map[string]json.RawMessage
 	if err := json.Unmarshal(data, &rawList); err != nil {
 		return nil, fmt.Errorf("failed to parse iteration list: %w", err)
 	}
 
 	var iterations []model.Iteration
 	for _, item := range rawList {
-		if iter, ok := item["Iteration"]; ok {
-			iterations = append(iterations, iter)
+		if raw, ok := item["Iteration"]; ok {
+			var iter model.Iteration
+			if err := json.Unmarshal(raw, &iter); err == nil {
+				iterations = append(iterations, iter)
+			}
 		}
 	}
 	return iterations, nil
@@ -50,12 +53,10 @@ func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.Succ
 		return nil, fmt.Errorf("failed to parse created iteration: %w", err)
 	}
 
-	wsID := req.WorkspaceID
-
 	return &model.SuccessResponse{
 		Success:     true,
 		ID:          created.ID,
-		WorkspaceID: wsID,
+		WorkspaceID: req.WorkspaceID,
 	}, nil
 }
 
@@ -82,4 +83,22 @@ func (c *Client) UpdateIteration(req *model.UpdateIterationRequest) (*model.Iter
 	}
 
 	return &iteration, nil
+}
+
+// CountIterations 查询迭代数量
+func (c *Client) CountIterations(req *model.CountIterationsRequest) (int, error) {
+	data, err := c.doGet("/iterations/count", req.ToParams())
+	if err != nil {
+		return 0, err
+	}
+
+	var result map[string]int
+	if err := json.Unmarshal(data, &result); err != nil {
+		return 0, fmt.Errorf("failed to parse count response: %w", err)
+	}
+
+	if count, ok := result["count"]; ok {
+		return count, nil
+	}
+	return 0, nil
 }

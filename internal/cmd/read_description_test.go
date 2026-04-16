@@ -4,12 +4,12 @@ package cmd
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-// TestReadDescription_FromFlag 测试通过 --description flag 传入描述
+// TestReadDescription_FromFlag 测试通过 --description flag 传入纯文本描述会被转换为 HTML
 func TestReadDescription_FromFlag(t *testing.T) {
-	// 保存并恢复全局变量
 	origDesc := flagDescription
 	origFile := flagDescFile
 	defer func() {
@@ -17,19 +17,44 @@ func TestReadDescription_FromFlag(t *testing.T) {
 		flagDescFile = origFile
 	}()
 
-	flagDescription = "来自 flag 的描述"
+	flagDescription = "简单纯文本描述"
 	flagDescFile = ""
 
 	result, err := readDescription()
 	if err != nil {
 		t.Fatalf("readDescription() error: %v", err)
 	}
-	if result != "来自 flag 的描述" {
-		t.Errorf("readDescription() = %q, want %q", result, "来自 flag 的描述")
+	// 纯文本被 markdownToHTML 包裹为 <p> 标签
+	if !strings.Contains(result, "简单纯文本描述") {
+		t.Errorf("readDescription() should contain original text, got %q", result)
 	}
 }
 
-// TestReadDescription_FromFile 测试通过 --file flag 从文件读取描述
+// TestReadDescription_FromFlag_Markdown 测试通过 --description flag 传入 Markdown 内容会被转换为 HTML
+func TestReadDescription_FromFlag_Markdown(t *testing.T) {
+	origDesc := flagDescription
+	origFile := flagDescFile
+	defer func() {
+		flagDescription = origDesc
+		flagDescFile = origFile
+	}()
+
+	flagDescription = "# 标题\n\n段落内容"
+	flagDescFile = ""
+
+	result, err := readDescription()
+	if err != nil {
+		t.Fatalf("readDescription() error: %v", err)
+	}
+	if !strings.Contains(result, "<h1") {
+		t.Errorf("readDescription() should convert markdown heading to HTML, got %q", result)
+	}
+	if !strings.Contains(result, "<p>") {
+		t.Errorf("readDescription() should convert markdown paragraph to HTML, got %q", result)
+	}
+}
+
+// TestReadDescription_FromFile 测试通过 --file flag 从文件读取 Markdown 内容并转换为 HTML
 func TestReadDescription_FromFile(t *testing.T) {
 	origDesc := flagDescription
 	origFile := flagDescFile
@@ -38,7 +63,6 @@ func TestReadDescription_FromFile(t *testing.T) {
 		flagDescFile = origFile
 	}()
 
-	// 创建临时文件
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "desc.md")
 	content := "# 从文件读取的描述\n\n这是一段详细描述。"
@@ -53,8 +77,12 @@ func TestReadDescription_FromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("readDescription() error: %v", err)
 	}
-	if result != content {
-		t.Errorf("readDescription() = %q, want %q", result, content)
+	// Markdown 文件应被转换为 HTML
+	if !strings.Contains(result, "<h1") {
+		t.Errorf("readDescription() should convert file markdown to HTML, got %q", result)
+	}
+	if !strings.Contains(result, "<p>") {
+		t.Errorf("readDescription() should contain <p> tag, got %q", result)
 	}
 }
 
@@ -67,10 +95,9 @@ func TestReadDescription_FlagPriorityOverFile(t *testing.T) {
 		flagDescFile = origFile
 	}()
 
-	// 创建临时文件
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "desc.md")
-	if err := os.WriteFile(tmpFile, []byte("文件内容"), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte("# 文件内容"), 0644); err != nil {
 		t.Fatalf("Failed to write temp file: %v", err)
 	}
 
@@ -81,8 +108,13 @@ func TestReadDescription_FlagPriorityOverFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("readDescription() error: %v", err)
 	}
-	if result != "flag 内容" {
-		t.Errorf("readDescription() = %q, want %q", result, "flag 内容")
+	// flag 优先，内容经过 markdownToHTML 转换
+	if !strings.Contains(result, "flag 内容") {
+		t.Errorf("readDescription() should contain 'flag 内容', got %q", result)
+	}
+	// 不应包含文件内容
+	if strings.Contains(result, "文件内容") {
+		t.Errorf("readDescription() should not contain file content, got %q", result)
 	}
 }
 
@@ -116,7 +148,6 @@ func TestReadDescription_EmptyFlagsNoStdin(t *testing.T) {
 	flagDescription = ""
 	flagDescFile = ""
 
-	// 注意：在测试环境中 stdin 通常是终端设备，所以 readDescription 应返回空字符串
 	result, err := readDescription()
 	if err != nil {
 		t.Fatalf("readDescription() error: %v", err)

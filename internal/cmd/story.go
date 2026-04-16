@@ -251,27 +251,32 @@ func runStoryTodo(cmd *cobra.Command, args []string) error {
 
 // readDescription 从 --description、--file 或 stdin 读取描述内容
 // 优先级：--description > --file > stdin
+// TAPD API 的 description 字段期望 HTML 格式，因此自动将 Markdown 转换为 HTML
 func readDescription() (string, error) {
+	var content string
 	if flagDescription != "" {
-		return flagDescription, nil
-	}
-	if flagDescFile != "" {
+		content = flagDescription
+	} else if flagDescFile != "" {
 		data, err := os.ReadFile(flagDescFile)
 		if err != nil {
 			return "", err
 		}
-		return string(data), nil
-	}
-	// 尝试从 stdin 读取（仅当 stdin 不是终端时）
-	stat, _ := os.Stdin.Stat()
-	if (stat.Mode() & os.ModeCharDevice) == 0 {
-		data, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			return "", err
+		content = string(data)
+	} else {
+		// 尝试从 stdin 读取（仅当 stdin 不是终端时）
+		stat, _ := os.Stdin.Stat()
+		if (stat.Mode() & os.ModeCharDevice) == 0 {
+			data, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				return "", err
+			}
+			content = string(data)
 		}
-		return string(data), nil
 	}
-	return "", nil
+	if content != "" {
+		content = markdownToHTML(content)
+	}
+	return content, nil
 }
 
 // addOptionalParam 当值非空时添加到参数 map

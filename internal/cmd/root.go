@@ -108,7 +108,7 @@ func initClientAndConfig(cmd *cobra.Command) error {
 		os.Exit(output.ExitAuthError)
 	}
 
-	apiClient = tapd.NewClientWithBaseURL(cfg.APIURL, cfg.URL, accessToken, apiUser, apiPassword)
+	apiClient = tapd.NewClientWithBaseURL(cfg.APIBaseURL, cfg.BaseURL, accessToken, apiUser, apiPassword)
 	if accessToken != "" {
 		apiClient.FetchNick()
 	}

@@ -61,8 +61,8 @@ export TAPD_API_PASSWORD=<password>
 
 ```bash
 # 环境变量
-export TAPD_API_URL=https://api.my-tapd.com
-export TAPD_URL=https://www.my-tapd.com
+export TAPD_API_BASE_URL=https://api.my-tapd.com
+export TAPD_BASE_URL=https://www.my-tapd.com
 ```
 
 或写入配置文件：
@@ -70,15 +70,15 @@ export TAPD_URL=https://www.my-tapd.com
 ```json
 {
   "access_token": "your-token",
-  "api_url": "https://api.my-tapd.com",
-  "url": "https://www.my-tapd.com"
+  "api_base_url": "https://api.my-tapd.com",
+  "base_url": "https://www.my-tapd.com"
 }
 ```
 
 | 配置项 | 环境变量 | JSON 字段 | 默认值 |
 |--------|----------|-----------|--------|
-| API 地址 | `TAPD_API_URL` | `api_url` | `https://api.tapd.cn` |
-| 前端地址 | `TAPD_URL` | `url` | `https://www.tapd.cn` |
+| API 地址 | `TAPD_API_BASE_URL` | `api_base_url` | `https://api.tapd.cn` |
+| 前端地址 | `TAPD_BASE_URL` | `base_url` | `https://www.tapd.cn` |
 
 ## 基本用法
 

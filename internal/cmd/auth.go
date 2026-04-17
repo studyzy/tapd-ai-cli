@@ -49,7 +49,7 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	// 验证凭据有效性（尊重环境变量中的自定义 API URL）
-	apiURL := os.Getenv("TAPD_API_URL")
+	apiURL := os.Getenv("TAPD_API_BASE_URL")
 	c := tapd.NewClientWithBaseURL(apiURL, "", accessToken, apiUser, apiPassword)
 	if err := c.TestAuth(); err != nil {
 		output.PrintError(os.Stderr, "authentication_failed",

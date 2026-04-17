@@ -14,8 +14,8 @@ type Config struct {
 	APIUser     string `json:"api_user,omitempty"`
 	APIPassword string `json:"api_password,omitempty"`
 	WorkspaceID string `json:"workspace_id,omitempty"`
-	APIURL      string `json:"api_url,omitempty"`
-	URL         string `json:"url,omitempty"`
+	APIBaseURL  string `json:"api_base_url,omitempty"`
+	BaseURL     string `json:"base_url,omitempty"`
 }
 
 // LoadConfig 按优先级加载配置：环境变量 > ./.tapd.json > ~/.tapd.json
@@ -47,11 +47,11 @@ func LoadConfig() (*Config, error) {
 		if localCfg.WorkspaceID != "" {
 			cfg.WorkspaceID = localCfg.WorkspaceID
 		}
-		if localCfg.APIURL != "" {
-			cfg.APIURL = localCfg.APIURL
+		if localCfg.APIBaseURL != "" {
+			cfg.APIBaseURL = localCfg.APIBaseURL
 		}
-		if localCfg.URL != "" {
-			cfg.URL = localCfg.URL
+		if localCfg.BaseURL != "" {
+			cfg.BaseURL = localCfg.BaseURL
 		}
 	}
 
@@ -60,8 +60,8 @@ func LoadConfig() (*Config, error) {
 	envUser := os.Getenv("TAPD_API_USER")
 	envPassword := os.Getenv("TAPD_API_PASSWORD")
 	envWorkspace := os.Getenv("TAPD_WORKSPACE_ID")
-	envAPIURL := os.Getenv("TAPD_API_URL")
-	envURL := os.Getenv("TAPD_URL")
+	envAPIURL := os.Getenv("TAPD_API_BASE_URL")
+	envURL := os.Getenv("TAPD_BASE_URL")
 
 	if envToken != "" || envUser != "" {
 		cfg.AccessToken = envToken
@@ -72,10 +72,10 @@ func LoadConfig() (*Config, error) {
 		cfg.WorkspaceID = envWorkspace
 	}
 	if envAPIURL != "" {
-		cfg.APIURL = envAPIURL
+		cfg.APIBaseURL = envAPIURL
 	}
 	if envURL != "" {
-		cfg.URL = envURL
+		cfg.BaseURL = envURL
 	}
 
 	return cfg, nil

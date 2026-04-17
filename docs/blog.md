@@ -138,7 +138,18 @@ tapd timesheet add --entity-type=task --entity-id=200001 --timespent=2 --owner=d
 
 #### 在 AI Agent 中使用
 
-将 `tapd` 加入 Agent 的可用工具列表后，Agent 会自动通过 `tapd --help` 发现所有功能。典型的 Agent 工作流：
+将 `tapd` 加入 Agent 的可用工具列表后，Agent 会自动通过 `tapd --help` 发现所有功能。更推荐通过 **`tapd skill init`** 一键生成 SKILL.md 指令文件，让 AI Coding 工具主动理解如何使用 tapd CLI：
+
+```bash
+# 为 Claude Code、CodeBuddy、Cursor 等 10 种工具一键生成 SKILL.md
+tapd skill init
+```
+
+命令会自动检测当前目录下已有的 AI Coding 工具配置文件夹并默认选中，交互式确认后将 SKILL.md 生成到对应工具的 `skills/tapd/SKILL.md` 路径下。生成的命令参考部分从当前 CLI 版本的命令树动态生成，始终与实际功能保持一致。
+
+支持的工具：Claude Code、CodeBuddy、Cursor、Windsurf、Trae、Codex、Gemini CLI、Cline、Roo Code、Augment。
+
+典型的 Agent 工作流：
 
 1. `tapd workspace list` — 发现可用项目
 2. `tapd workspace switch <id>` — 锁定目标项目

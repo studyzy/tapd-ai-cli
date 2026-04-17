@@ -120,13 +120,32 @@ tapd --help
 tapd
 ├── auth      login --access-token <token> | --api-user <user> --api-password <pwd> [--local]
 ├── workspace list | switch <id> | info
-├── story     list | show <id> | create | update <id> | count
-├── task      list | show <id> | create | update <id> | count
-├── bug       list | show <id> | create | update <id> | count
-├── wiki      list | show <id>
-├── iteration list
-└── url       <tapd-url>
+├── story     list | show <id> | create | update <id> | count | todo
+├── task      list | show <id> | create | update <id> | count | todo
+├── bug       list | show <id> | create | update <id> | count | todo
+├── wiki      list | show <id> | create | update
+├── iteration list | create | update | count
+├── comment   list | add | update | count
+├── tcase     list | create | batch-create
+├── timesheet list | add | update
+├── workflow  transitions | status-map | last-steps
+├── relation  bugs | create
+├── skill     init
+├── url       <tapd-url>
+└── ...       release, attachment, image, category, custom-field, story-field, workitem-type, commit-msg, qiwei
 ```
+
+## AI Coding 工具集成
+
+`tapd skill init` 可一键为主流 AI Coding 工具生成 TAPD CLI 的 SKILL.md 指令文件：
+
+```bash
+tapd skill init
+```
+
+支持的工具：Claude Code、CodeBuddy、Cursor、Windsurf、Trae、Codex、Gemini CLI、Cline、Roo Code、Augment。
+
+命令会自动检测当前目录下已有的工具配置文件夹并默认选中，交互式确认后生成 SKILL.md。生成的命令参考部分从当前 CLI 版本的命令树动态生成，始终保持同步。
 
 ## 全局标志
 

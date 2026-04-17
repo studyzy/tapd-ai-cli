@@ -92,11 +92,22 @@ argument-hint: "[Bug 描述或复现步骤]"
 
 6. **创建隔离 Worktree**
 
-   使用 **EnterWorktree tool**（通过 DeferExecuteTool 调用）创建一个用于修复 Bug 的隔离工作区：
-    - `name` 参数：使用 `fix-<bug简述>` 格式命名，例如 `fix-auth-token-error`
-    - `branch` 参数：基于主分支创建（使用步骤 5 中记录的主分支名称）
+   使用 git 命令在项目父目录下创建 worktree，避免在项目内部产生额外目录：
 
-   Worktree 创建成功后，当前会话会自动切换到新的隔离工作区中。后续所有代码修改和测试都在此工作区中进行。
+   ```bash
+   # 获取项目根目录的父目录路径
+   PROJECT_ROOT=$(git rev-parse --show-toplevel)
+   WORKTREE_DIR="$(dirname "$PROJECT_ROOT")/worktree/fix-<bug简述>"
+
+   # 基于主分支创建新分支和 worktree
+   git worktree add -b fix-<bug简述> "$WORKTREE_DIR" <主分支名>
+   ```
+
+   - 分支命名：使用 `fix-<bug简述>` 格式，例如 `fix-auth-token-error`
+   - Worktree 路径：`../worktree/fix-<bug简述>`（相对于项目根目录）
+   - 基于步骤 5 中记录的主分支创建
+
+   创建成功后，使用 `cd` 切换到新的 worktree 目录中。后续所有代码修改和测试都在此工作区中进行。
 
 ### 阶段 3：代码修复
 
@@ -205,24 +216,30 @@ argument-hint: "[Bug 描述或复现步骤]"
 
     如果用户确认：
 
-    a. **离开 Worktree 并保留分支**
+    a. **切回主工作区**
 
-       使用 **LeaveWorktree tool**（通过 DeferExecuteTool 调用），参数 `action` 设为 `keep`。这将切回原来的主工作区。
+       ```bash
+       cd <项目根目录>   # 切回原来的主工作区
+       ```
 
     b. **合并修复分支到主分支**
 
+       使用 fast-forward 优先的合并策略，避免无冲突时产生多余的 merge commit：
        ```bash
-       git merge <worktree分支名> --no-ff -m "fix: <Bug 简述>"
+       git merge <worktree分支名> --ff
        ```
 
-       如果合并冲突，手动解决冲突后继续。
+       - 如果修复分支是主分支的直接后继（无分叉），git 会自动 fast-forward，不产生 merge commit
+       - 如果存在分叉但无冲突，会产生 merge commit（这是必要的）
+       - 如果合并冲突，手动解决冲突后继续
 
     c. **删除 Worktree 和修复分支**
 
        合并成功后，清理 worktree 目录和修复分支：
        ```bash
-       # 删除 worktree 目录
-       git worktree remove .codebuddy/worktrees/<worktree名称>
+       # 删除 worktree
+       PROJECT_ROOT=$(git rev-parse --show-toplevel)
+       git worktree remove "$(dirname "$PROJECT_ROOT")/worktree/fix-<bug简述>"
        # 删除修复分支
        git branch -d <worktree分支名>
        ```
@@ -272,14 +289,15 @@ Bug 修复全流程已完成。
 
 - **严格按阶段顺序执行**：每个阶段必须完成后才能进入下一阶段
 - **修复方案必须经用户确认**：不得跳过用户确认直接修改代码
-- **必须在 Worktree 中修改代码**：所有代码修改必须在隔离的 worktree 中进行，不得直接在主工作区修改
+- **必须在 Worktree 中修改代码**：所有代码修改必须在隔离的 worktree（`../worktree/` 目录）中进行，不得直接在主工作区修改
 - **修改范围最小化**：仅修复 Bug 本身，不做无关重构或功能增强
 - **Bug 场景必须有测试覆盖**：确保 Bug 不会回归
 - **验证必须全部通过**：fmt、lint、build、test、coverage 全部通过后才能提交
 - **失败时修复而非跳过**：验证失败时必须修复代码并重新验证
 - **重试有上限**：验证循环最多 3 轮，超过后暂停等待用户指导
 - **合入前确认**：合入主分支前必须征求用户同意
-- **合入后清理**：合并成功后必须删除 worktree 目录和修复分支，保持仓库整洁
+- **合入后清理**：合并成功后必须删除 `../worktree/` 下的 worktree 目录和修复分支，保持仓库整洁
+- **合并策略**：使用 `--ff` 合并，能 fast-forward 时不产生 merge commit，保持提交历史简洁
 - **推送前确认**：推送前必须征求用户同意
 - **使用 Task tool 跟踪进度**：创建任务跟踪每个阶段的进度
 - **遵循项目编码规范**：Go 代码遵循 `CODEBUDDY.md` 中的代码规范和 Go 编码规范

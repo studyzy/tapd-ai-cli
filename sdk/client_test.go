@@ -234,6 +234,37 @@ func TestNewClientWithBaseURL_EmptyDefaultsToDefault(t *testing.T) {
 	}
 }
 
+func TestFetchNick(t *testing.T) {
+	srv := newMockServer(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/users/info" {
+			t.Errorf("unexpected path: %s, want /users/info", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":{"nick":"TestUser","name":"testuser@company.com"},"info":"success"}`))
+	})
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	c.FetchNick()
+	if c.Nick != "TestUser" {
+		t.Errorf("Nick = %q, want %q", c.Nick, "TestUser")
+	}
+}
+
+func TestFetchNick_Error(t *testing.T) {
+	srv := newMockServer(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`Internal Server Error`))
+	})
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	c.FetchNick()
+	if c.Nick != "" {
+		t.Errorf("Nick = %q, want empty string on error", c.Nick)
+	}
+}
+
 func TestNewClientWithBaseURL_TrimsTrailingSlash(t *testing.T) {
 	c := NewClientWithBaseURL("https://api.custom.com/", "https://www.custom.com/", "token", "", "")
 	if c.WebURL() != "https://www.custom.com" {

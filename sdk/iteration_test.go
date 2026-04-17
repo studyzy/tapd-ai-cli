@@ -123,3 +123,104 @@ func TestUpdateIteration(t *testing.T) {
 		t.Errorf("Description = %q, want %q", result.Description, "updated desc")
 	}
 }
+
+func TestCountIterations(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/iterations/count" {
+			t.Errorf("unexpected path: %s, want /iterations/count", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"status":1,"data":{"count":8},"info":"success"}`)
+	}))
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	count, err := c.CountIterations(&model.CountIterationsRequest{
+		WorkspaceID: "1",
+	})
+	if err != nil {
+		t.Fatalf("CountIterations() unexpected error: %v", err)
+	}
+	if count != 8 {
+		t.Errorf("count = %d, want 8", count)
+	}
+}
+
+func TestCreateIteration_WithAllFields(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/iterations" {
+			t.Errorf("unexpected path: %s, want /iterations", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"status":1,"data":{"Iteration":{"id":"iter_200","name":"Sprint 5","workspace_id":"1","startdate":"2026-04-01","enddate":"2026-04-15","creator":"admin","status":"open"}},"info":"success"}`)
+	}))
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	iteration, err := c.CreateIteration(&model.CreateIterationRequest{
+		WorkspaceID: "1",
+		Name:        "Sprint 5",
+		StartDate:   "2026-04-01",
+		EndDate:     "2026-04-15",
+		Creator:     "admin",
+	})
+	if err != nil {
+		t.Fatalf("CreateIteration() unexpected error: %v", err)
+	}
+	if iteration.ID != "iter_200" {
+		t.Errorf("ID = %q, want %q", iteration.ID, "iter_200")
+	}
+	if iteration.Name != "Sprint 5" {
+		t.Errorf("Name = %q, want %q", iteration.Name, "Sprint 5")
+	}
+	if iteration.StartDate != "2026-04-01" {
+		t.Errorf("StartDate = %q, want %q", iteration.StartDate, "2026-04-01")
+	}
+	if iteration.EndDate != "2026-04-15" {
+		t.Errorf("EndDate = %q, want %q", iteration.EndDate, "2026-04-15")
+	}
+	if iteration.Creator != "admin" {
+		t.Errorf("Creator = %q, want %q", iteration.Creator, "admin")
+	}
+	if iteration.Status != "open" {
+		t.Errorf("Status = %q, want %q", iteration.Status, "open")
+	}
+}
+
+func TestUpdateIteration_StatusChange(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.URL.Path != "/iterations" {
+			t.Errorf("unexpected path: %s, want /iterations", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"status":1,"data":{"Iteration":{"id":"iter_100","name":"Sprint 4 Updated","status":"done"}},"info":"success"}`)
+	}))
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	result, err := c.UpdateIteration(&model.UpdateIterationRequest{
+		WorkspaceID: "1",
+		ID:          "iter_100",
+		CurrentUser: "admin",
+		Name:        "Sprint 4 Updated",
+		Status:      "done",
+	})
+	if err != nil {
+		t.Fatalf("UpdateIteration() unexpected error: %v", err)
+	}
+	if result.ID != "iter_100" {
+		t.Errorf("ID = %q, want %q", result.ID, "iter_100")
+	}
+	if result.Name != "Sprint 4 Updated" {
+		t.Errorf("Name = %q, want %q", result.Name, "Sprint 4 Updated")
+	}
+	if result.Status != "done" {
+		t.Errorf("Status = %q, want %q", result.Status, "done")
+	}
+}

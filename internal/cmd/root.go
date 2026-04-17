@@ -37,6 +37,10 @@ var rootCmd = &cobra.Command{
 		if cmd.Name() == "login" {
 			return nil
 		}
+		// --version 不需要认证
+		if v, _ := cmd.Flags().GetBool("version"); v {
+			return nil
+		}
 		return initClientAndConfig(cmd)
 	},
 	SilenceUsage:  true,

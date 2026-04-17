@@ -34,7 +34,7 @@ var rootCmd = &cobra.Command{
 	Long:  "tapd-ai-cli 是一个面向 AI Agent 的 TAPD 命令行工具，通过 TAPD Open API 实现项目管理核心操作。",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// auth login 命令不需要预加载配置和客户端
-		if cmd.Name() == "login" {
+		if cmd.Name() == "login" || cmd.Name() == "init" {
 			return nil
 		}
 		// --version 不需要认证

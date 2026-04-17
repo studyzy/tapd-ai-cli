@@ -5,12 +5,27 @@ import "encoding/json"
 
 // Workspace 表示 TAPD 项目/工作区
 type Workspace struct {
-	ID       string `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Status   string `json:"status,omitempty"`
-	Category string `json:"category,omitempty"`
-	Creator  string `json:"creator,omitempty"`
-	Created  string `json:"created,omitempty"`
+	ID                string `json:"id,omitempty"`
+	Name              string `json:"name,omitempty"`
+	PrettyName        string `json:"pretty_name,omitempty"`
+	Category          string `json:"category,omitempty"`
+	Status            string `json:"status,omitempty"`
+	Description       string `json:"description,omitempty"`
+	BeginDate         string `json:"begin_date,omitempty"`
+	EndDate           string `json:"end_date,omitempty"`
+	Closed            string `json:"closed,omitempty"`
+	ExternalOn        string `json:"external_on,omitempty"`
+	Creator           string `json:"creator,omitempty"`
+	Created           string `json:"created,omitempty"`
+	ProductType       string `json:"product_type,omitempty"`
+	PlatformType      string `json:"platform_type,omitempty"`
+	IsSelfDevelopment string `json:"is_self_development,omitempty"`
+	Objective         string `json:"objective,omitempty"`
+	Secrecy           string `json:"secrecy,omitempty"`
+	Schedule          string `json:"schedule,omitempty"`
+	Milestone         string `json:"milestone,omitempty"`
+	Risk              string `json:"risk,omitempty"`
+	CompanyID         string `json:"company_id,omitempty"`
 }
 
 // ListResponse 表示列表查询的通用响应结构

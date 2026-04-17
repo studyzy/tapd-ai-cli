@@ -8,6 +8,7 @@ import (
 )
 
 // ListIterations 查询迭代列表，返回强类型 Iteration 切片
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/iteration/get_iterations.html
 func (c *Client) ListIterations(req *model.ListIterationsRequest) ([]model.Iteration, error) {
 	data, err := c.doGet("/iterations", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListIterations(req *model.ListIterationsRequest) ([]model.Itera
 }
 
 // CreateIteration 创建迭代，返回创建后的完整 Iteration 对象
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/iteration/add_iteration.html
 func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.Iteration, error) {
 	data, err := c.doPost("/iterations", req.ToParams())
 	if err != nil {
@@ -56,7 +58,8 @@ func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.Iter
 	return &iteration, nil
 }
 
-// UpdateIteration 更新迭代
+// UpdateIteration 更新迭代，返回更新后的完整 Iteration 对象
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/iteration/update_iteration.html
 func (c *Client) UpdateIteration(req *model.UpdateIterationRequest) (*model.Iteration, error) {
 	data, err := c.doPost("/iterations", req.ToParams())
 	if err != nil {
@@ -82,6 +85,7 @@ func (c *Client) UpdateIteration(req *model.UpdateIterationRequest) (*model.Iter
 }
 
 // CountIterations 查询迭代数量
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/iteration/get_iterations_count.html
 func (c *Client) CountIterations(req *model.CountIterationsRequest) (int, error) {
 	data, err := c.doGet("/iterations/count", req.ToParams())
 	if err != nil {

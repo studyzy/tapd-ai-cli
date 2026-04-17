@@ -24,16 +24,24 @@ type TCase struct {
 // ListTCasesRequest 查询测试用例列表的请求参数
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/tcase/get_tcases.html
 type ListTCasesRequest struct {
-	WorkspaceID string // 必填：项目 ID
-	ID          string // 可选：测试用例 ID
-	Name        string // 可选：标题
-	Status      string // 可选：状态
-	CategoryID  string // 可选：目录 ID
-	Priority    string // 可选：优先级
-	Fields      string // 可选：返回字段列表
-	Limit       string // 可选：返回数量限制
-	Page        string // 可选：页码
-	Order       string // 可选：排序规则
+	WorkspaceID  string // 必填：项目 ID
+	ID           string // 可选：测试用例 ID，支持多 ID 查询
+	Name         string // 可选：用例名称，支持模糊匹配
+	Status       string // 可选：用例状态（normal|updating|abandon）
+	CategoryID   string // 可选：用例目录 ID
+	Priority     string // 可选：用例等级
+	Type         string // 可选：用例类型
+	Creator      string // 可选：创建人
+	Modifier     string // 可选：最后修改人
+	Created      string // 可选：创建时间，支持时间查询
+	Modified     string // 可选：最后修改时间，支持时间查询
+	Steps        string // 可选：用例步骤
+	Precondition string // 可选：前置条件
+	Expectation  string // 可选：预期结果
+	Fields       string // 可选：返回字段列表，多个字段间以半角逗号隔开
+	Limit        string // 可选：返回数量限制，默认为 30
+	Page         string // 可选：页码，默认为 1
+	Order        string // 可选：排序规则，如 created desc
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -46,6 +54,14 @@ func (r *ListTCasesRequest) ToParams() map[string]string {
 	setOptional(params, "status", r.Status)
 	setOptional(params, "category_id", r.CategoryID)
 	setOptional(params, "priority", r.Priority)
+	setOptional(params, "type", r.Type)
+	setOptional(params, "creator", r.Creator)
+	setOptional(params, "modifier", r.Modifier)
+	setOptional(params, "created", r.Created)
+	setOptional(params, "modified", r.Modified)
+	setOptional(params, "steps", r.Steps)
+	setOptional(params, "precondition", r.Precondition)
+	setOptional(params, "expectation", r.Expectation)
 	setOptional(params, "fields", r.Fields)
 	setOptional(params, "limit", r.Limit)
 	setOptional(params, "page", r.Page)
@@ -54,9 +70,23 @@ func (r *ListTCasesRequest) ToParams() map[string]string {
 }
 
 // CountTCasesRequest 查询测试用例数量的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/tcase/get_tcases_count.html
 type CountTCasesRequest struct {
-	WorkspaceID string // 必填：项目 ID
-	Status      string // 可选：状态
+	WorkspaceID        string // 必填：项目 ID
+	ID                 string // 可选：测试用例 ID，支持多 ID 查询
+	Name               string // 可选：用例名称，支持模糊匹配
+	Status             string // 可选：用例状态（normal|updating|abandon）
+	CategoryID         string // 可选：用例目录 ID
+	Priority           string // 可选：用例等级
+	Type               string // 可选：用例类型
+	Creator            string // 可选：创建人
+	Modifier           string // 可选：最后修改人
+	Created            string // 可选：创建时间，支持时间查询
+	Modified           string // 可选：最后修改时间，支持时间查询
+	Steps              string // 可选：用例步骤
+	Precondition       string // 可选：前置条件
+	Expectation        string // 可选：预期结果
+	TestPlanID         string // 可选：测试计划 ID，获取当前测试计划关联的测试用例数量
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -64,7 +94,20 @@ func (r *CountTCasesRequest) ToParams() map[string]string {
 	params := map[string]string{
 		"workspace_id": r.WorkspaceID,
 	}
+	setOptional(params, "id", r.ID)
+	setOptional(params, "name", r.Name)
 	setOptional(params, "status", r.Status)
+	setOptional(params, "category_id", r.CategoryID)
+	setOptional(params, "priority", r.Priority)
+	setOptional(params, "type", r.Type)
+	setOptional(params, "creator", r.Creator)
+	setOptional(params, "modifier", r.Modifier)
+	setOptional(params, "created", r.Created)
+	setOptional(params, "modified", r.Modified)
+	setOptional(params, "steps", r.Steps)
+	setOptional(params, "precondition", r.Precondition)
+	setOptional(params, "expectation", r.Expectation)
+	setOptional(params, "test_plan_id", r.TestPlanID)
 	return params
 }
 
@@ -72,13 +115,15 @@ func (r *CountTCasesRequest) ToParams() map[string]string {
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/tcase/add_tcase.html
 type CreateTCaseRequest struct {
 	WorkspaceID  string // 必填：项目 ID
-	Name         string // 必填：用例标题
-	CategoryID   string // 可选：目录 ID
+	Name         string // 必填：用例名称
+	ID           string // 可选：测试用例 ID
+	CategoryID   string // 可选：用例目录 ID
+	Status       string // 可选：用例状态（normal|updating|abandon）
 	Precondition string // 可选：前置条件
 	Steps        string // 可选：用例步骤
 	Expectation  string // 可选：预期结果
-	Type         string // 可选：类型
-	Priority     string // 可选：优先级
+	Type         string // 可选：用例类型
+	Priority     string // 可选：用例等级
 	Creator      string // 可选：创建人
 }
 
@@ -88,7 +133,9 @@ func (r *CreateTCaseRequest) ToParams() map[string]string {
 		"workspace_id": r.WorkspaceID,
 		"name":         r.Name,
 	}
+	setOptional(params, "id", r.ID)
 	setOptional(params, "category_id", r.CategoryID)
+	setOptional(params, "status", r.Status)
 	setOptional(params, "precondition", r.Precondition)
 	setOptional(params, "steps", r.Steps)
 	setOptional(params, "expectation", r.Expectation)

@@ -8,6 +8,7 @@ import (
 )
 
 // ListTasks 查询任务列表，返回强类型 Task 切片，自动过滤 custom_field 等无用字段
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/task/get_tasks.html
 func (c *Client) ListTasks(req *model.ListTasksRequest) ([]model.Task, error) {
 	data, err := c.doGet("/tasks", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListTasks(req *model.ListTasksRequest) ([]model.Task, error) {
 }
 
 // GetTask 获取单个任务详情，description 字段保留原始 HTML
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/task/get_tasks.html
 func (c *Client) GetTask(workspaceID, id string) (*model.Task, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,
@@ -68,6 +70,7 @@ func (c *Client) GetTask(workspaceID, id string) (*model.Task, error) {
 }
 
 // CreateTask 创建任务，返回创建后的完整 Task 对象
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/task/add_task.html
 func (c *Client) CreateTask(req *model.CreateTaskRequest) (*model.Task, error) {
 	data, err := c.doPost("/tasks", req.ToParams())
 	if err != nil {
@@ -95,6 +98,7 @@ func (c *Client) CreateTask(req *model.CreateTaskRequest) (*model.Task, error) {
 }
 
 // UpdateTask 更新任务
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/task/update_task.html
 func (c *Client) UpdateTask(req *model.UpdateTaskRequest) (*model.Task, error) {
 	data, err := c.doPost("/tasks", req.ToParams())
 	if err != nil {
@@ -120,6 +124,7 @@ func (c *Client) UpdateTask(req *model.UpdateTaskRequest) (*model.Task, error) {
 }
 
 // CountTasks 查询任务数量
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/task/get_tasks_count.html
 func (c *Client) CountTasks(req *model.CountTasksRequest) (int, error) {
 	data, err := c.doGet("/tasks/count", req.ToParams())
 	if err != nil {

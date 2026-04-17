@@ -22,7 +22,7 @@ func TestGetCommitMsg(t *testing.T) {
 			t.Errorf("object_id = %q, want %q", r.URL.Query().Get("object_id"), "100")
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":{"commit_keyword":"--story=100"},"info":"success"}`))
+		w.Write([]byte(`{"status":1,"data":"--story=100","info":"success"}`))
 	}))
 	defer srv.Close()
 
@@ -36,12 +36,8 @@ func TestGetCommitMsg(t *testing.T) {
 		t.Fatalf("GetCommitMsg() unexpected error: %v", err)
 	}
 
-	var data map[string]interface{}
-	if err := json.Unmarshal(result, &data); err != nil {
-		t.Fatalf("failed to parse result: %v", err)
-	}
-	if data["commit_keyword"] != "--story=100" {
-		t.Errorf("commit_keyword = %v, want %q", data["commit_keyword"], "--story=100")
+	if result != "--story=100" {
+		t.Errorf("commit_keyword = %q, want %q", result, "--story=100")
 	}
 }
 

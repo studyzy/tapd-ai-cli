@@ -8,6 +8,7 @@ import (
 )
 
 // ListBugs 查询缺陷列表，返回强类型 Bug 切片，自动过滤 custom_field 等无用字段
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/bug/get_bugs.html
 func (c *Client) ListBugs(req *model.ListBugsRequest) ([]model.Bug, error) {
 	data, err := c.doGet("/bugs", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListBugs(req *model.ListBugsRequest) ([]model.Bug, error) {
 }
 
 // GetBug 获取单个缺陷详情，description 字段保留原始 HTML
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/bug/get_bugs.html
 func (c *Client) GetBug(workspaceID, id string) (*model.Bug, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,
@@ -68,6 +70,7 @@ func (c *Client) GetBug(workspaceID, id string) (*model.Bug, error) {
 }
 
 // CreateBug 创建缺陷，返回创建后的完整 Bug 对象
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/bug/add_bug.html
 func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.Bug, error) {
 	data, err := c.doPost("/bugs", req.ToParams())
 	if err != nil {
@@ -95,6 +98,7 @@ func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.Bug, error) {
 }
 
 // UpdateBug 更新缺陷
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/bug/update_bug.html
 func (c *Client) UpdateBug(req *model.UpdateBugRequest) (*model.Bug, error) {
 	data, err := c.doPost("/bugs", req.ToParams())
 	if err != nil {
@@ -120,6 +124,7 @@ func (c *Client) UpdateBug(req *model.UpdateBugRequest) (*model.Bug, error) {
 }
 
 // CountBugs 查询缺陷数量
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/bug/get_bugs_count.html
 func (c *Client) CountBugs(req *model.CountBugsRequest) (int, error) {
 	data, err := c.doGet("/bugs/count", req.ToParams())
 	if err != nil {

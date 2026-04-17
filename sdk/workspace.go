@@ -8,6 +8,7 @@ import (
 )
 
 // ListWorkspaces 获取当前用户参与的项目列表，自动过滤 category 为 organization 的条目
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/workspace/user_participant_projects.html
 func (c *Client) ListWorkspaces() ([]model.Workspace, error) {
 	params := map[string]string{}
 	if c.Nick != "" {
@@ -36,6 +37,7 @@ func (c *Client) ListWorkspaces() ([]model.Workspace, error) {
 }
 
 // GetWorkspaceInfo 获取指定工作区的详细信息
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/workspace/get_workspace_info.html
 func (c *Client) GetWorkspaceInfo(workspaceID string) (*model.Workspace, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,

@@ -118,3 +118,82 @@ func (r *CreateRelationRequest) ToParams() map[string]string {
 		"target_id":    r.TargetID,
 	}
 }
+
+// CustomFieldConfig 表示 TAPD 自定义字段配置
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/get_story_custom_fields_settings.html
+type CustomFieldConfig struct {
+	ID              string `json:"id,omitempty"`
+	WorkspaceID     string `json:"workspace_id,omitempty"`
+	AppID           string `json:"app_id,omitempty"`
+	EntryType       string `json:"entry_type,omitempty"`        // 所属实体类型（story/bug/task 等）
+	CustomField     string `json:"custom_field,omitempty"`      // 自定义字段标识（如 custom_field_17）
+	Type            string `json:"type,omitempty"`              // 输入类型（text/select/cascade_radio 等）
+	Name            string `json:"name,omitempty"`              // 显示名称
+	Options         string `json:"options,omitempty"`           // 可选值（JSON 字符串，需二次解析）
+	ExtraConfig     string `json:"extra_config,omitempty"`      // 额外配置
+	Enabled         string `json:"enabled,omitempty"`           // 是否启用（1=启用，0=禁用）
+	Creator         string `json:"creator,omitempty"`           // 创建人
+	Created         string `json:"created,omitempty"`           // 创建时间
+	Modified        string `json:"modified,omitempty"`          // 最后修改时间
+	Freeze          string `json:"freeze,omitempty"`            // 是否冻结
+	Sort            string `json:"sort,omitempty"`              // 显示排序
+	Memo            string `json:"memo,omitempty"`              // 备注
+	OpenExtensionID string `json:"open_extension_id,omitempty"` // 插件扩展字段标识
+	IsOut           int    `json:"is_out,omitempty"`            // 已弃用
+	IsUninstall     int    `json:"is_uninstall,omitempty"`      // 应用是否未安装（0=已安装，1=未安装）
+	AppName         string `json:"app_name,omitempty"`          // 关联应用名称
+}
+
+// FieldInfo 表示需求字段的详细信息（含候选值）
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/get_story_fields_info.html
+type FieldInfo struct {
+	Name         string        `json:"name,omitempty"`          // 字段英文名
+	Label        string        `json:"label,omitempty"`         // 字段中文名
+	HTMLType     string        `json:"html_type,omitempty"`     // 控件类型（input/select/rich_edit 等）
+	Options      interface{}   `json:"options,omitempty"`       // 候选值（object 或 array，因字段类型而异）
+	PureOptions  interface{}   `json:"pure_options,omitempty"`  // 详细候选值（含层级元信息）
+	Readonly     int           `json:"readonly,omitempty"`      // 是否只读（0=可编辑，1=只读）
+	ColorOptions []ColorOption `json:"color_options,omitempty"` // 带颜色的候选值（如优先级）
+	UserOptions  interface{}   `json:"user_options,omitempty"`  // 用户选择器的用户列表
+	Memo         string        `json:"memo,omitempty"`          // 自定义字段备注
+	EnableColor  int           `json:"enable_color,omitempty"`  // 是否启用颜色标记
+}
+
+// ColorOption 表示带颜色的候选值（如优先级字段）
+type ColorOption struct {
+	Value string `json:"value,omitempty"` // 选项值
+	Color string `json:"color,omitempty"` // 颜色（十六进制色值）
+	Label string `json:"label,omitempty"` // 显示名称
+}
+
+// WorkitemType 表示 TAPD 需求类别
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/get_workitem_types.html
+type WorkitemType struct {
+	ID             string `json:"id,omitempty"`
+	WorkspaceID    string `json:"workspace_id,omitempty"`
+	AppID          string `json:"app_id,omitempty"`
+	EntityType     string `json:"entity_type,omitempty"`       // 类别别名
+	Name           string `json:"name,omitempty"`              // 类别名称
+	EnglishName    string `json:"english_name,omitempty"`      // 英文名称
+	Status         string `json:"status,omitempty"`            // 状态（1=未完成，2=未启用，3=已启用）
+	Color          string `json:"color,omitempty"`             // 颜色
+	WorkflowID     string `json:"workflow_id,omitempty"`       // 关联工作流 ID
+	ChildrenIDs    string `json:"children_ids,omitempty"`      // 允许的子需求类别
+	ParentIDs      string `json:"parent_ids,omitempty"`        // 允许的父需求类别
+	Icon           string `json:"icon,omitempty"`              // 图标路径
+	IconSmall      string `json:"icon_small,omitempty"`        // 小图标路径
+	Creator        string `json:"creator,omitempty"`           // 创建人
+	Created        string `json:"created,omitempty"`           // 创建时间
+	ModifiedBy     string `json:"modified_by,omitempty"`       // 最后修改人
+	Modified       string `json:"modified,omitempty"`          // 最后修改时间
+	IconViper      string `json:"icon_viper,omitempty"`        // 图标完整 URL
+	IconSmallViper string `json:"icon_small_viper,omitempty"`  // 小图标完整 URL
+}
+
+// StoryBugRelation 表示需求与缺陷的关联关系
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/get_story_related_bugs.html
+type StoryBugRelation struct {
+	WorkspaceID int    `json:"workspace_id,omitempty"` // 项目 ID
+	StoryID     string `json:"story_id,omitempty"`     // 需求 ID
+	BugID       string `json:"bug_id,omitempty"`       // 缺陷 ID
+}

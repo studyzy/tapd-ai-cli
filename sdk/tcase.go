@@ -8,6 +8,7 @@ import (
 )
 
 // ListTCases 查询测试用例列表
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/tcase/get_tcases.html
 func (c *Client) ListTCases(req *model.ListTCasesRequest) ([]model.TCase, error) {
 	data, err := c.doGet("/tcases", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListTCases(req *model.ListTCasesRequest) ([]model.TCase, error)
 }
 
 // CountTCases 查询测试用例数量
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/tcase/get_tcases_count.html
 func (c *Client) CountTCases(req *model.CountTCasesRequest) (int, error) {
 	data, err := c.doGet("/tcases/count", req.ToParams())
 	if err != nil {
@@ -49,7 +51,8 @@ func (c *Client) CountTCases(req *model.CountTCasesRequest) (int, error) {
 	return 0, nil
 }
 
-// CreateTCase 创建或更新测试用例
+// CreateTCase 创建测试用例
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/tcase/add_tcase.html
 func (c *Client) CreateTCase(req *model.CreateTCaseRequest) (*model.TCase, error) {
 	data, err := c.doPost("/tcases", req.ToParams())
 	if err != nil {

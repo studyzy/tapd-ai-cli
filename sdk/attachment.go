@@ -8,6 +8,7 @@ import (
 )
 
 // GetImage 获取图片下载链接
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/attachment/get_image.html
 func (c *Client) GetImage(req *model.GetImageRequest) (*model.ImageInfo, error) {
 	data, err := c.doGet("/files/get_image", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) GetImage(req *model.GetImageRequest) (*model.ImageInfo, error) 
 }
 
 // GetAttachments 获取附件列表（含下载链接）
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/attachment/get_attachments.html
 func (c *Client) GetAttachments(req *model.GetAttachmentsRequest) ([]model.Attachment, error) {
 	data, err := c.doGet("/attachments", req.ToParams())
 	if err != nil {

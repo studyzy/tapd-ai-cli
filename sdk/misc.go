@@ -7,12 +7,22 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
-// GetCommitMsg 获取源码提交关键字
-func (c *Client) GetCommitMsg(req *model.GetCommitMsgRequest) (json.RawMessage, error) {
-	return c.doGet("/svn_commits/get_scm_copy_keywords", req.ToParams())
+// GetCommitMsg 获取源码提交关键字，返回提交关键字字符串
+func (c *Client) GetCommitMsg(req *model.GetCommitMsgRequest) (string, error) {
+	data, err := c.doGet("/svn_commits/get_scm_copy_keywords", req.ToParams())
+	if err != nil {
+		return "", err
+	}
+
+	var result string
+	if err := json.Unmarshal(data, &result); err != nil {
+		return "", fmt.Errorf("failed to parse commit keyword: %w", err)
+	}
+	return result, nil
 }
 
 // ListReleases 查询发布计划列表
+// API 文档：https://open.tapd.cn/document/api-doc/API文档/api_reference/release/get_new_releases.html
 func (c *Client) ListReleases(req *model.WorkspaceIDRequest) ([]model.Release, error) {
 	data, err := c.doGet("/releases", req.ToParams())
 	if err != nil {

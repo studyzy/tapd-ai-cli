@@ -8,6 +8,7 @@ import (
 )
 
 // ListStories 查询需求列表，返回强类型 Story 切片，自动过滤 custom_field 等无用字段
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/story/get_stories.html
 func (c *Client) ListStories(req *model.ListStoriesRequest) ([]model.Story, error) {
 	data, err := c.doGet("/stories", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListStories(req *model.ListStoriesRequest) ([]model.Story, erro
 }
 
 // GetStory 获取单个需求详情，description 字段保留原始 HTML
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/story/get_stories.html
 func (c *Client) GetStory(workspaceID, id string) (*model.Story, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,
@@ -68,6 +70,7 @@ func (c *Client) GetStory(workspaceID, id string) (*model.Story, error) {
 }
 
 // CreateStory 创建需求，返回创建后的完整 Story 对象
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/story/add_story.html
 func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.Story, error) {
 	data, err := c.doPost("/stories", req.ToParams())
 	if err != nil {
@@ -95,6 +98,7 @@ func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.Story, error
 }
 
 // UpdateStory 更新需求
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/story/update_story.html
 func (c *Client) UpdateStory(req *model.UpdateStoryRequest) (*model.Story, error) {
 	data, err := c.doPost("/stories", req.ToParams())
 	if err != nil {
@@ -120,6 +124,7 @@ func (c *Client) UpdateStory(req *model.UpdateStoryRequest) (*model.Story, error
 }
 
 // CountStories 查询需求数量
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/story/get_stories_count.html
 func (c *Client) CountStories(req *model.CountStoriesRequest) (int, error) {
 	data, err := c.doGet("/stories/count", req.ToParams())
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 )
 
 // ListTimesheets 查询花费工时列表
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/timesheet/get_timesheets.html
 func (c *Client) ListTimesheets(req *model.ListTimesheetsRequest) ([]model.Timesheet, error) {
 	data, err := c.doGet("/timesheets", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListTimesheets(req *model.ListTimesheetsRequest) ([]model.Times
 }
 
 // AddTimesheet 填写花费工时
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/timesheet/add_timesheet.html
 func (c *Client) AddTimesheet(req *model.AddTimesheetRequest) (*model.Timesheet, error) {
 	data, err := c.doPost("/timesheets", req.ToParams())
 	if err != nil {
@@ -56,6 +58,7 @@ func (c *Client) AddTimesheet(req *model.AddTimesheetRequest) (*model.Timesheet,
 }
 
 // UpdateTimesheet 更新花费工时
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/timesheet/update_timesheet.html
 func (c *Client) UpdateTimesheet(req *model.UpdateTimesheetRequest) (*model.Timesheet, error) {
 	data, err := c.doPost("/timesheets", req.ToParams())
 	if err != nil {

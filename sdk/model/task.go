@@ -50,20 +50,33 @@ type Task struct {
 // ListTasksRequest 查询任务列表的请求参数
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/get_tasks.html
 type ListTasksRequest struct {
-	WorkspaceID   string // 必填：项目 ID
-	ID            string // 可选：任务 ID
-	Name          string // 可选：标题（支持模糊匹配）
-	Status        string // 可选：状态（open/progressing/done）
-	Owner         string // 可选：处理人
-	Creator       string // 可选：创建人
-	StoryID       string // 可选：关联需求 ID
-	IterationID   string // 可选：迭代 ID
-	PriorityLabel string // 可选：优先级
-	Label         string // 可选：标签
-	Fields        string // 可选：返回字段列表
-	Limit         string // 可选：返回数量限制（默认 30，最大 200）
-	Page          string // 可选：页码
-	Order         string // 可选：排序规则
+	WorkspaceID     string // 必填：项目 ID
+	ID              string // 可选：任务 ID（支持多 ID 查询）
+	Name            string // 可选：标题（支持模糊匹配）
+	Description     string // 可选：任务详细描述
+	Status          string // 可选：状态（open/progressing/done，支持枚举查询）
+	Owner           string // 可选：处理人（支持模糊匹配）
+	Creator         string // 可选：创建人（支持多人员查询）
+	CC              string // 可选：抄送人
+	StoryID         string // 可选：关联需求 ID（支持多 ID 查询）
+	IterationID     string // 可选：迭代 ID（支持枚举查询）
+	Priority        string // 可选：优先级（建议使用 PriorityLabel 以兼容自定义优先级）
+	PriorityLabel   string // 可选：优先级（推荐使用）
+	Label           string // 可选：标签（支持枚举查询）
+	Progress        string // 可选：进度
+	Begin           string // 可选：预计开始（支持时间查询）
+	Due             string // 可选：预计结束（支持时间查询）
+	Created         string // 可选：创建时间（支持时间查询）
+	Modified        string // 可选：最后修改时间（支持时间查询）
+	Completed       string // 可选：完成时间（支持时间查询）
+	Effort          string // 可选：预估工时
+	EffortCompleted string // 可选：完成工时
+	Exceed          string // 可选：超出工时
+	Remain          string // 可选：剩余工时
+	Fields          string // 可选：返回字段列表
+	Limit           string // 可选：返回数量限制（默认 30，最大 200）
+	Page            string // 可选：页码
+	Order           string // 可选：排序规则
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -73,13 +86,26 @@ func (r *ListTasksRequest) ToParams() map[string]string {
 	}
 	setOptional(params, "id", r.ID)
 	setOptional(params, "name", r.Name)
+	setOptional(params, "description", r.Description)
 	setOptional(params, "status", r.Status)
 	setOptional(params, "owner", r.Owner)
 	setOptional(params, "creator", r.Creator)
+	setOptional(params, "cc", r.CC)
 	setOptional(params, "story_id", r.StoryID)
 	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority", r.Priority)
 	setOptional(params, "priority_label", r.PriorityLabel)
 	setOptional(params, "label", r.Label)
+	setOptional(params, "progress", r.Progress)
+	setOptional(params, "begin", r.Begin)
+	setOptional(params, "due", r.Due)
+	setOptional(params, "created", r.Created)
+	setOptional(params, "modified", r.Modified)
+	setOptional(params, "completed", r.Completed)
+	setOptional(params, "effort", r.Effort)
+	setOptional(params, "effort_completed", r.EffortCompleted)
+	setOptional(params, "exceed", r.Exceed)
+	setOptional(params, "remain", r.Remain)
 	setOptional(params, "fields", r.Fields)
 	setOptional(params, "limit", r.Limit)
 	setOptional(params, "page", r.Page)
@@ -100,9 +126,10 @@ type CreateTaskRequest struct {
 	Due           string // 可选：预计结束日期
 	StoryID       string // 可选：关联需求 ID
 	IterationID   string // 可选：迭代 ID
+	Priority      string // 可选：优先级（建议使用 PriorityLabel 以兼容自定义优先级）
 	PriorityLabel string // 可选：优先级（推荐使用）
 	Effort        string // 可选：预估工时
-	Label         string // 可选：标签
+	Label         string // 可选：标签（标签不存在时自动创建，多个以 | 分隔）
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -119,6 +146,7 @@ func (r *CreateTaskRequest) ToParams() map[string]string {
 	setOptional(params, "due", r.Due)
 	setOptional(params, "story_id", r.StoryID)
 	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority", r.Priority)
 	setOptional(params, "priority_label", r.PriorityLabel)
 	setOptional(params, "effort", r.Effort)
 	setOptional(params, "label", r.Label)
@@ -128,21 +156,24 @@ func (r *CreateTaskRequest) ToParams() map[string]string {
 // UpdateTaskRequest 更新任务的请求参数
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/update_task.html
 type UpdateTaskRequest struct {
-	WorkspaceID   string // 必填：项目 ID
-	ID            string // 必填：任务 ID
-	Name          string // 可选：任务标题
-	Description   string // 可选：详细描述
-	Status        string // 可选：状态（open/progressing/done）
-	Owner         string // 可选：处理人
-	CurrentUser   string // 可选：操作人
-	CC            string // 可选：抄送人
-	Begin         string // 可选：预计开始日期
-	Due           string // 可选：预计结束日期
-	StoryID       string // 可选：关联需求 ID
-	IterationID   string // 可选：迭代 ID
-	PriorityLabel string // 可选：优先级（推荐使用）
-	Effort        string // 可选：预估工时
-	Label         string // 可选：标签
+	WorkspaceID        string // 必填：项目 ID
+	ID                 string // 必填：任务 ID
+	Name               string // 可选：任务标题
+	Description        string // 可选：详细描述
+	Status             string // 可选：状态（open/progressing/done）
+	Owner              string // 可选：处理人
+	Creator            string // 可选：创建人
+	CurrentUser        string // 可选：操作人
+	CC                 string // 可选：抄送人
+	Begin              string // 可选：预计开始日期
+	Due                string // 可选：预计结束日期
+	StoryID            string // 可选：关联需求 ID
+	IterationID        string // 可选：迭代 ID
+	Priority           string // 可选：优先级（建议使用 PriorityLabel 以兼容自定义优先级）
+	PriorityLabel      string // 可选：优先级（推荐使用）
+	Effort             string // 可选：预估工时
+	AutoCompleteEffort string // 可选：是否自动补齐工时（值为 "1" 时，状态流转到 done 时自动补齐）
+	Label              string // 可选：标签（标签不存在时自动创建，多个以 | 分隔）
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -155,22 +186,47 @@ func (r *UpdateTaskRequest) ToParams() map[string]string {
 	setOptional(params, "description", r.Description)
 	setOptional(params, "status", r.Status)
 	setOptional(params, "owner", r.Owner)
+	setOptional(params, "creator", r.Creator)
 	setOptional(params, "current_user", r.CurrentUser)
 	setOptional(params, "cc", r.CC)
 	setOptional(params, "begin", r.Begin)
 	setOptional(params, "due", r.Due)
 	setOptional(params, "story_id", r.StoryID)
 	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority", r.Priority)
 	setOptional(params, "priority_label", r.PriorityLabel)
 	setOptional(params, "effort", r.Effort)
+	setOptional(params, "auto_complete_effort", r.AutoCompleteEffort)
 	setOptional(params, "label", r.Label)
 	return params
 }
 
 // CountTasksRequest 查询任务数量的请求参数
+// 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/get_tasks_count.html
 type CountTasksRequest struct {
-	WorkspaceID string // 必填：项目 ID
-	Status      string // 可选：状态
+	WorkspaceID     string // 必填：项目 ID
+	ID              string // 可选：任务 ID（支持多 ID 查询）
+	Name            string // 可选：标题（支持模糊匹配）
+	Description     string // 可选：任务详细描述
+	Status          string // 可选：状态（open/progressing/done，支持枚举查询）
+	Owner           string // 可选：处理人（支持模糊匹配）
+	Creator         string // 可选：创建人（支持多人员查询）
+	CC              string // 可选：抄送人
+	StoryID         string // 可选：关联需求 ID（支持多 ID 查询）
+	IterationID     string // 可选：迭代 ID
+	Priority        string // 可选：优先级（建议使用 PriorityLabel 以兼容自定义优先级）
+	PriorityLabel   string // 可选：优先级（推荐使用）
+	Label           string // 可选：标签（支持枚举查询）
+	Progress        string // 可选：进度
+	Begin           string // 可选：预计开始（支持时间查询）
+	Due             string // 可选：预计结束（支持时间查询）
+	Created         string // 可选：创建时间（支持时间查询）
+	Modified        string // 可选：最后修改时间（支持时间查询）
+	Completed       string // 可选：完成时间（支持时间查询）
+	Effort          string // 可选：预估工时
+	EffortCompleted string // 可选：完成工时
+	Exceed          string // 可选：超出工时
+	Remain          string // 可选：剩余工时
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -178,6 +234,27 @@ func (r *CountTasksRequest) ToParams() map[string]string {
 	params := map[string]string{
 		"workspace_id": r.WorkspaceID,
 	}
+	setOptional(params, "id", r.ID)
+	setOptional(params, "name", r.Name)
+	setOptional(params, "description", r.Description)
 	setOptional(params, "status", r.Status)
+	setOptional(params, "owner", r.Owner)
+	setOptional(params, "creator", r.Creator)
+	setOptional(params, "cc", r.CC)
+	setOptional(params, "story_id", r.StoryID)
+	setOptional(params, "iteration_id", r.IterationID)
+	setOptional(params, "priority", r.Priority)
+	setOptional(params, "priority_label", r.PriorityLabel)
+	setOptional(params, "label", r.Label)
+	setOptional(params, "progress", r.Progress)
+	setOptional(params, "begin", r.Begin)
+	setOptional(params, "due", r.Due)
+	setOptional(params, "created", r.Created)
+	setOptional(params, "modified", r.Modified)
+	setOptional(params, "completed", r.Completed)
+	setOptional(params, "effort", r.Effort)
+	setOptional(params, "effort_completed", r.EffortCompleted)
+	setOptional(params, "exceed", r.Exceed)
+	setOptional(params, "remain", r.Remain)
 	return params
 }

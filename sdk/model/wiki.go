@@ -39,10 +39,15 @@ type ListWikisRequest struct {
 	ID          string // 可选：Wiki ID
 	Name        string // 可选：标题
 	Creator     string // 可选：创建人
+	Modifier    string // 可选：修改人
+	Note        string // 可选：备注
+	ViewCount   string // 可选：浏览量
+	Created     string // 可选：创建时间，支持时间查询
+	Modified    string // 可选：最后修改时间，支持时间查询
 	Fields      string // 可选：返回字段列表
-	Limit       string // 可选：返回数量限制
-	Page        string // 可选：页码
-	Order       string // 可选：排序规则
+	Limit       string // 可选：返回数量限制，默认 30，最大 200
+	Page        string // 可选：页码，默认 1
+	Order       string // 可选：排序规则，格式：字段名 ASC/DESC
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -53,6 +58,11 @@ func (r *ListWikisRequest) ToParams() map[string]string {
 	setOptional(params, "id", r.ID)
 	setOptional(params, "name", r.Name)
 	setOptional(params, "creator", r.Creator)
+	setOptional(params, "modifier", r.Modifier)
+	setOptional(params, "note", r.Note)
+	setOptional(params, "view_count", r.ViewCount)
+	setOptional(params, "created", r.Created)
+	setOptional(params, "modified", r.Modified)
 	setOptional(params, "fields", r.Fields)
 	setOptional(params, "limit", r.Limit)
 	setOptional(params, "page", r.Page)

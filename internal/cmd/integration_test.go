@@ -906,7 +906,7 @@ func TestIntegration_CommitMsg_Client(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetCommitMsg failed: %v", err)
 	}
-	t.Logf("CommitMsg data: %s", string(data))
+	t.Logf("CommitMsg keyword: %s", data)
 }
 
 func TestIntegration_RunCommitMsgGet(t *testing.T) {

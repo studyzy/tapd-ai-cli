@@ -9,6 +9,9 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
+// relatedBugsResponse 用于构造符合 API 实际格式的测试数据
+var relatedBugsResponse = `{"status":1,"data":[{"workspace_id":1,"story_id":"100","bug_id":"200"},{"workspace_id":1,"story_id":"100","bug_id":"201"},{"workspace_id":1,"story_id":"100","bug_id":"202"}],"info":"success"}`
+
 func TestGetRelatedBugs(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/stories/get_related_bugs" {
@@ -18,7 +21,7 @@ func TestGetRelatedBugs(t *testing.T) {
 			t.Errorf("story_id = %q, want %q", r.URL.Query().Get("story_id"), "100")
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":1,"data":["200","201","202"],"info":"success"}`))
+		w.Write([]byte(relatedBugsResponse))
 	}))
 	defer srv.Close()
 
@@ -31,15 +34,14 @@ func TestGetRelatedBugs(t *testing.T) {
 		t.Fatalf("GetRelatedBugs() unexpected error: %v", err)
 	}
 
-	var ids []string
-	if err := json.Unmarshal(result, &ids); err != nil {
-		t.Fatalf("failed to parse result: %v", err)
+	if len(result) != 3 {
+		t.Fatalf("expected 3 relations, got %d", len(result))
 	}
-	if len(ids) != 3 {
-		t.Fatalf("expected 3 bug ids, got %d", len(ids))
+	if result[0].BugID != "200" {
+		t.Errorf("result[0].BugID = %q, want %q", result[0].BugID, "200")
 	}
-	if ids[0] != "200" {
-		t.Errorf("ids[0] = %q, want %q", ids[0], "200")
+	if result[0].StoryID != "100" {
+		t.Errorf("result[0].StoryID = %q, want %q", result[0].StoryID, "100")
 	}
 }
 
@@ -59,12 +61,8 @@ func TestGetRelatedBugs_Empty(t *testing.T) {
 		t.Fatalf("GetRelatedBugs() unexpected error: %v", err)
 	}
 
-	var ids []string
-	if err := json.Unmarshal(result, &ids); err != nil {
-		t.Fatalf("failed to parse result: %v", err)
-	}
-	if len(ids) != 0 {
-		t.Errorf("expected 0 bug ids, got %d", len(ids))
+	if len(result) != 0 {
+		t.Errorf("expected 0 relations, got %d", len(result))
 	}
 }
 

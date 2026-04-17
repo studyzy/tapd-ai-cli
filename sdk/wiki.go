@@ -8,6 +8,7 @@ import (
 )
 
 // ListWikis 查询 Wiki 文档列表，返回强类型 []model.Wiki
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/wiki/get_tapd_wikis.html
 func (c *Client) ListWikis(req *model.ListWikisRequest) ([]model.Wiki, error) {
 	data, err := c.doGet("/tapd_wikis", req.ToParams())
 	if err != nil {
@@ -32,6 +33,7 @@ func (c *Client) ListWikis(req *model.ListWikisRequest) ([]model.Wiki, error) {
 }
 
 // GetWiki 获取单个 Wiki 文档详情，description 字段保留原始 HTML
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/wiki/get_tapd_wikis.html
 func (c *Client) GetWiki(workspaceID, id string) (*model.Wiki, error) {
 	params := map[string]string{
 		"workspace_id": workspaceID,
@@ -68,6 +70,7 @@ func (c *Client) GetWiki(workspaceID, id string) (*model.Wiki, error) {
 }
 
 // CreateWiki 创建 Wiki 文档，返回创建后的完整 Wiki 对象
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/wiki/add_tapd_wiki.html
 func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.Wiki, error) {
 	data, err := c.doPost("/tapd_wikis", req.ToParams())
 	if err != nil {
@@ -95,6 +98,7 @@ func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.Wiki, error) {
 }
 
 // UpdateWiki 更新 Wiki 文档
+// API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/wiki/update_tapd_wiki.html
 func (c *Client) UpdateWiki(req *model.UpdateWikiRequest) (*model.Wiki, error) {
 	data, err := c.doPost("/tapd_wikis", req.ToParams())
 	if err != nil {

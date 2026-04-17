@@ -199,7 +199,7 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printSuccessResponse(bug.ID, fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", flagWorkspaceID, bug.ID), "")
+	return printSuccessResponse(bug.ID, fmt.Sprintf("%s/%s/bugtrace/bugs/view/%s", apiClient.WebURL(), flagWorkspaceID, bug.ID), "")
 }
 
 func runBugCount(cmd *cobra.Command, args []string) error {

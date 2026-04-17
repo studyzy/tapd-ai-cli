@@ -22,7 +22,7 @@ func TestNewClient_BearerAuth(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "my-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "my-token", "", "")
 	err := c.TestAuth()
 	if err != nil {
 		t.Fatalf("TestAuth() unexpected error: %v", err)
@@ -42,7 +42,7 @@ func TestNewClient_BasicAuth(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "", "user1", "pass1")
+	c := NewClientWithBaseURL(srv.URL, "", "", "user1", "pass1")
 	err := c.TestAuth()
 	if err != nil {
 		t.Fatalf("TestAuth() unexpected error: %v", err)
@@ -63,7 +63,7 @@ func TestNewClient_AccessTokenPreferred(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "my-token", "user1", "pass1")
+	c := NewClientWithBaseURL(srv.URL, "", "my-token", "user1", "pass1")
 	err := c.TestAuth()
 	if err != nil {
 		t.Fatalf("TestAuth() unexpected error: %v", err)
@@ -84,7 +84,7 @@ func TestTestAuth_Success(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token", "", "")
 	err := c.TestAuth()
 	if err != nil {
 		t.Fatalf("TestAuth() expected nil error, got: %v", err)
@@ -98,7 +98,7 @@ func TestTestAuth_Failure(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "bad-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "bad-token", "", "")
 	err := c.TestAuth()
 	if err == nil {
 		t.Fatal("TestAuth() expected error for status=0, got nil")
@@ -119,7 +119,7 @@ func TestHTTP401_ExitCode1(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "bad-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "bad-token", "", "")
 	err := c.TestAuth()
 	if err == nil {
 		t.Fatal("expected error for HTTP 401")
@@ -140,7 +140,7 @@ func TestHTTP404_ExitCode2(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token", "", "")
 	err := c.TestAuth()
 	if err == nil {
 		t.Fatal("expected error for HTTP 404")
@@ -161,7 +161,7 @@ func TestHTTP429_ExitCode4(t *testing.T) {
 	})
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token", "", "")
 	err := c.TestAuth()
 	if err == nil {
 		t.Fatal("expected error for HTTP 429")
@@ -187,7 +187,7 @@ func TestDoGet_ParsesDataCorrectly(t *testing.T) {
 
 	// 通过 TestAuth 验证 GET 请求能正常解析，TestAuth 内部调用 doGet
 	// 这里只验证不会报错，因为 TestAuth 不返回 data
-	c := NewClientWithBaseURL(srv.URL, "token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token", "", "")
 	err := c.TestAuth()
 	if err != nil {
 		t.Fatalf("expected successful GET request, got error: %v", err)
@@ -203,5 +203,40 @@ func TestTAPDError_Error(t *testing.T) {
 	got := e.Error()
 	if got != "bad request" {
 		t.Errorf("Error() = %q, want %q", got, "bad request")
+	}
+}
+
+func TestNewClient_DefaultURLs(t *testing.T) {
+	c := NewClient("token", "", "")
+	if c.WebURL() != DefaultWebURL {
+		t.Errorf("WebURL() = %q, want %q", c.WebURL(), DefaultWebURL)
+	}
+}
+
+func TestNewClientWithBaseURL_CustomURLs(t *testing.T) {
+	c := NewClientWithBaseURL("https://api.custom.com", "https://www.custom.com", "token", "", "")
+	if c.WebURL() != "https://www.custom.com" {
+		t.Errorf("WebURL() = %q, want %q", c.WebURL(), "https://www.custom.com")
+	}
+}
+
+func TestNewClientWithBaseURL_EmptyDefaultsToDefault(t *testing.T) {
+	srv := newMockServer(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":[],"info":"success"}`))
+	})
+	defer srv.Close()
+
+	// apiURL 传空时使用默认值，但 webURL 传空也使用默认值
+	c := NewClientWithBaseURL("", "", "token", "", "")
+	if c.WebURL() != DefaultWebURL {
+		t.Errorf("WebURL() = %q, want %q", c.WebURL(), DefaultWebURL)
+	}
+}
+
+func TestNewClientWithBaseURL_TrimsTrailingSlash(t *testing.T) {
+	c := NewClientWithBaseURL("https://api.custom.com/", "https://www.custom.com/", "token", "", "")
+	if c.WebURL() != "https://www.custom.com" {
+		t.Errorf("WebURL() = %q, want %q (should trim trailing slash)", c.WebURL(), "https://www.custom.com")
 	}
 }

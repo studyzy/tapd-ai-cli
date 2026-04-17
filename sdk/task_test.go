@@ -19,7 +19,7 @@ func TestListTasks(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	tasks, err := c.ListTasks(&model.ListTasksRequest{
 		WorkspaceID: "1",
 	})
@@ -50,7 +50,7 @@ func TestGetTask_PreservesHTML(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	task, err := c.GetTask("1", "300")
 	if err != nil {
 		t.Fatalf("GetTask() unexpected error: %v", err)
@@ -83,7 +83,7 @@ func TestGetTask_NotFound(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	_, err := c.GetTask("1", "999")
 	if err == nil {
 		t.Fatal("expected error for not found task")
@@ -106,7 +106,7 @@ func TestCreateTask(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	task, err := c.CreateTask(&model.CreateTaskRequest{
 		WorkspaceID: "1",
 		Name:        "New Task",
@@ -139,7 +139,7 @@ func TestUpdateTask(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	task, err := c.UpdateTask(&model.UpdateTaskRequest{
 		WorkspaceID: "1",
 		ID:          "300",
@@ -170,7 +170,7 @@ func TestCountTasks(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	count, err := c.CountTasks(&model.CountTasksRequest{
 		WorkspaceID: "1",
 	})

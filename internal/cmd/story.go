@@ -210,7 +210,7 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printSuccessResponse(story.ID, fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", flagWorkspaceID, story.ID), "")
+	return printSuccessResponse(story.ID, fmt.Sprintf("%s/%s/prong/stories/view/%s", apiClient.WebURL(), flagWorkspaceID, story.ID), "")
 }
 
 func runStoryCount(cmd *cobra.Command, args []string) error {

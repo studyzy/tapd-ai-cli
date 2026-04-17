@@ -19,7 +19,7 @@ func TestListComments(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListComments(&model.ListCommentsRequest{
 		WorkspaceID: "1",
 	})
@@ -50,7 +50,7 @@ func TestListComments_PreservesHTML(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListComments(&model.ListCommentsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListComments() unexpected error: %v", err)
@@ -80,7 +80,7 @@ func TestAddComment(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.AddComment(&model.AddCommentRequest{
 		WorkspaceID: "1",
 		EntryType:   "stories",
@@ -116,7 +116,7 @@ func TestUpdateComment(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.UpdateComment(&model.UpdateCommentRequest{
 		WorkspaceID: "1",
 		ID:          "102",
@@ -146,7 +146,7 @@ func TestCountComments(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	count, err := c.CountComments(&model.CountCommentsRequest{
 		WorkspaceID: "1",
 	})

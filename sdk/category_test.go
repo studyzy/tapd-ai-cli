@@ -19,7 +19,7 @@ func TestListCategories_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token123", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token123", "", "")
 	categories, err := c.ListCategories(map[string]string{"workspace_id": "12345"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -42,7 +42,7 @@ func TestListCategories_Empty(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token123", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token123", "", "")
 	categories, err := c.ListCategories(map[string]string{"workspace_id": "12345"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -62,7 +62,7 @@ func TestListCategories_WithNameFilter(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token123", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token123", "", "")
 	categories, err := c.ListCategories(map[string]string{"workspace_id": "12345", "name": "前端"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -79,7 +79,7 @@ func TestListCategories_APIError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "token123", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "token123", "", "")
 	_, err := c.ListCategories(map[string]string{"workspace_id": "invalid"})
 	if err == nil {
 		t.Fatal("expected error, got nil")

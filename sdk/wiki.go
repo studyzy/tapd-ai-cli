@@ -64,7 +64,7 @@ func (c *Client) GetWiki(workspaceID, id string) (*model.Wiki, error) {
 		return nil, fmt.Errorf("failed to parse wiki: %w", err)
 	}
 
-	wiki.URL = fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", workspaceID, id)
+	wiki.URL = fmt.Sprintf("%s/%s/markdown_wikis/view/%s", c.webURL, workspaceID, id)
 
 	return &wiki, nil
 }
@@ -92,7 +92,7 @@ func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.Wiki, error) {
 		return nil, fmt.Errorf("failed to parse created wiki: %w", err)
 	}
 
-	wiki.URL = fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", req.WorkspaceID, wiki.ID)
+	wiki.URL = fmt.Sprintf("%s/%s/markdown_wikis/view/%s", c.webURL, req.WorkspaceID, wiki.ID)
 
 	return &wiki, nil
 }

@@ -19,7 +19,7 @@ func TestListStories(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	req := &model.ListStoriesRequest{
 		WorkspaceID: "1",
 	}
@@ -60,7 +60,7 @@ func TestGetStory_PreservesHTML(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	story, err := c.GetStory("1", "100")
 	if err != nil {
 		t.Fatalf("GetStory() unexpected error: %v", err)
@@ -98,7 +98,7 @@ func TestCreateStory(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	req := &model.CreateStoryRequest{
 		WorkspaceID: "1",
 		Name:        "New",
@@ -128,7 +128,7 @@ func TestCountStories(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	req := &model.CountStoriesRequest{
 		WorkspaceID: "1",
 	}
@@ -154,7 +154,7 @@ func TestUpdateStory(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	req := &model.UpdateStoryRequest{
 		WorkspaceID: "1",
 		ID:          "100",

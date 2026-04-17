@@ -77,7 +77,7 @@ var storyTodoCmd = &cobra.Command{
 }
 
 func init() {
-	storyListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	storyListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 	storyListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
 	storyListCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "按迭代 ID 筛选")
 	storyListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
@@ -94,11 +94,11 @@ func init() {
 	storyUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
 	storyUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
 	storyUpdateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
-	storyUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态")
+	storyUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（用 workflow status-map 查询可用值）")
 	storyUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
-	storyUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级")
+	storyUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（High/Middle/Low/Nice To Have）")
 
-	storyCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	storyCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 
 	storyTodoCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	storyTodoCmd.Flags().IntVar(&flagPage, "page", 1, "页码")

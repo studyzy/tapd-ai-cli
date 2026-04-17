@@ -47,7 +47,7 @@ var tcaseBatchCreateCmd = &cobra.Command{
 
 func init() {
 	tcaseListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（updating|abandon|normal）")
-	tcaseListCmd.Flags().StringVar(&flagPriority, "priority", "", "按等级筛选")
+	tcaseListCmd.Flags().StringVar(&flagPriority, "priority", "", "按等级筛选（high/medium/low）")
 	tcaseListCmd.Flags().StringVar(&flagTCaseCreator, "creator", "", "按创建人筛选")
 	tcaseListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	tcaseListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
@@ -58,8 +58,8 @@ func init() {
 	tcaseCreateCmd.Flags().StringVar(&flagTCasePrecondition, "precondition", "", "前置条件")
 	tcaseCreateCmd.Flags().StringVar(&flagTCaseSteps, "steps", "", "用例步骤")
 	tcaseCreateCmd.Flags().StringVar(&flagTCaseExpectation, "expectation", "", "预期结果")
-	tcaseCreateCmd.Flags().StringVar(&flagTCaseType, "type", "", "用例类型")
-	tcaseCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "用例等级")
+	tcaseCreateCmd.Flags().StringVar(&flagTCaseType, "type", "", "用例类型（functional/performance/other）")
+	tcaseCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "用例等级（high/medium/low）")
 	tcaseCreateCmd.Flags().StringVar(&flagTCaseCreator, "creator", "", "创建人")
 
 	tcaseBatchCreateCmd.Flags().StringVar(&flagTCasesJSON, "tcases", "", "测试用例 JSON 数组（必需）")

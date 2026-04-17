@@ -68,7 +68,7 @@ var bugTodoCmd = &cobra.Command{
 }
 
 func init() {
-	bugListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	bugListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 	bugListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
 	bugListCmd.Flags().StringVar(&flagPriority, "priority", "", "按优先级筛选（urgent/high/medium/low/insignificant）")
 	bugListCmd.Flags().StringVar(&flagSeverity, "severity", "", "按严重程度筛选（fatal/serious/normal/prompt/advice）")
@@ -78,17 +78,17 @@ func init() {
 	bugCreateCmd.Flags().StringVar(&flagTitle, "title", "", "缺陷标题（必需）")
 	bugCreateCmd.Flags().StringVar(&flagDescription, "description", "", "描述")
 	bugCreateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
-	bugCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级")
-	bugCreateCmd.Flags().StringVar(&flagSeverity, "severity", "", "严重程度")
+	bugCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（urgent/high/medium/low/insignificant）")
+	bugCreateCmd.Flags().StringVar(&flagSeverity, "severity", "", "严重程度（fatal/serious/normal/prompt/advice）")
 
 	bugUpdateCmd.Flags().StringVar(&flagTitle, "title", "", "新标题")
 	bugUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
 	bugUpdateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
-	bugUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态")
-	bugUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级")
-	bugUpdateCmd.Flags().StringVar(&flagSeverity, "severity", "", "新严重程度")
+	bugUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（用 workflow status-map 查询可用值）")
+	bugUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（urgent/high/medium/low/insignificant）")
+	bugUpdateCmd.Flags().StringVar(&flagSeverity, "severity", "", "新严重程度（fatal/serious/normal/prompt/advice）")
 
-	bugCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	bugCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 
 	bugTodoCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	bugTodoCmd.Flags().IntVar(&flagPage, "page", 1, "页码")

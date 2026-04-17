@@ -67,7 +67,7 @@ func init() {
 	iterationUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
 	iterationUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（open/done）")
 
-	iterationCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	iterationCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/done）")
 
 	iterationCmd.AddCommand(iterationListCmd, iterationCreateCmd, iterationUpdateCmd, iterationCountCmd)
 	rootCmd.AddCommand(iterationCmd)

@@ -74,7 +74,7 @@ func init() {
 	taskCreateCmd.Flags().StringVar(&flagDescription, "description", "", "描述")
 	taskCreateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	taskCreateCmd.Flags().StringVar(&flagOwner, "owner", "", "处理人")
-	taskCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级")
+	taskCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（High/Middle/Low/Nice To Have）")
 	taskCreateCmd.Flags().StringVar(&flagStoryID, "story-id", "", "关联需求 ID")
 
 	taskUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
@@ -83,7 +83,7 @@ func init() {
 	taskUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（open/progressing/done）")
 	taskUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
 
-	taskCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选")
+	taskCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/progressing/done）")
 
 	taskTodoCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	taskTodoCmd.Flags().IntVar(&flagPage, "page", 1, "页码")

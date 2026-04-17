@@ -4,11 +4,22 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
+
+// groupPriority 定义命令分组的显示优先级，数字越小越靠前
+// 未列出的分组默认优先级为 100，按字母序排列
+var groupPriority = map[string]int{
+	"url":     1,
+	"story":   2,
+	"comment": 3,
+	"task":    4,
+	"bug":     5,
+}
 
 // specLine 表示一条命令参考行
 type specLine struct {
@@ -16,11 +27,32 @@ type specLine struct {
 	text  string // 完整的命令参考文本
 }
 
-// buildSpecLines 遍历命令树，为每个叶子命令生成参考行
+// buildSpecLines 遍历命令树，为每个叶子命令生成参考行，并按优先级排序
 func buildSpecLines(root *cobra.Command) []specLine {
 	var lines []specLine
 	walkSpecCommands(root, "", "", &lines)
+	sortSpecLines(lines)
 	return lines
+}
+
+// sortSpecLines 按 groupPriority 对参考行排序，优先级相同的按分组名字母序
+func sortSpecLines(lines []specLine) {
+	sort.SliceStable(lines, func(i, j int) bool {
+		pi := getGroupPriority(lines[i].group)
+		pj := getGroupPriority(lines[j].group)
+		if pi != pj {
+			return pi < pj
+		}
+		return lines[i].group < lines[j].group
+	})
+}
+
+// getGroupPriority 返回分组的显示优先级，未配置的分组返回默认值 100
+func getGroupPriority(group string) int {
+	if p, ok := groupPriority[group]; ok {
+		return p
+	}
+	return 100
 }
 
 // walkSpecCommands 递归遍历命令树，收集叶子命令的参考行
@@ -63,6 +95,11 @@ func commandToLine(cmd *cobra.Command, path string) string {
 		b.WriteString(">")
 	}
 
+	// 检测是否同时有 --description 和 --file（富文本输入命令）
+	hasDescription := cmd.Flags().Lookup("description") != nil
+	hasFile := cmd.Flags().Lookup("file") != nil
+	richTextWritten := false
+
 	// 收集标志，区分必填和可选
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		if f.Hidden || f.Name == "help" {
@@ -74,6 +111,14 @@ func commandToLine(cmd *cobra.Command, path string) string {
 		}
 		// 跳过全局展示标志（已在 header 中展示）
 		if isGlobalDisplayFlag(f.Name) {
+			return
+		}
+		// 富文本输入：合并 --description / --file / stdin 为一个组合提示
+		if hasDescription && hasFile && (f.Name == "description" || f.Name == "file") {
+			if !richTextWritten {
+				b.WriteString(" [--description=<text>|--file=<path>|stdin]")
+				richTextWritten = true
+			}
 			return
 		}
 		b.WriteString(" ")
@@ -91,16 +136,39 @@ func commandToLine(cmd *cobra.Command, path string) string {
 
 // formatFlag 将一个 flag 格式化为紧凑文本
 // 必填标志：--flag=<val>
+// 可选带枚举：[--flag=<a|b|c>]
 // 可选带默认值：[--flag=default]
 // 可选无默认值：[--flag]
 func formatFlag(f *pflag.Flag) string {
+	hint := extractEnumHint(f.Usage)
 	if isFlagRequired(f) {
+		if hint != "" {
+			return "--" + f.Name + "=<" + hint + ">"
+		}
 		return "--" + f.Name + "=<" + f.Name + ">"
+	}
+	if hint != "" {
+		return "[--" + f.Name + "=<" + hint + ">]"
 	}
 	if f.DefValue != "" && f.DefValue != "false" && f.DefValue != "0" {
 		return "[--" + f.Name + "=" + f.DefValue + "]"
 	}
 	return "[--" + f.Name + "]"
+}
+
+// extractEnumHint 从 Usage 文本的全角括号 （）中提取枚举提示
+// 例如 "优先级（urgent/high/medium/low）" -> "urgent/high/medium/low"
+// 若括号内含必填说明（，必需/，必填）则去掉后缀
+func extractEnumHint(usage string) string {
+	start := strings.Index(usage, "（")
+	end := strings.LastIndex(usage, "）")
+	if start < 0 || end <= start {
+		return ""
+	}
+	content := usage[start+len("（") : end]
+	content = strings.TrimSuffix(content, "，必需")
+	content = strings.TrimSuffix(content, "，必填")
+	return content
 }
 
 // isFlagRequired 判断标志是否为必填（通过检测 Usage 文本中的关键字）

@@ -55,6 +55,31 @@ export TAPD_API_PASSWORD=<password>
 
 **凭据优先级**：CLI flags > 环境变量 > `./.tapd.json` > `~/.tapd.json`
 
+### 自定义 TAPD 站点地址
+
+如需连接非 `tapd.cn` 的 TAPD 部署，可通过环境变量或配置文件指定：
+
+```bash
+# 环境变量
+export TAPD_API_URL=https://api.my-tapd.com
+export TAPD_URL=https://www.my-tapd.com
+```
+
+或写入配置文件：
+
+```json
+{
+  "access_token": "your-token",
+  "api_url": "https://api.my-tapd.com",
+  "url": "https://www.my-tapd.com"
+}
+```
+
+| 配置项 | 环境变量 | JSON 字段 | 默认值 |
+|--------|----------|-----------|--------|
+| API 地址 | `TAPD_API_URL` | `api_url` | `https://api.tapd.cn` |
+| 前端地址 | `TAPD_URL` | `url` | `https://www.tapd.cn` |
+
 ## 基本用法
 
 ```bash

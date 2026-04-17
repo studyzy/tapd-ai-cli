@@ -58,6 +58,13 @@ func main() {
     // 方式二：使用 Basic Auth
     // client := tapd.NewClient("", "api_user", "api_password")
 
+    // 方式三：连接自定义 TAPD 站点
+    // client := tapd.NewClientWithBaseURL(
+    //     "https://api.my-tapd.com",   // API 地址
+    //     "https://www.my-tapd.com",   // 前端页面地址
+    //     "your-access-token", "", "",
+    // )
+
     // 获取用户参与的项目列表
     workspaces, err := client.ListWorkspaces()
     if err != nil {
@@ -131,7 +138,8 @@ sdk/
    - 自动解析 TAPD 统一响应格式 `{status, data, info}`
    - 自动处理 TAPD 特有的数据包裹格式（如 `[{"Story": {...}}]`）
 4. **双模式认证**：支持 Bearer Token（推荐）和 Basic Auth 两种认证方式。
-5. **结构化错误**：返回 `TAPDError` 包含 HTTP 状态码、退出码和错误消息，便于调用方精确处理。
+5. **可配置站点地址**：API 和前端 URL 均可自定义，支持连接非 `tapd.cn` 的 TAPD 部署。
+6. **结构化错误**：返回 `TAPDError` 包含 HTTP 状态码、退出码和错误消息，便于调用方精确处理。
 
 ### 认证方式
 
@@ -141,6 +149,26 @@ sdk/
 | Basic Auth | `TAPD_API_USER` + `TAPD_API_PASSWORD` | API 账号密码 |
 
 当同时提供两种凭据时，Bearer Token 优先。
+
+### 自定义站点地址
+
+SDK 默认连接 `https://api.tapd.cn`，如需连接其他 TAPD 部署，使用 `NewClientWithBaseURL`：
+
+```go
+client := tapd.NewClientWithBaseURL(
+    "https://api.my-tapd.com",   // apiURL：API 请求地址
+    "https://www.my-tapd.com",   // webURL：前端页面地址（用于生成条目链接）
+    "your-access-token", "", "",
+)
+
+// 获取前端页面基础地址
+fmt.Println(client.WebURL()) // https://www.my-tapd.com
+```
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `apiURL` | `https://api.tapd.cn` | API 请求基础地址，传空字符串使用默认值 |
+| `webURL` | `https://www.tapd.cn` | 前端页面基础地址，传空字符串使用默认值 |
 
 ### 错误处理
 

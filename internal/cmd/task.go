@@ -192,7 +192,7 @@ func runTaskUpdate(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printSuccessResponse(task.ID, fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", flagWorkspaceID, task.ID), "")
+	return printSuccessResponse(task.ID, fmt.Sprintf("%s/%s/prong/tasks/view/%s", apiClient.WebURL(), flagWorkspaceID, task.ID), "")
 }
 
 func runTaskCount(cmd *cobra.Command, args []string) error {

@@ -17,7 +17,7 @@ func TestListWorkspaces(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	workspaces, err := c.ListWorkspaces()
 	if err != nil {
 		t.Fatalf("ListWorkspaces() unexpected error: %v", err)
@@ -46,7 +46,7 @@ func TestGetWorkspaceInfo(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	ws, err := c.GetWorkspaceInfo("10")
 	if err != nil {
 		t.Fatalf("GetWorkspaceInfo() unexpected error: %v", err)
@@ -72,7 +72,7 @@ func TestGetWorkspaceInfo_NotFound(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	_, err := c.GetWorkspaceInfo("999")
 	if err == nil {
 		t.Fatal("GetWorkspaceInfo() expected error for empty data, got nil")

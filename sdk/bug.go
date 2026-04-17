@@ -62,7 +62,7 @@ func (c *Client) GetBug(workspaceID, id string) (*model.Bug, error) {
 		return nil, fmt.Errorf("failed to parse bug: %w", err)
 	}
 
-	bug.URL = fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", workspaceID, id)
+	bug.URL = fmt.Sprintf("%s/%s/bugtrace/bugs/view/%s", c.webURL, workspaceID, id)
 
 	return &bug, nil
 }
@@ -89,7 +89,7 @@ func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.Bug, error) {
 		return nil, fmt.Errorf("failed to parse created bug: %w", err)
 	}
 
-	bug.URL = fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", req.WorkspaceID, bug.ID)
+	bug.URL = fmt.Sprintf("%s/%s/bugtrace/bugs/view/%s", c.webURL, req.WorkspaceID, bug.ID)
 
 	return &bug, nil
 }

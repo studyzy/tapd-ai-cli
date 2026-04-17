@@ -26,7 +26,7 @@ func TestGetCommitMsg(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.GetCommitMsg(&model.GetCommitMsgRequest{
 		WorkspaceID: "1",
 		ObjectID:    "100",
@@ -55,7 +55,7 @@ func TestListReleases(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	releases, err := c.ListReleases(&model.WorkspaceIDRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListReleases() unexpected error: %v", err)
@@ -84,7 +84,7 @@ func TestListReleases_Empty(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	releases, err := c.ListReleases(&model.WorkspaceIDRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListReleases() unexpected error: %v", err)
@@ -113,7 +113,7 @@ func TestGetTodoStories(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	stories, err := c.GetTodoStories(&model.GetTodoRequest{
 		WorkspaceID: "1",
 		EntityType:  "story",
@@ -144,7 +144,7 @@ func TestGetTodoStories_Empty(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	stories, err := c.GetTodoStories(&model.GetTodoRequest{
 		WorkspaceID: "1",
 		EntityType:  "story",
@@ -167,7 +167,7 @@ func TestGetTodoTasks(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	tasks, err := c.GetTodoTasks(&model.GetTodoRequest{
 		WorkspaceID: "1",
 		EntityType:  "task",
@@ -196,7 +196,7 @@ func TestGetTodoBugs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	bugs, err := c.GetTodoBugs(&model.GetTodoRequest{
 		WorkspaceID: "1",
 		EntityType:  "bug",
@@ -248,7 +248,7 @@ func TestSendQiweiMessage(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL("https://api.tapd.cn", "test-token", "", "")
+	c := NewClientWithBaseURL(DefaultAPIURL, DefaultWebURL, "test-token", "", "")
 	err := c.SendQiweiMessage(srv.URL, "hello world")
 	if err != nil {
 		t.Fatalf("SendQiweiMessage() unexpected error: %v", err)
@@ -256,7 +256,7 @@ func TestSendQiweiMessage(t *testing.T) {
 }
 
 func TestSendQiweiMessage_EmptyWebhook(t *testing.T) {
-	c := NewClientWithBaseURL("https://api.tapd.cn", "test-token", "", "")
+	c := NewClientWithBaseURL(DefaultAPIURL, DefaultWebURL, "test-token", "", "")
 	err := c.SendQiweiMessage("", "hello")
 	if err == nil {
 		t.Fatal("expected error for empty webhook URL")
@@ -270,7 +270,7 @@ func TestSendQiweiMessage_HTTPError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL("https://api.tapd.cn", "test-token", "", "")
+	c := NewClientWithBaseURL(DefaultAPIURL, DefaultWebURL, "test-token", "", "")
 	err := c.SendQiweiMessage(srv.URL, "hello")
 	if err == nil {
 		t.Fatal("expected error for HTTP 500")

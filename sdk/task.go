@@ -62,7 +62,7 @@ func (c *Client) GetTask(workspaceID, id string) (*model.Task, error) {
 		return nil, fmt.Errorf("failed to parse task: %w", err)
 	}
 
-	task.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", workspaceID, id)
+	task.URL = fmt.Sprintf("%s/%s/prong/tasks/view/%s", c.webURL, workspaceID, id)
 
 	return &task, nil
 }
@@ -89,7 +89,7 @@ func (c *Client) CreateTask(req *model.CreateTaskRequest) (*model.Task, error) {
 		return nil, fmt.Errorf("failed to parse created task: %w", err)
 	}
 
-	task.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", req.WorkspaceID, task.ID)
+	task.URL = fmt.Sprintf("%s/%s/prong/tasks/view/%s", c.webURL, req.WorkspaceID, task.ID)
 
 	return &task, nil
 }

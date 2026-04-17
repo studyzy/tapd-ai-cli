@@ -19,7 +19,7 @@ func TestListBugs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListBugs(&model.ListBugsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListBugs() unexpected error: %v", err)
@@ -55,7 +55,7 @@ func TestListBugs_FiltersCustomFields(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListBugs(&model.ListBugsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("ListBugs() unexpected error: %v", err)
@@ -81,7 +81,7 @@ func TestGetBug_PreservesHTML(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.GetBug("1", "500")
 	if err != nil {
 		t.Fatalf("GetBug() unexpected error: %v", err)
@@ -136,7 +136,7 @@ func TestCreateBug(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	bug, err := c.CreateBug(&model.CreateBugRequest{
 		WorkspaceID: "1",
 		Title:       "New Bug",
@@ -165,7 +165,7 @@ func TestCountBugs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	count, err := c.CountBugs(&model.CountBugsRequest{WorkspaceID: "1"})
 	if err != nil {
 		t.Fatalf("CountBugs() unexpected error: %v", err)
@@ -188,7 +188,7 @@ func TestUpdateBug(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.UpdateBug(&model.UpdateBugRequest{
 		WorkspaceID: "1",
 		ID:          "500",

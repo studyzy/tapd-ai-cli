@@ -268,3 +268,81 @@ func TestGetConfigPath_Global(t *testing.T) {
 		t.Errorf("expected %s, got %s", expected, path)
 	}
 }
+
+func TestLoadConfig_EnvAPIURL(t *testing.T) {
+	tmp := t.TempDir()
+	chdirTemp(t, tmp)
+	t.Setenv("TAPD_ACCESS_TOKEN", "token")
+	t.Setenv("TAPD_API_USER", "")
+	t.Setenv("TAPD_API_PASSWORD", "")
+	t.Setenv("TAPD_WORKSPACE_ID", "")
+	t.Setenv("TAPD_API_URL", "https://api.custom.com")
+	t.Setenv("TAPD_URL", "https://www.custom.com")
+
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIURL != "https://api.custom.com" {
+		t.Errorf("expected api_url=https://api.custom.com, got %s", cfg.APIURL)
+	}
+	if cfg.URL != "https://www.custom.com" {
+		t.Errorf("expected url=https://www.custom.com, got %s", cfg.URL)
+	}
+}
+
+func TestLoadConfig_FileAPIURL(t *testing.T) {
+	tmp := t.TempDir()
+	chdirTemp(t, tmp)
+	t.Setenv("TAPD_ACCESS_TOKEN", "")
+	t.Setenv("TAPD_API_USER", "")
+	t.Setenv("TAPD_API_PASSWORD", "")
+	t.Setenv("TAPD_WORKSPACE_ID", "")
+	t.Setenv("TAPD_API_URL", "")
+	t.Setenv("TAPD_URL", "")
+
+	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
+		AccessToken: "token",
+		APIURL:      "https://api.internal.com",
+		URL:         "https://www.internal.com",
+	})
+
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIURL != "https://api.internal.com" {
+		t.Errorf("expected api_url=https://api.internal.com, got %s", cfg.APIURL)
+	}
+	if cfg.URL != "https://www.internal.com" {
+		t.Errorf("expected url=https://www.internal.com, got %s", cfg.URL)
+	}
+}
+
+func TestLoadConfig_EnvURLOverridesFileURL(t *testing.T) {
+	tmp := t.TempDir()
+	chdirTemp(t, tmp)
+	t.Setenv("TAPD_ACCESS_TOKEN", "token")
+	t.Setenv("TAPD_API_USER", "")
+	t.Setenv("TAPD_API_PASSWORD", "")
+	t.Setenv("TAPD_WORKSPACE_ID", "")
+	t.Setenv("TAPD_API_URL", "https://api.env.com")
+	t.Setenv("TAPD_URL", "https://www.env.com")
+
+	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
+		AccessToken: "file_token",
+		APIURL:      "https://api.file.com",
+		URL:         "https://www.file.com",
+	})
+
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIURL != "https://api.env.com" {
+		t.Errorf("expected env api_url to override file, got %s", cfg.APIURL)
+	}
+	if cfg.URL != "https://www.env.com" {
+		t.Errorf("expected env url to override file, got %s", cfg.URL)
+	}
+}

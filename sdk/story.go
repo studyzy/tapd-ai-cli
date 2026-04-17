@@ -62,7 +62,7 @@ func (c *Client) GetStory(workspaceID, id string) (*model.Story, error) {
 		return nil, fmt.Errorf("failed to parse story: %w", err)
 	}
 
-	story.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", workspaceID, id)
+	story.URL = fmt.Sprintf("%s/%s/prong/stories/view/%s", c.webURL, workspaceID, id)
 
 	return &story, nil
 }
@@ -89,7 +89,7 @@ func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.Story, error
 		return nil, fmt.Errorf("failed to parse created story: %w", err)
 	}
 
-	story.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", req.WorkspaceID, story.ID)
+	story.URL = fmt.Sprintf("%s/%s/prong/stories/view/%s", c.webURL, req.WorkspaceID, story.ID)
 
 	return &story, nil
 }

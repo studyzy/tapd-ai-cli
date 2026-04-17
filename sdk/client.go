@@ -13,7 +13,12 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
-const defaultBaseURL = "https://api.tapd.cn"
+const (
+	// DefaultAPIURL 是 TAPD API 的默认基础地址
+	DefaultAPIURL = "https://api.tapd.cn"
+	// DefaultWebURL 是 TAPD 前端页面的默认基础地址
+	DefaultWebURL = "https://www.tapd.cn"
+)
 
 // TAPDError 表示 TAPD API 返回的错误
 type TAPDError struct {
@@ -30,20 +35,32 @@ func (e *TAPDError) Error() string {
 // Client 是 TAPD API 的 HTTP 客户端封装
 type Client struct {
 	baseURL    string
+	webURL     string
 	httpClient *http.Client
 	authHeader string // "Bearer <token>" or "Basic <base64>"
 	Nick       string // 当前用户昵称，Bearer Token 认证时自动获取
 }
 
-// NewClient 创建一个使用默认 baseURL 的 TAPD API 客户端。
+// NewClient 创建一个使用默认 URL 的 TAPD API 客户端。
 // 如果 accessToken 非空则使用 Bearer 认证，否则使用 Basic 认证。
 func NewClient(accessToken, apiUser, apiPassword string) *Client {
-	return NewClientWithBaseURL(defaultBaseURL, accessToken, apiUser, apiPassword)
+	return NewClientWithBaseURL(DefaultAPIURL, DefaultWebURL, accessToken, apiUser, apiPassword)
 }
 
-// NewClientWithBaseURL 创建一个指定 baseURL 的 TAPD API 客户端，适用于测试场景。
+// NewClientWithBaseURL 创建一个指定 API 和 Web 基础地址的 TAPD API 客户端。
+// apiURL 为 API 请求基础地址，webURL 为前端页面基础地址。
 // 如果 accessToken 非空则使用 Bearer 认证，否则使用 Basic 认证。
-func NewClientWithBaseURL(baseURL, accessToken, apiUser, apiPassword string) *Client {
+func NewClientWithBaseURL(apiURL, webURL, accessToken, apiUser, apiPassword string) *Client {
+	if apiURL == "" {
+		apiURL = DefaultAPIURL
+	}
+	if webURL == "" {
+		webURL = DefaultWebURL
+	}
+	// 去除末尾斜杠，确保拼接路径时格式正确
+	apiURL = strings.TrimRight(apiURL, "/")
+	webURL = strings.TrimRight(webURL, "/")
+
 	var authHeader string
 	if accessToken != "" {
 		authHeader = "Bearer " + accessToken
@@ -52,12 +69,18 @@ func NewClientWithBaseURL(baseURL, accessToken, apiUser, apiPassword string) *Cl
 		authHeader = "Basic " + encoded
 	}
 	c := &Client{
-		baseURL:    baseURL,
+		baseURL:    apiURL,
+		webURL:     webURL,
 		httpClient: &http.Client{},
 		authHeader: authHeader,
 	}
 
 	return c
+}
+
+// WebURL 返回前端页面的基础地址
+func (c *Client) WebURL() string {
+	return c.webURL
 }
 
 // FetchNick 通过 /users/info 接口获取当前用户昵称（Bearer Token 认证时使用）

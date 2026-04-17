@@ -18,7 +18,7 @@ func TestListTimesheets(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListTimesheets(&model.ListTimesheetsRequest{
 		WorkspaceID: "1",
 	})
@@ -55,7 +55,7 @@ func TestListTimesheets_Empty(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListTimesheets(&model.ListTimesheetsRequest{
 		WorkspaceID: "1",
 	})
@@ -80,7 +80,7 @@ func TestAddTimesheet(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.AddTimesheet(&model.AddTimesheetRequest{
 		WorkspaceID: "1",
 		EntityType:  "story",
@@ -112,7 +112,7 @@ func TestUpdateTimesheet_Wrapped(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.UpdateTimesheet(&model.UpdateTimesheetRequest{
 		WorkspaceID: "1",
 		ID:          "1002",
@@ -141,7 +141,7 @@ func TestUpdateTimesheet_Direct(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.UpdateTimesheet(&model.UpdateTimesheetRequest{
 		WorkspaceID: "1",
 		ID:          "1002",

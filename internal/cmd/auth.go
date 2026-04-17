@@ -48,8 +48,9 @@ func runLogin(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// 验证凭据有效性
-	c := tapd.NewClient(accessToken, apiUser, apiPassword)
+	// 验证凭据有效性（尊重环境变量中的自定义 API URL）
+	apiURL := os.Getenv("TAPD_API_URL")
+	c := tapd.NewClientWithBaseURL(apiURL, "", accessToken, apiUser, apiPassword)
 	if err := c.TestAuth(); err != nil {
 		output.PrintError(os.Stderr, "authentication_failed",
 			"Invalid credentials: "+err.Error(),

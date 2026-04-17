@@ -21,7 +21,7 @@ func TestGetImage(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.GetImage(&model.GetImageRequest{
 		WorkspaceID: "1",
 		ImagePath:   "/tfl/pictures/abc.png",
@@ -48,7 +48,7 @@ func TestGetImage_MissingAttachment(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	_, err := c.GetImage(&model.GetImageRequest{
 		WorkspaceID: "1",
 		ImagePath:   "/tfl/pictures/abc.png",
@@ -68,7 +68,7 @@ func TestGetAttachments(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.GetAttachments(&model.GetAttachmentsRequest{
 		WorkspaceID: "1",
 		EntryID:     "200",
@@ -100,7 +100,7 @@ func TestGetAttachments_Empty(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.GetAttachments(&model.GetAttachmentsRequest{
 		WorkspaceID: "1",
 		EntryID:     "200",
@@ -120,7 +120,7 @@ func TestGetAttachments_APIError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	_, err := c.GetAttachments(&model.GetAttachmentsRequest{
 		WorkspaceID: "1",
 		EntryID:     "200",

@@ -18,7 +18,7 @@ func TestListWikis(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	results, err := c.ListWikis(&model.ListWikisRequest{WorkspaceID: "51081496"})
 	if err != nil {
 		t.Fatalf("ListWikis() unexpected error: %v", err)
@@ -47,7 +47,7 @@ func TestGetWiki_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.GetWiki("51081496", "1151081496001001503")
 	if err != nil {
 		t.Fatalf("GetWiki() unexpected error: %v", err)
@@ -70,7 +70,7 @@ func TestGetWiki_NotFound(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	_, err := c.GetWiki("51081496", "9999999999")
 	if err == nil {
 		t.Fatal("GetWiki() expected error for not found, got nil")
@@ -90,7 +90,7 @@ func TestCreateWiki(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	req := &model.CreateWikiRequest{
 		WorkspaceID:         "51081496",
 		Name:                "新文档",
@@ -125,7 +125,7 @@ func TestUpdateWiki(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	req := &model.UpdateWikiRequest{
 		WorkspaceID:         "51081496",
 		ID:                  "1151081496001001503",

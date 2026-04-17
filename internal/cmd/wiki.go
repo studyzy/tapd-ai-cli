@@ -207,5 +207,5 @@ func runWikiUpdate(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printSuccessResponse(wiki.ID, fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", flagWorkspaceID, wiki.ID), "")
+	return printSuccessResponse(wiki.ID, fmt.Sprintf("%s/%s/markdown_wikis/view/%s", apiClient.WebURL(), flagWorkspaceID, wiki.ID), "")
 }

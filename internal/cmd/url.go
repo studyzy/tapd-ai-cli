@@ -52,8 +52,8 @@ func parseTAPDURL(rawURL string) (*parsedTAPDURL, error) {
 	}
 
 	host := u.Hostname()
-	if host != "www.tapd.cn" && host != "tapd.cn" {
-		return nil, fmt.Errorf("not a valid TAPD URL: host must be www.tapd.cn or tapd.cn, got %q", host)
+	if host == "" {
+		return nil, fmt.Errorf("not a valid TAPD URL: missing host")
 	}
 
 	segments := splitPath(u.Path)

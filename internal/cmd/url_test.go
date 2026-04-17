@@ -90,6 +90,22 @@ func TestParseTAPDURL(t *testing.T) {
 			rawURL:  "https://www.tapd.cn/51081496/prong/iterations",
 			wantErr: true,
 		},
+		// 自定义域名：详情页格式
+		{
+			name:            "自定义域名 story 详情页",
+			rawURL:          "https://tapd.mycompany.com/tapd_fe/51081496/story/detail/1151081496001028684",
+			wantWorkspaceID: "51081496",
+			wantEntityType:  "story",
+			wantEntityID:    "1151081496001028684",
+		},
+		// 自定义域名：dialog_preview_id 格式
+		{
+			name:            "自定义域名 bug dialog_preview_id",
+			rawURL:          "https://tapd.mycompany.com/tapd_fe/51081496/bug/list?dialog_preview_id=bug_1151081496001016136",
+			wantWorkspaceID: "51081496",
+			wantEntityType:  "bug",
+			wantEntityID:    "1151081496001016136",
+		},
 	}
 
 	for _, tt := range tests {

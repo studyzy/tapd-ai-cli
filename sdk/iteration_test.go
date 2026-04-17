@@ -22,7 +22,7 @@ func TestListIterations(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	iterations, err := c.ListIterations(&model.ListIterationsRequest{
 		WorkspaceID: "1",
 	})
@@ -63,7 +63,7 @@ func TestCreateIteration(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	iteration, err := c.CreateIteration(&model.CreateIterationRequest{
 		WorkspaceID: "1",
 		Name:        "Sprint 2",
@@ -98,7 +98,7 @@ func TestUpdateIteration(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
 	result, err := c.UpdateIteration(&model.UpdateIterationRequest{
 		WorkspaceID: "1",
 		ID:          "3001",

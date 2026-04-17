@@ -47,10 +47,10 @@ func TestListBugs(t *testing.T) {
 	}
 }
 
-func TestListBugs_FiltersCustomFields(t *testing.T) {
+func TestListBugs_PreservesCustomFields(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		// 返回包含大量 custom_field 的数据，强类型反序列化应自动忽略
+		// 返回包含自定义字段的数据，应通过 CustomFields map 保留
 		w.Write([]byte(`{"status":1,"data":[{"Bug":{"id":"501","title":"Bug2","custom_field_1":"val1","custom_field_50":"val50","custom_field_100":"val100"}}],"info":"success"}`))
 	}))
 	defer srv.Close()
@@ -68,6 +68,16 @@ func TestListBugs_FiltersCustomFields(t *testing.T) {
 	}
 	if results[0].Title != "Bug2" {
 		t.Errorf("bug title = %v, want %q", results[0].Title, "Bug2")
+	}
+	// 验证自定义字段被保留
+	if results[0].CustomFields["custom_field_1"] != "val1" {
+		t.Errorf("custom_field_1 = %q, want %q", results[0].CustomFields["custom_field_1"], "val1")
+	}
+	if results[0].CustomFields["custom_field_50"] != "val50" {
+		t.Errorf("custom_field_50 = %q, want %q", results[0].CustomFields["custom_field_50"], "val50")
+	}
+	if results[0].CustomFields["custom_field_100"] != "val100" {
+		t.Errorf("custom_field_100 = %q, want %q", results[0].CustomFields["custom_field_100"], "val100")
 	}
 }
 

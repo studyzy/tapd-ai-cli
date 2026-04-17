@@ -7,7 +7,7 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
-// ListBugs 查询缺陷列表，返回强类型 Bug 切片，自动过滤 custom_field 等无用字段
+// ListBugs 查询缺陷列表，返回强类型 Bug 切片，自定义字段通过 CustomFields map 保留
 // API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/bug/get_bugs.html
 func (c *Client) ListBugs(req *model.ListBugsRequest) ([]model.Bug, error) {
 	data, err := c.doGet("/bugs", req.ToParams())

@@ -7,7 +7,7 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
-// ListTasks 查询任务列表，返回强类型 Task 切片，自动过滤 custom_field 等无用字段
+// ListTasks 查询任务列表，返回强类型 Task 切片，自定义字段通过 CustomFields map 保留
 // API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/task/get_tasks.html
 func (c *Client) ListTasks(req *model.ListTasksRequest) ([]model.Task, error) {
 	data, err := c.doGet("/tasks", req.ToParams())

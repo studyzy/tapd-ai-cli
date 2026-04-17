@@ -76,6 +76,29 @@ func TestGetTask_PreservesHTML(t *testing.T) {
 	}
 }
 
+func TestListTasks_PreservesCustomFields(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":[{"Task":{"id":"300","name":"Task","custom_field_one":"t1","custom_plan_field_5":"p5"}}],"info":"success"}`))
+	}))
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	tasks, err := c.ListTasks(&model.ListTasksRequest{WorkspaceID: "1"})
+	if err != nil {
+		t.Fatalf("ListTasks() unexpected error: %v", err)
+	}
+	if len(tasks) != 1 {
+		t.Fatalf("expected 1 task, got %d", len(tasks))
+	}
+	if tasks[0].CustomFields["custom_field_one"] != "t1" {
+		t.Errorf("custom_field_one = %q, want %q", tasks[0].CustomFields["custom_field_one"], "t1")
+	}
+	if tasks[0].CustomFields["custom_plan_field_5"] != "p5" {
+		t.Errorf("custom_plan_field_5 = %q, want %q", tasks[0].CustomFields["custom_plan_field_5"], "p5")
+	}
+}
+
 func TestGetTask_NotFound(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

@@ -7,7 +7,7 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
-// ListStories 查询需求列表，返回强类型 Story 切片，自动过滤 custom_field 等无用字段
+// ListStories 查询需求列表，返回强类型 Story 切片，自定义字段通过 CustomFields map 保留
 // API 文档：https://open.tapd.cn/document/api-doc/API%E6%96%87%E6%A1%A3/api_reference/story/get_stories.html
 func (c *Client) ListStories(req *model.ListStoriesRequest) ([]model.Story, error) {
 	data, err := c.doGet("/stories", req.ToParams())

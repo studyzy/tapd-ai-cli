@@ -1,8 +1,10 @@
 // Package model 中的 story.go 定义了 TAPD 需求数据模型
 package model
 
+import "encoding/json"
+
 // Story 表示 TAPD 需求/工作项，字段覆盖 TAPD API 返回的所有常用字段
-// 使用强类型结构体反序列化可自动过滤 custom_field_* 等无用字段，节约 token
+// 自定义字段（custom_field_*、custom_plan_field_*）通过 CustomFields map 保留，不会丢失
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/story.html
 type Story struct {
 	// 基本信息
@@ -71,6 +73,52 @@ type Story struct {
 
 	// 附加信息
 	URL string `json:"url,omitempty"`
+
+	// 自定义字段，key 为 custom_field_one、custom_field_9 等
+	CustomFields map[string]string `json:"-"`
+}
+
+// UnmarshalJSON 自定义反序列化，在解析标准字段的同时收集 custom_field_* 和 custom_plan_field_* 字段
+func (s *Story) UnmarshalJSON(data []byte) error {
+	type Alias Story
+	var alias Alias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+	*s = Story(alias)
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	s.CustomFields = ExtractCustomFields(raw)
+	return nil
+}
+
+// MarshalJSON 自定义序列化，将 CustomFields 中的键值对合并到输出 JSON
+func (s Story) MarshalJSON() ([]byte, error) {
+	type Alias Story
+	b, err := json.Marshal(Alias(s))
+	if err != nil {
+		return nil, err
+	}
+	if len(s.CustomFields) == 0 {
+		return b, nil
+	}
+
+	// 将自定义字段合并到 JSON 对象中
+	var base map[string]json.RawMessage
+	if err := json.Unmarshal(b, &base); err != nil {
+		return nil, err
+	}
+	for k, v := range s.CustomFields {
+		raw, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		base[k] = raw
+	}
+	return json.Marshal(base)
 }
 
 // ListStoriesRequest 查询需求列表的请求参数
@@ -114,24 +162,25 @@ func (r *ListStoriesRequest) ToParams() map[string]string {
 // CreateStoryRequest 创建需求的请求参数
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/add_story.html
 type CreateStoryRequest struct {
-	WorkspaceID    string // 必填：项目 ID
-	Name           string // 必填：标题
-	Description    string // 可选：详细描述
-	PriorityLabel  string // 可选：优先级
-	Owner          string // 可选：处理人
-	Creator        string // 可选：创建人
-	Developer      string // 可选：开发人员
-	CC             string // 可选：抄送人
-	IterationID    string // 可选：迭代 ID
-	ParentID       string // 可选：父需求 ID（创建子需求时使用）
-	CategoryID     string // 可选：需求分类 ID
-	Type           string // 可选：需求类型
-	Source         string // 可选：需求来源
-	Begin          string // 可选：预计开始日期
-	Due            string // 可选：预计结束日期
-	Label          string // 可选：标签
-	TemplatedID    string // 可选：模板 ID
-	WorkitemTypeID string // 可选：需求类别 ID
+	WorkspaceID    string            // 必填：项目 ID
+	Name           string            // 必填：标题
+	Description    string            // 可选：详细描述
+	PriorityLabel  string            // 可选：优先级
+	Owner          string            // 可选：处理人
+	Creator        string            // 可选：创建人
+	Developer      string            // 可选：开发人员
+	CC             string            // 可选：抄送人
+	IterationID    string            // 可选：迭代 ID
+	ParentID       string            // 可选：父需求 ID（创建子需求时使用）
+	CategoryID     string            // 可选：需求分类 ID
+	Type           string            // 可选：需求类型
+	Source         string            // 可选：需求来源
+	Begin          string            // 可选：预计开始日期
+	Due            string            // 可选：预计结束日期
+	Label          string            // 可选：标签
+	TemplatedID    string            // 可选：模板 ID
+	WorkitemTypeID string            // 可选：需求类别 ID
+	CustomFields   map[string]string // 可选：自定义字段，key 如 custom_field_one、custom_field_9
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -156,30 +205,32 @@ func (r *CreateStoryRequest) ToParams() map[string]string {
 	setOptional(params, "label", r.Label)
 	setOptional(params, "templated_id", r.TemplatedID)
 	setOptional(params, "workitem_type_id", r.WorkitemTypeID)
+	MergeCustomFields(params, r.CustomFields)
 	return params
 }
 
 // UpdateStoryRequest 更新需求的请求参数
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/story/update_story.html
 type UpdateStoryRequest struct {
-	WorkspaceID   string // 必填：项目 ID
-	ID            string // 必填：需求 ID
-	Name          string // 可选：标题
-	Status        string // 可选：状态
-	VStatus       string // 可选：中文状态名
-	PriorityLabel string // 可选：优先级
-	Owner         string // 可选：处理人
-	CurrentUser   string // 可选：变更人
-	Developer     string // 可选：开发人员
-	CC            string // 可选：抄送人
-	Description   string // 可选：详细描述
-	IterationID   string // 可选：迭代 ID
-	CategoryID    string // 可选：需求分类 ID
-	Begin         string // 可选：预计开始日期
-	Due           string // 可选：预计结束日期
-	Label         string // 可选：标签
-	Type          string // 可选：需求类型
-	Source        string // 可选：需求来源
+	WorkspaceID   string            // 必填：项目 ID
+	ID            string            // 必填：需求 ID
+	Name          string            // 可选：标题
+	Status        string            // 可选：状态
+	VStatus       string            // 可选：中文状态名
+	PriorityLabel string            // 可选：优先级
+	Owner         string            // 可选：处理人
+	CurrentUser   string            // 可选：变更人
+	Developer     string            // 可选：开发人员
+	CC            string            // 可选：抄送人
+	Description   string            // 可选：详细描述
+	IterationID   string            // 可选：迭代 ID
+	CategoryID    string            // 可选：需求分类 ID
+	Begin         string            // 可选：预计开始日期
+	Due           string            // 可选：预计结束日期
+	Label         string            // 可选：标签
+	Type          string            // 可选：需求类型
+	Source        string            // 可选：需求来源
+	CustomFields  map[string]string // 可选：自定义字段，key 如 custom_field_one、custom_field_9
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -204,6 +255,7 @@ func (r *UpdateStoryRequest) ToParams() map[string]string {
 	setOptional(params, "label", r.Label)
 	setOptional(params, "type", r.Type)
 	setOptional(params, "source", r.Source)
+	MergeCustomFields(params, r.CustomFields)
 	return params
 }
 

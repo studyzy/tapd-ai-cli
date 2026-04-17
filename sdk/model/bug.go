@@ -1,8 +1,10 @@
 // Package model 中的 bug.go 定义了 TAPD 缺陷数据模型
 package model
 
+import "encoding/json"
+
 // Bug 表示 TAPD 缺陷，字段覆盖 TAPD API 返回的所有常用字段
-// 使用强类型结构体反序列化可自动过滤 custom_field_* 等无用字段，节约 token
+// 自定义字段（custom_field_*、custom_plan_field_*）通过 CustomFields map 保留，不会丢失
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/bug/bug.html
 type Bug struct {
 	// 基本信息
@@ -92,6 +94,51 @@ type Bug struct {
 
 	// 附加信息
 	URL string `json:"url,omitempty"`
+
+	// 自定义字段，key 为 custom_field_one、custom_field_9 等
+	CustomFields map[string]string `json:"-"`
+}
+
+// UnmarshalJSON 自定义反序列化，在解析标准字段的同时收集 custom_field_* 和 custom_plan_field_* 字段
+func (b *Bug) UnmarshalJSON(data []byte) error {
+	type Alias Bug
+	var alias Alias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+	*b = Bug(alias)
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	b.CustomFields = ExtractCustomFields(raw)
+	return nil
+}
+
+// MarshalJSON 自定义序列化，将 CustomFields 中的键值对合并到输出 JSON
+func (b Bug) MarshalJSON() ([]byte, error) {
+	type Alias Bug
+	data, err := json.Marshal(Alias(b))
+	if err != nil {
+		return nil, err
+	}
+	if len(b.CustomFields) == 0 {
+		return data, nil
+	}
+
+	var base map[string]json.RawMessage
+	if err := json.Unmarshal(data, &base); err != nil {
+		return nil, err
+	}
+	for k, v := range b.CustomFields {
+		raw, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		base[k] = raw
+	}
+	return json.Marshal(base)
 }
 
 // ListBugsRequest 查询缺陷列表的请求参数
@@ -313,6 +360,9 @@ type CreateBugRequest struct {
 
 	// 工时相关
 	Effort string // 可选：预估工时
+
+	// 自定义字段
+	CustomFields map[string]string // 可选：自定义字段，key 如 custom_field_one、custom_field_9
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -369,6 +419,7 @@ func (r *CreateBugRequest) ToParams() map[string]string {
 	setOptional(params, "sourcephase", r.SourcePhase)
 	setOptional(params, "estimate", r.Estimate)
 	setOptional(params, "effort", r.Effort)
+	MergeCustomFields(params, r.CustomFields)
 	return params
 }
 
@@ -446,6 +497,9 @@ type UpdateBugRequest struct {
 
 	// 工时相关
 	Effort string // 可选：预估工时
+
+	// 自定义字段
+	CustomFields map[string]string // 可选：自定义字段，key 如 custom_field_one、custom_field_9
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -506,6 +560,7 @@ func (r *UpdateBugRequest) ToParams() map[string]string {
 	setOptional(params, "sourcephase", r.SourcePhase)
 	setOptional(params, "estimate", r.Estimate)
 	setOptional(params, "effort", r.Effort)
+	MergeCustomFields(params, r.CustomFields)
 	return params
 }
 

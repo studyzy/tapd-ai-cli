@@ -118,6 +118,57 @@ func TestCreateStory(t *testing.T) {
 	}
 }
 
+func TestListStories_PreservesCustomFields(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":[{"Story":{"id":"100","name":"Test","custom_field_one":"cf1","custom_field_9":"cf9","custom_plan_field_1":"pf1"}}],"info":"success"}`))
+	}))
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	stories, err := c.ListStories(&model.ListStoriesRequest{WorkspaceID: "1"})
+	if err != nil {
+		t.Fatalf("ListStories() unexpected error: %v", err)
+	}
+	if len(stories) != 1 {
+		t.Fatalf("expected 1 story, got %d", len(stories))
+	}
+	if stories[0].CustomFields["custom_field_one"] != "cf1" {
+		t.Errorf("custom_field_one = %q, want %q", stories[0].CustomFields["custom_field_one"], "cf1")
+	}
+	if stories[0].CustomFields["custom_field_9"] != "cf9" {
+		t.Errorf("custom_field_9 = %q, want %q", stories[0].CustomFields["custom_field_9"], "cf9")
+	}
+	if stories[0].CustomFields["custom_plan_field_1"] != "pf1" {
+		t.Errorf("custom_plan_field_1 = %q, want %q", stories[0].CustomFields["custom_plan_field_1"], "pf1")
+	}
+}
+
+func TestCreateStory_WithCustomFields(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		if r.FormValue("custom_field_one") != "cf1" {
+			t.Errorf("custom_field_one = %q, want %q", r.FormValue("custom_field_one"), "cf1")
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":1,"data":{"Story":{"id":"200","name":"New","custom_field_one":"cf1"}},"info":"success"}`))
+	}))
+	defer srv.Close()
+
+	c := NewClientWithBaseURL(srv.URL, "", "test-token", "", "")
+	story, err := c.CreateStory(&model.CreateStoryRequest{
+		WorkspaceID:  "1",
+		Name:         "New",
+		CustomFields: map[string]string{"custom_field_one": "cf1"},
+	})
+	if err != nil {
+		t.Fatalf("CreateStory() unexpected error: %v", err)
+	}
+	if story.CustomFields["custom_field_one"] != "cf1" {
+		t.Errorf("custom_field_one = %q, want %q", story.CustomFields["custom_field_one"], "cf1")
+	}
+}
+
 func TestCountStories(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/stories/count" {

@@ -1,8 +1,10 @@
 // Package model 中的 task.go 定义了 TAPD 任务数据模型
 package model
 
+import "encoding/json"
+
 // Task 表示 TAPD 任务，字段覆盖 TAPD API 返回的所有常用字段
-// 使用强类型结构体反序列化可自动过滤 custom_field_* 等无用字段，节约 token
+// 自定义字段（custom_field_*、custom_plan_field_*）通过 CustomFields map 保留，不会丢失
 // 参考：https://open.tapd.cn/document/api-doc/API文档/api_reference/task/get_tasks.html
 type Task struct {
 	// 基本信息
@@ -45,6 +47,51 @@ type Task struct {
 
 	// 附加信息
 	URL string `json:"url,omitempty"`
+
+	// 自定义字段，key 为 custom_field_one、custom_field_9 等
+	CustomFields map[string]string `json:"-"`
+}
+
+// UnmarshalJSON 自定义反序列化，在解析标准字段的同时收集 custom_field_* 和 custom_plan_field_* 字段
+func (t *Task) UnmarshalJSON(data []byte) error {
+	type Alias Task
+	var alias Alias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+	*t = Task(alias)
+
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	t.CustomFields = ExtractCustomFields(raw)
+	return nil
+}
+
+// MarshalJSON 自定义序列化，将 CustomFields 中的键值对合并到输出 JSON
+func (t Task) MarshalJSON() ([]byte, error) {
+	type Alias Task
+	data, err := json.Marshal(Alias(t))
+	if err != nil {
+		return nil, err
+	}
+	if len(t.CustomFields) == 0 {
+		return data, nil
+	}
+
+	var base map[string]json.RawMessage
+	if err := json.Unmarshal(data, &base); err != nil {
+		return nil, err
+	}
+	for k, v := range t.CustomFields {
+		raw, err := json.Marshal(v)
+		if err != nil {
+			return nil, err
+		}
+		base[k] = raw
+	}
+	return json.Marshal(base)
 }
 
 // ListTasksRequest 查询任务列表的请求参数
@@ -129,7 +176,8 @@ type CreateTaskRequest struct {
 	Priority      string // 可选：优先级（建议使用 PriorityLabel 以兼容自定义优先级）
 	PriorityLabel string // 可选：优先级（推荐使用）
 	Effort        string // 可选：预估工时
-	Label         string // 可选：标签（标签不存在时自动创建，多个以 | 分隔）
+	Label         string            // 可选：标签（标签不存在时自动创建，多个以 | 分隔）
+	CustomFields  map[string]string // 可选：自定义字段，key 如 custom_field_one、custom_field_9
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -150,6 +198,7 @@ func (r *CreateTaskRequest) ToParams() map[string]string {
 	setOptional(params, "priority_label", r.PriorityLabel)
 	setOptional(params, "effort", r.Effort)
 	setOptional(params, "label", r.Label)
+	MergeCustomFields(params, r.CustomFields)
 	return params
 }
 
@@ -173,7 +222,8 @@ type UpdateTaskRequest struct {
 	PriorityLabel      string // 可选：优先级（推荐使用）
 	Effort             string // 可选：预估工时
 	AutoCompleteEffort string // 可选：是否自动补齐工时（值为 "1" 时，状态流转到 done 时自动补齐）
-	Label              string // 可选：标签（标签不存在时自动创建，多个以 | 分隔）
+	Label              string            // 可选：标签（标签不存在时自动创建，多个以 | 分隔）
+	CustomFields       map[string]string // 可选：自定义字段，key 如 custom_field_one、custom_field_9
 }
 
 // ToParams 将请求结构体转换为 TAPD API 参数 map
@@ -198,6 +248,7 @@ func (r *UpdateTaskRequest) ToParams() map[string]string {
 	setOptional(params, "effort", r.Effort)
 	setOptional(params, "auto_complete_effort", r.AutoCompleteEffort)
 	setOptional(params, "label", r.Label)
+	MergeCustomFields(params, r.CustomFields)
 	return params
 }
 

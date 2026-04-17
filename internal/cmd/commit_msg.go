@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -49,7 +50,7 @@ func runCommitMsgGet(cmd *cobra.Command, args []string) error {
 		Type:        flagCommitMsgType,
 	}
 
-	data, err := apiClient.GetCommitMsg(req)
+	data, err := apiClient.GetCommitMsg(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

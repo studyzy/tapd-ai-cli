@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -93,10 +94,10 @@ func runCommentList(cmd *cobra.Command, args []string) error {
 		EntryID:     flagEntryID,
 		Author:      flagCommentAuthor,
 		Order:       flagOrder,
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	comments, err := apiClient.ListComments(req)
+	comments, err := apiClient.ListComments(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -104,7 +105,7 @@ func runCommentList(cmd *cobra.Command, args []string) error {
 	}
 
 	// 尝试获取总数用于分页信息
-	total, _ := apiClient.CountComments(&model.CountCommentsRequest{
+	total, _ := apiClient.CountComments(context.Background(), &model.CountCommentsRequest{
 		WorkspaceID: flagWorkspaceID,
 		EntryType:   flagEntryType,
 		EntryID:     flagEntryID,
@@ -140,7 +141,7 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 	// author 优先使用命令行参数，否则使用当前登录用户昵称
 	author := flagCommentAuthor
 	if author == "" {
-		author = apiClient.Nick
+		author = apiClient.GetNick()
 	}
 	req := &model.AddCommentRequest{
 		WorkspaceID: flagWorkspaceID,
@@ -150,7 +151,7 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 		Author:      author,
 		ReplyID:     flagReplyID,
 	}
-	result, err := apiClient.AddComment(req)
+	result, err := apiClient.AddComment(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -179,9 +180,9 @@ func runCommentUpdate(cmd *cobra.Command, args []string) error {
 		WorkspaceID:   flagWorkspaceID,
 		ID:            args[0],
 		Description:   description,
-		ChangeCreator: apiClient.Nick,
+		ChangeCreator: apiClient.GetNick(),
 	}
-	result, err := apiClient.UpdateComment(req)
+	result, err := apiClient.UpdateComment(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -196,7 +197,7 @@ func runCommentCount(cmd *cobra.Command, args []string) error {
 		EntryType:   flagEntryType,
 		EntryID:     flagEntryID,
 	}
-	count, err := apiClient.CountComments(req)
+	count, err := apiClient.CountComments(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

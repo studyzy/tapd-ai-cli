@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
@@ -183,7 +184,7 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 
 	switch parsed.EntityType {
 	case "story":
-		result, err := apiClient.GetStory(workspaceID, parsed.EntityID)
+		result, err := apiClient.GetStory(context.Background(), workspaceID, parsed.EntityID)
 		if err != nil {
 			handleAPIError(err)
 			return nil
@@ -195,7 +196,7 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 		return nil
 
 	case "bug":
-		result, err := apiClient.GetBug(workspaceID, parsed.EntityID)
+		result, err := apiClient.GetBug(context.Background(), workspaceID, parsed.EntityID)
 		if err != nil {
 			handleAPIError(err)
 			return nil
@@ -207,7 +208,7 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 		return nil
 
 	case "task":
-		result, err := apiClient.GetTask(workspaceID, parsed.EntityID)
+		result, err := apiClient.GetTask(context.Background(), workspaceID, parsed.EntityID)
 		if err != nil {
 			handleAPIError(err)
 			return nil
@@ -219,7 +220,7 @@ func runURLQuery(cmd *cobra.Command, args []string) error {
 		return nil
 
 	case "wiki":
-		result, err := apiClient.GetWiki(workspaceID, parsed.EntityID)
+		result, err := apiClient.GetWiki(context.Background(), workspaceID, parsed.EntityID)
 		if err != nil {
 			handleAPIError(err)
 			return nil

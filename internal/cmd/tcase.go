@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -73,11 +74,11 @@ func runTCaseList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 		Priority:    flagPriority,
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
 
-	tcases, err := apiClient.ListTCases(req)
+	tcases, err := apiClient.ListTCases(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -88,7 +89,7 @@ func runTCaseList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	}
-	total, _ := apiClient.CountTCases(countReq)
+	total, _ := apiClient.CountTCases(context.Background(), countReq)
 
 	resp := &model.ListResponse{
 		Items:   tcases,
@@ -120,7 +121,7 @@ func runTCaseCreate(cmd *cobra.Command, args []string) error {
 		Creator:      flagTCaseCreator,
 	}
 
-	result, err := apiClient.CreateTCase(req)
+	result, err := apiClient.CreateTCase(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -160,7 +161,7 @@ func runTCaseBatchCreate(cmd *cobra.Command, args []string) error {
 		Data:        string(tcasesBytes),
 	}
 
-	data, err := apiClient.BatchCreateTCases(req)
+	data, err := apiClient.BatchCreateTCases(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

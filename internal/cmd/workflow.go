@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -67,7 +68,7 @@ func runWorkflowTransitions(cmd *cobra.Command, args []string) error {
 		WorkitemTypeID: flagWorkitemTypeID,
 	}
 
-	data, err := apiClient.GetWorkflowTransitions(req)
+	data, err := apiClient.GetWorkflowTransitions(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -91,7 +92,7 @@ func runWorkflowStatusMap(cmd *cobra.Command, args []string) error {
 		WorkitemTypeID: flagWorkitemTypeID,
 	}
 
-	data, err := apiClient.GetWorkflowStatusMap(req)
+	data, err := apiClient.GetWorkflowStatusMap(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -115,7 +116,7 @@ func runWorkflowLastSteps(cmd *cobra.Command, args []string) error {
 		WorkitemTypeID: flagWorkitemTypeID,
 	}
 
-	data, err := apiClient.GetWorkflowLastSteps(req)
+	data, err := apiClient.GetWorkflowLastSteps(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

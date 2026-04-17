@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -111,11 +112,11 @@ func runWikiList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Name:        flagWikiName,
 		Fields:      "id,name,creator,modifier,modified",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
 
-	wikis, err := apiClient.ListWikis(req)
+	wikis, err := apiClient.ListWikis(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -133,7 +134,7 @@ func runWikiList(cmd *cobra.Command, args []string) error {
 }
 
 func runWikiShow(cmd *cobra.Command, args []string) error {
-	wiki, err := apiClient.GetWiki(flagWorkspaceID, args[0])
+	wiki, err := apiClient.GetWiki(context.Background(), flagWorkspaceID, args[0])
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -175,7 +176,7 @@ func runWikiCreate(cmd *cobra.Command, args []string) error {
 		ParentWikiID:        flagParentWiki,
 	}
 
-	wiki, err := apiClient.CreateWiki(req)
+	wiki, err := apiClient.CreateWiki(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -201,7 +202,7 @@ func runWikiUpdate(cmd *cobra.Command, args []string) error {
 		ParentWikiID:        flagParentWiki,
 	}
 
-	wiki, err := apiClient.UpdateWiki(req)
+	wiki, err := apiClient.UpdateWiki(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

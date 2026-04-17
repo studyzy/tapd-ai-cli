@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -63,7 +64,7 @@ func runRelationBugs(cmd *cobra.Command, args []string) error {
 		StoryID:     flagRelationStoryID,
 	}
 
-	data, err := apiClient.GetRelatedBugs(req)
+	data, err := apiClient.GetRelatedBugs(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -90,7 +91,7 @@ func runRelationCreate(cmd *cobra.Command, args []string) error {
 		TargetID:    flagRelationTargetID,
 	}
 
-	data, err := apiClient.CreateRelation(req)
+	data, err := apiClient.CreateRelation(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

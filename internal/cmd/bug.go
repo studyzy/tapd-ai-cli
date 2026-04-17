@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -105,17 +106,17 @@ func runBugList(cmd *cobra.Command, args []string) error {
 		Severity:      flagSeverity,
 		Status:        flagStatus,
 		Fields:        "id,title,status,current_owner,severity,modified",
-		Limit:         fmt.Sprintf("%d", flagLimit),
-		Page:          fmt.Sprintf("%d", flagPage),
+		Limit:         flagLimit,
+		Page:          flagPage,
 	}
-	bugs, err := apiClient.ListBugs(req)
+	bugs, err := apiClient.ListBugs(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
 
-	total, _ := apiClient.CountBugs(&model.CountBugsRequest{
+	total, _ := apiClient.CountBugs(context.Background(), &model.CountBugsRequest{
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	})
@@ -131,7 +132,7 @@ func runBugList(cmd *cobra.Command, args []string) error {
 }
 
 func runBugShow(cmd *cobra.Command, args []string) error {
-	bug, err := apiClient.GetBug(flagWorkspaceID, args[0])
+	bug, err := apiClient.GetBug(context.Background(), flagWorkspaceID, args[0])
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -163,11 +164,11 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		WorkspaceID:   flagWorkspaceID,
 		Title:         flagTitle,
 		Description:   description,
-		Reporter:      apiClient.Nick,
+		Reporter:      apiClient.GetNick(),
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 	}
-	bug, err := apiClient.CreateBug(req)
+	bug, err := apiClient.CreateBug(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -193,7 +194,7 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 	}
-	bug, err := apiClient.UpdateBug(req)
+	bug, err := apiClient.UpdateBug(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -207,7 +208,7 @@ func runBugCount(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	}
-	count, err := apiClient.CountBugs(req)
+	count, err := apiClient.CountBugs(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -220,10 +221,10 @@ func runBugTodo(cmd *cobra.Command, args []string) error {
 	req := &model.GetTodoRequest{
 		WorkspaceID: flagWorkspaceID,
 		EntityType:  "bug",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	bugs, err := apiClient.GetTodoBugs(req)
+	bugs, err := apiClient.GetTodoBugs(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

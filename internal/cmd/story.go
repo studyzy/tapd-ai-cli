@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -114,17 +115,17 @@ func runStoryList(cmd *cobra.Command, args []string) error {
 		Owner:       flagOwner,
 		IterationID: flagIterationID,
 		Fields:      "id,name,status,owner,modified",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	stories, err := apiClient.ListStories(req)
+	stories, err := apiClient.ListStories(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
 
-	total, _ := apiClient.CountStories(&model.CountStoriesRequest{
+	total, _ := apiClient.CountStories(context.Background(), &model.CountStoriesRequest{
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	})
@@ -140,7 +141,7 @@ func runStoryList(cmd *cobra.Command, args []string) error {
 }
 
 func runStoryShow(cmd *cobra.Command, args []string) error {
-	story, err := apiClient.GetStory(flagWorkspaceID, args[0])
+	story, err := apiClient.GetStory(context.Background(), flagWorkspaceID, args[0])
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -173,12 +174,12 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		Name:          flagName,
 		Description:   description,
 		Owner:         flagOwner,
-		Creator:       apiClient.Nick,
+		Creator:       apiClient.GetNick(),
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
 		ParentID:      flagParentID,
 	}
-	story, err := apiClient.CreateStory(req)
+	story, err := apiClient.CreateStory(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -204,7 +205,7 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
 	}
-	story, err := apiClient.UpdateStory(req)
+	story, err := apiClient.UpdateStory(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -218,7 +219,7 @@ func runStoryCount(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	}
-	count, err := apiClient.CountStories(req)
+	count, err := apiClient.CountStories(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -231,10 +232,10 @@ func runStoryTodo(cmd *cobra.Command, args []string) error {
 	req := &model.GetTodoRequest{
 		WorkspaceID: flagWorkspaceID,
 		EntityType:  "story",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	stories, err := apiClient.GetTodoStories(req)
+	stories, err := apiClient.GetTodoStories(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

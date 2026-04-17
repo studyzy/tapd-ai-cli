@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -110,7 +111,7 @@ func initClientAndConfig(cmd *cobra.Command) error {
 
 	apiClient = tapd.NewClientWithBaseURL(cfg.APIBaseURL, cfg.BaseURL, accessToken, apiUser, apiPassword)
 	if accessToken != "" {
-		apiClient.FetchNick()
+		apiClient.FetchNick(context.Background())
 	}
 
 	// workspace-id 标志覆盖配置
@@ -165,7 +166,7 @@ func printComments(workspaceID, entryType, entryID string) {
 	if flagNoComments {
 		return
 	}
-	comments, err := apiClient.ListComments(&model.ListCommentsRequest{
+	comments, err := apiClient.ListComments(context.Background(), &model.ListCommentsRequest{
 		WorkspaceID: workspaceID,
 		EntryType:   entryType,
 		EntryID:     entryID,

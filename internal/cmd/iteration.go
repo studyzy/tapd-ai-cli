@@ -2,7 +2,7 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -78,17 +78,17 @@ func runIterationList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 		Fields:      "id,name,status,startdate,enddate,modified",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	iterations, err := apiClient.ListIterations(req)
+	iterations, err := apiClient.ListIterations(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
 
-	total, _ := apiClient.CountIterations(&model.CountIterationsRequest{
+	total, _ := apiClient.CountIterations(context.Background(), &model.CountIterationsRequest{
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	})
@@ -134,7 +134,7 @@ func runIterationCreate(cmd *cobra.Command, args []string) error {
 		Description: flagDescription,
 		Status:      flagStatus,
 	}
-	iteration, err := apiClient.CreateIteration(req)
+	iteration, err := apiClient.CreateIteration(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -160,7 +160,7 @@ func runIterationUpdate(cmd *cobra.Command, args []string) error {
 		Description: flagDescription,
 		Status:      flagStatus,
 	}
-	iteration, err := apiClient.UpdateIteration(req)
+	iteration, err := apiClient.UpdateIteration(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -174,7 +174,7 @@ func runIterationCount(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	}
-	count, err := apiClient.CountIterations(req)
+	count, err := apiClient.CountIterations(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

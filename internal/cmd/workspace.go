@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -46,7 +47,7 @@ func init() {
 }
 
 func runWorkspaceList(cmd *cobra.Command, args []string) error {
-	workspaces, err := apiClient.ListWorkspaces()
+	workspaces, err := apiClient.ListWorkspaces(context.Background())
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "Check your credentials and network connection.")
 		os.Exit(output.ExitAPIError)
@@ -88,7 +89,7 @@ func runWorkspaceInfo(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	workspace, err := apiClient.GetWorkspaceInfo(flagWorkspaceID)
+	workspace, err := apiClient.GetWorkspaceInfo(context.Background(), flagWorkspaceID)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "Check workspace ID and try again.")
 		os.Exit(output.ExitAPIError)

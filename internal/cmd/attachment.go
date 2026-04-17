@@ -2,7 +2,7 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -70,11 +70,11 @@ func runAttachmentList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		EntryID:     flagAttachmentEntryID,
 		Type:        flagAttachmentType,
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
 
-	attachments, err := apiClient.GetAttachments(req)
+	attachments, err := apiClient.GetAttachments(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -97,7 +97,7 @@ func runImageGet(cmd *cobra.Command, args []string) error {
 		ImagePath:   flagImagePath,
 	}
 
-	img, err := apiClient.GetImage(req)
+	img, err := apiClient.GetImage(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

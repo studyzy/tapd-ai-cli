@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -40,7 +41,7 @@ func runReleaseList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 	}
 
-	releases, err := apiClient.ListReleases(req)
+	releases, err := apiClient.ListReleases(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

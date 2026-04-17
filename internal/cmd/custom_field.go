@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -82,7 +83,7 @@ func runCustomFieldList(cmd *cobra.Command, args []string) error {
 		EntityType:  flagEntityType,
 	}
 
-	data, err := apiClient.GetCustomFields(req)
+	data, err := apiClient.GetCustomFields(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -96,7 +97,7 @@ func runStoryFieldLabel(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 	}
 
-	data, err := apiClient.GetStoryFieldsLabel(req)
+	data, err := apiClient.GetStoryFieldsLabel(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -110,7 +111,7 @@ func runStoryFieldInfo(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 	}
 
-	data, err := apiClient.GetStoryFieldsInfo(req)
+	data, err := apiClient.GetStoryFieldsInfo(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -124,7 +125,7 @@ func runWorkitemTypeList(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 	}
 
-	data, err := apiClient.GetWorkitemTypes(req)
+	data, err := apiClient.GetWorkitemTypes(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

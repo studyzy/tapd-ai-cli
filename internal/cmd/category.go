@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -36,7 +37,7 @@ func runCategoryList(cmd *cobra.Command, args []string) error {
 	}
 	addOptionalParam(params, "name", flagCategoryName)
 
-	categories, err := apiClient.ListCategories(params)
+	categories, err := apiClient.ListCategories(context.Background(), params)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

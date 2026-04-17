@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"strings"
@@ -56,7 +57,7 @@ func setupIntegrationCmd(t *testing.T) {
 func TestIntegration_AuthTestAuth(t *testing.T) {
 	skipIfNoCredentials(t)
 	c := setupIntegrationClient(t)
-	if err := c.TestAuth(); err != nil {
+	if err := c.TestAuth(context.Background()); err != nil {
 		t.Fatalf("TestAuth failed: %v", err)
 	}
 }
@@ -65,7 +66,7 @@ func TestIntegration_WorkspaceList(t *testing.T) {
 	skipIfNoCredentials(t)
 	c := setupIntegrationClient(t)
 
-	workspaces, err := c.ListWorkspaces()
+	workspaces, err := c.ListWorkspaces(context.Background())
 	if err != nil {
 		t.Fatalf("ListWorkspaces failed: %v", err)
 	}
@@ -85,7 +86,7 @@ func TestIntegration_WorkspaceInfo(t *testing.T) {
 	skipIfNoWorkspace(t)
 	c := setupIntegrationClient(t)
 
-	ws, err := c.GetWorkspaceInfo(os.Getenv("TAPD_WORKSPACE_ID"))
+	ws, err := c.GetWorkspaceInfo(context.Background(), os.Getenv("TAPD_WORKSPACE_ID"))
 	if err != nil {
 		t.Fatalf("GetWorkspaceInfo failed: %v", err)
 	}
@@ -102,10 +103,10 @@ func TestIntegration_StoryList(t *testing.T) {
 
 	params := &model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		Limit:       "3",
+		Limit:       3,
 		Fields:      "id,name,status,owner,modified",
 	}
-	stories, err := c.ListStories(params)
+	stories, err := c.ListStories(context.Background(), params)
 	if err != nil {
 		t.Fatalf("ListStories failed: %v", err)
 	}
@@ -120,7 +121,7 @@ func TestIntegration_StoryCount(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	count, err := c.CountStories(&model.CountStoriesRequest{
+	count, err := c.CountStories(context.Background(), &model.CountStoriesRequest{
 		WorkspaceID: wsID,
 	})
 	if err != nil {
@@ -134,9 +135,9 @@ func TestIntegration_BugList(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	bugs, err := c.ListBugs(&model.ListBugsRequest{
+	bugs, err := c.ListBugs(context.Background(), &model.ListBugsRequest{
 		WorkspaceID: wsID,
-		Limit:       "3",
+		Limit:       3,
 	})
 	if err != nil {
 		t.Fatalf("ListBugs failed: %v", err)
@@ -149,7 +150,7 @@ func TestIntegration_BugCount(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	count, err := c.CountBugs(&model.CountBugsRequest{
+	count, err := c.CountBugs(context.Background(), &model.CountBugsRequest{
 		WorkspaceID: wsID,
 	})
 	if err != nil {
@@ -163,7 +164,7 @@ func TestIntegration_IterationList(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	iterations, err := c.ListIterations(&model.ListIterationsRequest{
+	iterations, err := c.ListIterations(context.Background(), &model.ListIterationsRequest{
 		WorkspaceID: wsID,
 	})
 	if err != nil {
@@ -327,7 +328,7 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 创建
-	result, err := c.CreateStory(&model.CreateStoryRequest{
+	result, err := c.CreateStory(context.Background(), &model.CreateStoryRequest{
 		WorkspaceID: wsID,
 		Name:        "[tapd-ai-cli integration test] 自动化测试需求",
 	})
@@ -341,7 +342,7 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 
 	// 清理：标记为废弃
 	t.Cleanup(func() {
-		_, err := c.UpdateStory(&model.UpdateStoryRequest{
+		_, err := c.UpdateStory(context.Background(), &model.UpdateStoryRequest{
 			WorkspaceID: wsID,
 			ID:          result.ID,
 			Name:        "[已废弃-自动化测试] 请忽略此需求",
@@ -354,7 +355,7 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	})
 
 	// 查看详情
-	story, err := c.GetStory(wsID, result.ID)
+	story, err := c.GetStory(context.Background(), wsID, result.ID)
 	if err != nil {
 		t.Fatalf("GetStory failed: %v", err)
 	}
@@ -416,9 +417,9 @@ func TestIntegration_WikiList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	wikis, err := c.ListWikis(&model.ListWikisRequest{
+	wikis, err := c.ListWikis(context.Background(), &model.ListWikisRequest{
 		WorkspaceID: wsID,
-		Limit:       "3",
+		Limit:       3,
 		Fields:      "id,name,creator,modified",
 	})
 	if err != nil {
@@ -436,9 +437,9 @@ func TestIntegration_RunWikiShow(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 wiki id
-	wikis, err := c.ListWikis(&model.ListWikisRequest{
+	wikis, err := c.ListWikis(context.Background(), &model.ListWikisRequest{
 		WorkspaceID: wsID,
-		Limit:       "1",
+		Limit:       1,
 		Fields:      "id,name",
 	})
 	if err != nil {
@@ -464,9 +465,9 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 获取一个真实 story id
-	storyList, err := c.ListStories(&model.ListStoriesRequest{
+	storyList, err := c.ListStories(context.Background(), &model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		Limit:       "1",
+		Limit:       1,
 		Fields:      "id,name",
 	})
 	if err != nil {
@@ -494,7 +495,7 @@ func TestIntegration_URLCommand_StoryURL(t *testing.T) {
 	}
 
 	// 验证实际 API 调用
-	urlStory, err := c.GetStory(wsID, storyID)
+	urlStory, err := c.GetStory(context.Background(), wsID, storyID)
 	if err != nil {
 		t.Fatalf("GetStory via URL failed: %v", err)
 	}
@@ -508,7 +509,7 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 步骤 1：创建需求
-	storyResult, err := c.CreateStory(&model.CreateStoryRequest{
+	storyResult, err := c.CreateStory(context.Background(), &model.CreateStoryRequest{
 		WorkspaceID: wsID,
 		Name:        "[tapd-ai-cli integration test] 评论功能测试需求",
 	})
@@ -523,7 +524,7 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 
 	// 清理：标记需求为废弃
 	t.Cleanup(func() {
-		_, err := c.UpdateStory(&model.UpdateStoryRequest{
+		_, err := c.UpdateStory(context.Background(), &model.UpdateStoryRequest{
 			WorkspaceID: wsID,
 			ID:          storyID,
 			Name:        "[已废弃-自动化测试] 评论功能测试需求-请忽略",
@@ -536,13 +537,13 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	})
 
 	// 步骤 2：添加评论（API 客户端层）
-	c.FetchNick()
-	author := c.Nick
+	c.FetchNick(context.Background())
+	author := c.GetNick()
 	if author == "" {
 		author = os.Getenv("TAPD_API_USER")
 	}
 	t.Logf("Step 2: using author=%q for comment", author)
-	comment, err := c.AddComment(&model.AddCommentRequest{
+	comment, err := c.AddComment(context.Background(), &model.AddCommentRequest{
 		WorkspaceID: wsID,
 		EntryType:   "stories",
 		EntryID:     storyID,
@@ -559,7 +560,7 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	t.Logf("Step 2: Added comment id=%s author=%s", commentID, comment.Author)
 
 	// 步骤 3：查询评论列表
-	comments, err := c.ListComments(&model.ListCommentsRequest{
+	comments, err := c.ListComments(context.Background(), &model.ListCommentsRequest{
 		WorkspaceID: wsID,
 		EntryType:   "stories",
 		EntryID:     storyID,
@@ -583,11 +584,11 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	t.Logf("Step 3: Listed %d comments, found target comment=%s", len(comments), commentID)
 
 	// 步骤 4：更新评论
-	updated, err := c.UpdateComment(&model.UpdateCommentRequest{
+	updated, err := c.UpdateComment(context.Background(), &model.UpdateCommentRequest{
 		WorkspaceID:   wsID,
 		ID:            commentID,
 		Description:   "这是更新后的自动化测试评论",
-		ChangeCreator: c.Nick,
+		ChangeCreator: c.GetNick(),
 	})
 	if err != nil {
 		t.Fatalf("UpdateComment failed: %v", err)
@@ -601,7 +602,7 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	t.Logf("Step 4: Updated comment id=%s description=%s", updated.ID, updated.Description)
 
 	// 步骤 5：查询评论数量
-	count, err := c.CountComments(&model.CountCommentsRequest{
+	count, err := c.CountComments(context.Background(), &model.CountCommentsRequest{
 		WorkspaceID: wsID,
 		EntryType:   "stories",
 		EntryID:     storyID,
@@ -622,7 +623,7 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 创建需求
-	storyResult, err := c.CreateStory(&model.CreateStoryRequest{
+	storyResult, err := c.CreateStory(context.Background(), &model.CreateStoryRequest{
 		WorkspaceID: wsID,
 		Name:        "[tapd-ai-cli integration test] 评论命令层测试需求",
 	})
@@ -633,7 +634,7 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 	t.Logf("Created story id=%s for cmd-level comment test", storyID)
 
 	t.Cleanup(func() {
-		_, err := c.UpdateStory(&model.UpdateStoryRequest{
+		_, err := c.UpdateStory(context.Background(), &model.UpdateStoryRequest{
 			WorkspaceID: wsID,
 			ID:          storyID,
 			Name:        "[已废弃-自动化测试] 评论命令层测试需求-请忽略",
@@ -644,8 +645,8 @@ func TestIntegration_E2E_StoryCommentFlow_Cmd(t *testing.T) {
 	})
 
 	setupIntegrationCmd(t)
-	if apiClient.Nick == "" {
-		apiClient.FetchNick()
+	if apiClient.GetNick() == "" {
+		apiClient.FetchNick(context.Background())
 	}
 
 	// 测试 runCommentAdd
@@ -689,9 +690,9 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 获取一个真实 wiki id
-	wikis, err := c.ListWikis(&model.ListWikisRequest{
+	wikis, err := c.ListWikis(context.Background(), &model.ListWikisRequest{
 		WorkspaceID: wsID,
-		Limit:       "1",
+		Limit:       1,
 		Fields:      "id,name",
 	})
 	if err != nil || len(wikis) == 0 {
@@ -713,7 +714,7 @@ func TestIntegration_URLCommand_WikiURL(t *testing.T) {
 	}
 
 	// 验证实际 API 调用
-	result, err := c.GetWiki(wsID, wikiID)
+	result, err := c.GetWiki(context.Background(), wsID, wikiID)
 	if err != nil {
 		t.Fatalf("GetWiki via URL failed: %v", err)
 	}
@@ -792,7 +793,7 @@ func TestIntegration_ReleaseList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	releases, err := c.ListReleases(&model.WorkspaceIDRequest{
+	releases, err := c.ListReleases(context.Background(), &model.WorkspaceIDRequest{
 		WorkspaceID: wsID,
 	})
 	if err != nil {
@@ -809,9 +810,9 @@ func TestIntegration_TimesheetList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	timesheets, err := c.ListTimesheets(&model.ListTimesheetsRequest{
+	timesheets, err := c.ListTimesheets(context.Background(), &model.ListTimesheetsRequest{
 		WorkspaceID: wsID,
-		Limit:       "3",
+		Limit:       3,
 	})
 	if err != nil {
 		t.Fatalf("ListTimesheets failed: %v", err)
@@ -827,10 +828,10 @@ func TestIntegration_TodoStories_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	stories, err := c.GetTodoStories(&model.GetTodoRequest{
+	stories, err := c.GetTodoStories(context.Background(), &model.GetTodoRequest{
 		WorkspaceID: wsID,
 		EntityType:  "story",
-		Limit:       "3",
+		Limit:       3,
 	})
 	if err != nil {
 		t.Fatalf("GetTodoStories failed: %v", err)
@@ -846,10 +847,10 @@ func TestIntegration_TodoTasks_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	tasks, err := c.GetTodoTasks(&model.GetTodoRequest{
+	tasks, err := c.GetTodoTasks(context.Background(), &model.GetTodoRequest{
 		WorkspaceID: wsID,
 		EntityType:  "task",
-		Limit:       "3",
+		Limit:       3,
 	})
 	if err != nil {
 		t.Fatalf("GetTodoTasks failed: %v", err)
@@ -865,10 +866,10 @@ func TestIntegration_TodoBugs_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	bugs, err := c.GetTodoBugs(&model.GetTodoRequest{
+	bugs, err := c.GetTodoBugs(context.Background(), &model.GetTodoRequest{
 		WorkspaceID: wsID,
 		EntityType:  "bug",
-		Limit:       "3",
+		Limit:       3,
 	})
 	if err != nil {
 		t.Fatalf("GetTodoBugs failed: %v", err)
@@ -885,9 +886,9 @@ func TestIntegration_CommitMsg_Client(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 story ID
-	stories, err := c.ListStories(&model.ListStoriesRequest{
+	stories, err := c.ListStories(context.Background(), &model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		Limit:       "1",
+		Limit:       1,
 		Fields:      "id",
 	})
 	if err != nil {
@@ -898,7 +899,7 @@ func TestIntegration_CommitMsg_Client(t *testing.T) {
 	}
 	storyID := stories[0].ID
 
-	data, err := c.GetCommitMsg(&model.GetCommitMsgRequest{
+	data, err := c.GetCommitMsg(context.Background(), &model.GetCommitMsgRequest{
 		WorkspaceID: wsID,
 		ObjectID:    storyID,
 		Type:        "story",
@@ -915,9 +916,9 @@ func TestIntegration_RunCommitMsgGet(t *testing.T) {
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
 	// 先获取一个真实 story ID
-	stories, err := c.ListStories(&model.ListStoriesRequest{
+	stories, err := c.ListStories(context.Background(), &model.ListStoriesRequest{
 		WorkspaceID: wsID,
-		Limit:       "1",
+		Limit:       1,
 		Fields:      "id",
 	})
 	if err != nil {
@@ -953,7 +954,7 @@ func TestIntegration_CategoryList_Client(t *testing.T) {
 	c := setupIntegrationClient(t)
 	wsID := os.Getenv("TAPD_WORKSPACE_ID")
 
-	categories, err := c.ListCategories(map[string]string{
+	categories, err := c.ListCategories(context.Background(), map[string]string{
 		"workspace_id": wsID,
 	})
 	if err != nil {

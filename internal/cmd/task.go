@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -98,17 +99,17 @@ func runTaskList(cmd *cobra.Command, args []string) error {
 		Status:      flagStatus,
 		Owner:       flagOwner,
 		Fields:      "id,name,status,owner,modified",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	tasks, err := apiClient.ListTasks(req)
+	tasks, err := apiClient.ListTasks(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
 
-	total, _ := apiClient.CountTasks(&model.CountTasksRequest{
+	total, _ := apiClient.CountTasks(context.Background(), &model.CountTasksRequest{
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	})
@@ -124,7 +125,7 @@ func runTaskList(cmd *cobra.Command, args []string) error {
 }
 
 func runTaskShow(cmd *cobra.Command, args []string) error {
-	task, err := apiClient.GetTask(flagWorkspaceID, args[0])
+	task, err := apiClient.GetTask(context.Background(), flagWorkspaceID, args[0])
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -157,11 +158,11 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		Name:          flagName,
 		Description:   description,
 		Owner:         flagOwner,
-		Creator:       apiClient.Nick,
+		Creator:       apiClient.GetNick(),
 		PriorityLabel: flagPriority,
 		StoryID:       flagStoryID,
 	}
-	task, err := apiClient.CreateTask(req)
+	task, err := apiClient.CreateTask(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -186,7 +187,7 @@ func runTaskUpdate(cmd *cobra.Command, args []string) error {
 		Status:      flagStatus,
 		Owner:       flagOwner,
 	}
-	task, err := apiClient.UpdateTask(req)
+	task, err := apiClient.UpdateTask(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -200,7 +201,7 @@ func runTaskCount(cmd *cobra.Command, args []string) error {
 		WorkspaceID: flagWorkspaceID,
 		Status:      flagStatus,
 	}
-	count, err := apiClient.CountTasks(req)
+	count, err := apiClient.CountTasks(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -213,10 +214,10 @@ func runTaskTodo(cmd *cobra.Command, args []string) error {
 	req := &model.GetTodoRequest{
 		WorkspaceID: flagWorkspaceID,
 		EntityType:  "task",
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	tasks, err := apiClient.GetTodoTasks(req)
+	tasks, err := apiClient.GetTodoTasks(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

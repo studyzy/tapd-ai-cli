@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -55,7 +56,7 @@ func runQiweiSend(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	err := apiClient.SendQiweiMessage(webhook, flagQiweiMsg)
+	err := apiClient.SendQiweiMessage(context.Background(), webhook, flagQiweiMsg)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

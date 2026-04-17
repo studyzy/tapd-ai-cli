@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -77,10 +78,10 @@ func runTimesheetList(cmd *cobra.Command, args []string) error {
 		EntityType:  flagTimesheetEntityType,
 		EntityID:    flagTimesheetEntityID,
 		Owner:       flagTimesheetOwner,
-		Limit:       fmt.Sprintf("%d", flagLimit),
-		Page:        fmt.Sprintf("%d", flagPage),
+		Limit:       flagLimit,
+		Page:        flagPage,
 	}
-	timesheets, err := apiClient.ListTimesheets(req)
+	timesheets, err := apiClient.ListTimesheets(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -101,7 +102,7 @@ func runTimesheetAdd(cmd *cobra.Command, args []string) error {
 	// owner 优先使用命令行参数，否则使用当前登录用户昵称
 	owner := flagTimesheetOwner
 	if owner == "" {
-		owner = apiClient.Nick
+		owner = apiClient.GetNick()
 	}
 	req := &model.AddTimesheetRequest{
 		WorkspaceID: flagWorkspaceID,
@@ -113,7 +114,7 @@ func runTimesheetAdd(cmd *cobra.Command, args []string) error {
 		Spentdate:   flagTimesheetDate,
 		Memo:        flagTimesheetMemo,
 	}
-	result, err := apiClient.AddTimesheet(req)
+	result, err := apiClient.AddTimesheet(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
@@ -138,7 +139,7 @@ func runTimesheetUpdate(cmd *cobra.Command, args []string) error {
 		Timeremain:  flagTimesheetRemain,
 		Memo:        flagTimesheetMemo,
 	}
-	result, err := apiClient.UpdateTimesheet(req)
+	result, err := apiClient.UpdateTimesheet(context.Background(), req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)

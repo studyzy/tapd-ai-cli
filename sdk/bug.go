@@ -67,8 +67,8 @@ func (c *Client) GetBug(workspaceID, id string) (*model.Bug, error) {
 	return &bug, nil
 }
 
-// CreateBug 创建缺陷
-func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.SuccessResponse, error) {
+// CreateBug 创建缺陷，返回创建后的完整 Bug 对象
+func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.Bug, error) {
 	data, err := c.doPost("/bugs", req.ToParams())
 	if err != nil {
 		return nil, err
@@ -84,18 +84,14 @@ func (c *Client) CreateBug(req *model.CreateBugRequest) (*model.SuccessResponse,
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created model.Bug
-	if err := json.Unmarshal(raw, &created); err != nil {
+	var bug model.Bug
+	if err := json.Unmarshal(raw, &bug); err != nil {
 		return nil, fmt.Errorf("failed to parse created bug: %w", err)
 	}
 
-	wsID := req.WorkspaceID
+	bug.URL = fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", req.WorkspaceID, bug.ID)
 
-	return &model.SuccessResponse{
-		Success: true,
-		ID:      created.ID,
-		URL:     fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", wsID, created.ID),
-	}, nil
+	return &bug, nil
 }
 
 // UpdateBug 更新缺陷

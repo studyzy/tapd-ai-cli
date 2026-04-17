@@ -31,8 +31,8 @@ func (c *Client) ListIterations(req *model.ListIterationsRequest) ([]model.Itera
 	return iterations, nil
 }
 
-// CreateIteration 创建迭代
-func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.SuccessResponse, error) {
+// CreateIteration 创建迭代，返回创建后的完整 Iteration 对象
+func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.Iteration, error) {
 	data, err := c.doPost("/iterations", req.ToParams())
 	if err != nil {
 		return nil, err
@@ -48,16 +48,12 @@ func (c *Client) CreateIteration(req *model.CreateIterationRequest) (*model.Succ
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created model.Iteration
-	if err := json.Unmarshal(raw, &created); err != nil {
+	var iteration model.Iteration
+	if err := json.Unmarshal(raw, &iteration); err != nil {
 		return nil, fmt.Errorf("failed to parse created iteration: %w", err)
 	}
 
-	return &model.SuccessResponse{
-		Success:     true,
-		ID:          created.ID,
-		WorkspaceID: req.WorkspaceID,
-	}, nil
+	return &iteration, nil
 }
 
 // UpdateIteration 更新迭代

@@ -67,8 +67,8 @@ func (c *Client) GetWiki(workspaceID, id string) (*model.Wiki, error) {
 	return &wiki, nil
 }
 
-// CreateWiki 创建 Wiki 文档
-func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.SuccessResponse, error) {
+// CreateWiki 创建 Wiki 文档，返回创建后的完整 Wiki 对象
+func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.Wiki, error) {
 	data, err := c.doPost("/tapd_wikis", req.ToParams())
 	if err != nil {
 		return nil, err
@@ -84,16 +84,14 @@ func (c *Client) CreateWiki(req *model.CreateWikiRequest) (*model.SuccessRespons
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created model.Wiki
-	if err := json.Unmarshal(raw, &created); err != nil {
+	var wiki model.Wiki
+	if err := json.Unmarshal(raw, &wiki); err != nil {
 		return nil, fmt.Errorf("failed to parse created wiki: %w", err)
 	}
 
-	return &model.SuccessResponse{
-		Success: true,
-		ID:      created.ID,
-		URL:     fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", req.WorkspaceID, created.ID),
-	}, nil
+	wiki.URL = fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", req.WorkspaceID, wiki.ID)
+
+	return &wiki, nil
 }
 
 // UpdateWiki 更新 Wiki 文档

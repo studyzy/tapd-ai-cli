@@ -175,13 +175,13 @@ func runWikiCreate(cmd *cobra.Command, args []string) error {
 		ParentWikiID:        flagParentWiki,
 	}
 
-	result, err := apiClient.CreateWiki(req)
+	wiki, err := apiClient.CreateWiki(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(wiki.ID, wiki.URL, "")
 }
 
 func runWikiUpdate(cmd *cobra.Command, args []string) error {
@@ -201,11 +201,11 @@ func runWikiUpdate(cmd *cobra.Command, args []string) error {
 		ParentWikiID:        flagParentWiki,
 	}
 
-	result, err := apiClient.UpdateWiki(req)
+	wiki, err := apiClient.UpdateWiki(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(wiki.ID, fmt.Sprintf("https://www.tapd.cn/%s/markdown_wikis/view/%s", flagWorkspaceID, wiki.ID), "")
 }

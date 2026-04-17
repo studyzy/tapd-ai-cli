@@ -107,7 +107,7 @@ func TestCreateTask(t *testing.T) {
 	defer srv.Close()
 
 	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	resp, err := c.CreateTask(&model.CreateTaskRequest{
+	task, err := c.CreateTask(&model.CreateTaskRequest{
 		WorkspaceID: "1",
 		Name:        "New Task",
 		StoryID:     "100",
@@ -115,14 +115,14 @@ func TestCreateTask(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateTask() unexpected error: %v", err)
 	}
-	if !resp.Success {
-		t.Error("expected Success = true")
+	if task.ID != "400" {
+		t.Errorf("ID = %q, want %q", task.ID, "400")
 	}
-	if resp.ID != "400" {
-		t.Errorf("ID = %q, want %q", resp.ID, "400")
+	if task.Name != "New Task" {
+		t.Errorf("Name = %q, want %q", task.Name, "New Task")
 	}
-	if !strings.Contains(resp.URL, "/1/prong/tasks/view/400") {
-		t.Errorf("URL = %q, want to contain %q", resp.URL, "/1/prong/tasks/view/400")
+	if !strings.Contains(task.URL, "/1/prong/tasks/view/400") {
+		t.Errorf("URL = %q, want to contain %q", task.URL, "/1/prong/tasks/view/400")
 	}
 }
 

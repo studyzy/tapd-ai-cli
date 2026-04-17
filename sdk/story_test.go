@@ -103,18 +103,18 @@ func TestCreateStory(t *testing.T) {
 		WorkspaceID: "1",
 		Name:        "New",
 	}
-	resp, err := c.CreateStory(req)
+	story, err := c.CreateStory(req)
 	if err != nil {
 		t.Fatalf("CreateStory() unexpected error: %v", err)
 	}
-	if !resp.Success {
-		t.Error("expected Success = true")
+	if story.ID != "200" {
+		t.Errorf("ID = %q, want %q", story.ID, "200")
 	}
-	if resp.ID != "200" {
-		t.Errorf("ID = %q, want %q", resp.ID, "200")
+	if story.Name != "New" {
+		t.Errorf("Name = %q, want %q", story.Name, "New")
 	}
-	if !strings.Contains(resp.URL, "/1/prong/stories/view/200") {
-		t.Errorf("URL = %q, want to contain %q", resp.URL, "/1/prong/stories/view/200")
+	if !strings.Contains(story.URL, "/1/prong/stories/view/200") {
+		t.Errorf("URL = %q, want to contain %q", story.URL, "/1/prong/stories/view/200")
 	}
 }
 

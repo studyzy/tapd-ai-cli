@@ -137,21 +137,21 @@ func TestCreateBug(t *testing.T) {
 	defer srv.Close()
 
 	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	resp, err := c.CreateBug(&model.CreateBugRequest{
+	bug, err := c.CreateBug(&model.CreateBugRequest{
 		WorkspaceID: "1",
 		Title:       "New Bug",
 	})
 	if err != nil {
 		t.Fatalf("CreateBug() unexpected error: %v", err)
 	}
-	if !resp.Success {
-		t.Error("expected Success = true")
+	if bug.ID != "600" {
+		t.Errorf("ID = %q, want %q", bug.ID, "600")
 	}
-	if resp.ID != "600" {
-		t.Errorf("ID = %q, want %q", resp.ID, "600")
+	if bug.Title != "New Bug" {
+		t.Errorf("Title = %q, want %q", bug.Title, "New Bug")
 	}
-	if !strings.Contains(resp.URL, "/1/bugtrace/bugs/view/600") {
-		t.Errorf("URL = %q, want to contain %q", resp.URL, "/1/bugtrace/bugs/view/600")
+	if !strings.Contains(bug.URL, "/1/bugtrace/bugs/view/600") {
+		t.Errorf("URL = %q, want to contain %q", bug.URL, "/1/bugtrace/bugs/view/600")
 	}
 }
 

@@ -161,13 +161,13 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		PriorityLabel: flagPriority,
 		StoryID:       flagStoryID,
 	}
-	result, err := apiClient.CreateTask(req)
+	task, err := apiClient.CreateTask(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(task.ID, task.URL, "")
 }
 
 func runTaskUpdate(cmd *cobra.Command, args []string) error {
@@ -186,13 +186,13 @@ func runTaskUpdate(cmd *cobra.Command, args []string) error {
 		Status:      flagStatus,
 		Owner:       flagOwner,
 	}
-	result, err := apiClient.UpdateTask(req)
+	task, err := apiClient.UpdateTask(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(task.ID, fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", flagWorkspaceID, task.ID), "")
 }
 
 func runTaskCount(cmd *cobra.Command, args []string) error {

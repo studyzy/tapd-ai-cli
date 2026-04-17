@@ -97,17 +97,17 @@ func TestCreateWiki(t *testing.T) {
 		Creator:             "testuser",
 		MarkdownDescription: "# Hello",
 	}
-	resp, err := c.CreateWiki(req)
+	wiki, err := c.CreateWiki(req)
 	if err != nil {
 		t.Fatalf("CreateWiki() unexpected error: %v", err)
 	}
-	if !resp.Success {
-		t.Error("expected Success = true")
+	if wiki.ID != "1151081496001001600" {
+		t.Errorf("ID = %q, want %q", wiki.ID, "1151081496001001600")
 	}
-	if resp.ID != "1151081496001001600" {
-		t.Errorf("ID = %q, want %q", resp.ID, "1151081496001001600")
+	if wiki.Name != "新文档" {
+		t.Errorf("Name = %q, want %q", wiki.Name, "新文档")
 	}
-	if resp.URL == "" {
+	if wiki.URL == "" {
 		t.Error("URL should not be empty")
 	}
 }

@@ -334,8 +334,8 @@ func TestIntegration_E2E_CreateAndShowStory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
 	}
-	if !result.Success || result.ID == "" {
-		t.Fatalf("Expected success with ID, got: %+v", result)
+	if result.ID == "" {
+		t.Fatalf("Expected ID, got: %+v", result)
 	}
 	t.Logf("Created story: id=%s url=%s", result.ID, result.URL)
 
@@ -515,8 +515,8 @@ func TestIntegration_E2E_StoryCommentFlow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateStory failed: %v", err)
 	}
-	if !storyResult.Success || storyResult.ID == "" {
-		t.Fatalf("Expected success with ID, got: %+v", storyResult)
+	if storyResult.ID == "" {
+		t.Fatalf("Expected ID, got: %+v", storyResult)
 	}
 	storyID := storyResult.ID
 	t.Logf("Step 1: Created story id=%s", storyID)

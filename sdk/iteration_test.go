@@ -64,7 +64,7 @@ func TestCreateIteration(t *testing.T) {
 	defer srv.Close()
 
 	c := NewClientWithBaseURL(srv.URL, "test-token", "", "")
-	resp, err := c.CreateIteration(&model.CreateIterationRequest{
+	iteration, err := c.CreateIteration(&model.CreateIterationRequest{
 		WorkspaceID: "1",
 		Name:        "Sprint 2",
 		StartDate:   "2026-04-16",
@@ -74,14 +74,14 @@ func TestCreateIteration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateIteration() unexpected error: %v", err)
 	}
-	if !resp.Success {
-		t.Error("expected Success = true")
+	if iteration.ID != "3002" {
+		t.Errorf("ID = %q, want %q", iteration.ID, "3002")
 	}
-	if resp.ID != "3002" {
-		t.Errorf("ID = %q, want %q", resp.ID, "3002")
+	if iteration.Name != "Sprint 2" {
+		t.Errorf("Name = %q, want %q", iteration.Name, "Sprint 2")
 	}
-	if resp.WorkspaceID != "1" {
-		t.Errorf("WorkspaceID = %q, want %q", resp.WorkspaceID, "1")
+	if iteration.WorkspaceID != "1" {
+		t.Errorf("WorkspaceID = %q, want %q", iteration.WorkspaceID, "1")
 	}
 }
 

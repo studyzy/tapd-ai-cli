@@ -143,6 +143,17 @@ func printDetail(data interface{}, bodyField string) error {
 	return output.PrintMarkdown(os.Stdout, data, bodyField)
 }
 
+// printSuccessResponse 输出创建/更新操作的精简成功响应，节省 AI Agent token 消耗
+func printSuccessResponse(id, url, workspaceID string) error {
+	resp := &model.SuccessResponse{
+		Success:     true,
+		ID:          id,
+		URL:         url,
+		WorkspaceID: workspaceID,
+	}
+	return output.PrintJSON(os.Stdout, resp, !flagPretty)
+}
+
 // printComments 获取并输出条目的评论列表
 // entryType 取值：stories|bug|tasks，entryID 为条目 ID
 // 当 --no-comments 标志启用或获取失败时静默跳过

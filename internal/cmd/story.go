@@ -178,13 +178,13 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		IterationID:   flagIterationID,
 		ParentID:      flagParentID,
 	}
-	result, err := apiClient.CreateStory(req)
+	story, err := apiClient.CreateStory(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(story.ID, story.URL, "")
 }
 
 func runStoryUpdate(cmd *cobra.Command, args []string) error {
@@ -204,13 +204,13 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
 	}
-	result, err := apiClient.UpdateStory(req)
+	story, err := apiClient.UpdateStory(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(story.ID, fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", flagWorkspaceID, story.ID), "")
 }
 
 func runStoryCount(cmd *cobra.Command, args []string) error {

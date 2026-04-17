@@ -67,8 +67,8 @@ func (c *Client) GetTask(workspaceID, id string) (*model.Task, error) {
 	return &task, nil
 }
 
-// CreateTask 创建任务
-func (c *Client) CreateTask(req *model.CreateTaskRequest) (*model.SuccessResponse, error) {
+// CreateTask 创建任务，返回创建后的完整 Task 对象
+func (c *Client) CreateTask(req *model.CreateTaskRequest) (*model.Task, error) {
 	data, err := c.doPost("/tasks", req.ToParams())
 	if err != nil {
 		return nil, err
@@ -84,16 +84,14 @@ func (c *Client) CreateTask(req *model.CreateTaskRequest) (*model.SuccessRespons
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created model.Task
-	if err := json.Unmarshal(raw, &created); err != nil {
+	var task model.Task
+	if err := json.Unmarshal(raw, &task); err != nil {
 		return nil, fmt.Errorf("failed to parse created task: %w", err)
 	}
 
-	return &model.SuccessResponse{
-		Success: true,
-		ID:      created.ID,
-		URL:     fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", req.WorkspaceID, created.ID),
-	}, nil
+	task.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/tasks/view/%s", req.WorkspaceID, task.ID)
+
+	return &task, nil
 }
 
 // UpdateTask 更新任务

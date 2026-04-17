@@ -67,8 +67,8 @@ func (c *Client) GetStory(workspaceID, id string) (*model.Story, error) {
 	return &story, nil
 }
 
-// CreateStory 创建需求
-func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.SuccessResponse, error) {
+// CreateStory 创建需求，返回创建后的完整 Story 对象
+func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.Story, error) {
 	data, err := c.doPost("/stories", req.ToParams())
 	if err != nil {
 		return nil, err
@@ -84,18 +84,14 @@ func (c *Client) CreateStory(req *model.CreateStoryRequest) (*model.SuccessRespo
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	var created struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(raw, &created); err != nil {
+	var story model.Story
+	if err := json.Unmarshal(raw, &story); err != nil {
 		return nil, fmt.Errorf("failed to parse created story: %w", err)
 	}
 
-	return &model.SuccessResponse{
-		Success: true,
-		ID:      created.ID,
-		URL:     fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", req.WorkspaceID, created.ID),
-	}, nil
+	story.URL = fmt.Sprintf("https://www.tapd.cn/%s/prong/stories/view/%s", req.WorkspaceID, story.ID)
+
+	return &story, nil
 }
 
 // UpdateStory 更新需求

@@ -134,13 +134,13 @@ func runIterationCreate(cmd *cobra.Command, args []string) error {
 		Description: flagDescription,
 		Status:      flagStatus,
 	}
-	result, err := apiClient.CreateIteration(req)
+	iteration, err := apiClient.CreateIteration(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(iteration.ID, "", iteration.WorkspaceID)
 }
 
 func runIterationUpdate(cmd *cobra.Command, args []string) error {
@@ -160,13 +160,13 @@ func runIterationUpdate(cmd *cobra.Command, args []string) error {
 		Description: flagDescription,
 		Status:      flagStatus,
 	}
-	result, err := apiClient.UpdateIteration(req)
+	iteration, err := apiClient.UpdateIteration(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(iteration.ID, "", iteration.WorkspaceID)
 }
 
 func runIterationCount(cmd *cobra.Command, args []string) error {

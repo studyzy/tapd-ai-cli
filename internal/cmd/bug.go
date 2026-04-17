@@ -167,13 +167,13 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 	}
-	result, err := apiClient.CreateBug(req)
+	bug, err := apiClient.CreateBug(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(bug.ID, bug.URL, "")
 }
 
 func runBugUpdate(cmd *cobra.Command, args []string) error {
@@ -193,13 +193,13 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 	}
-	result, err := apiClient.UpdateBug(req)
+	bug, err := apiClient.UpdateBug(req)
 	if err != nil {
 		output.PrintError(os.Stderr, "api_error", err.Error(), "")
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return output.PrintJSON(os.Stdout, result, !flagPretty)
+	return printSuccessResponse(bug.ID, fmt.Sprintf("https://www.tapd.cn/%s/bugtrace/bugs/view/%s", flagWorkspaceID, bug.ID), "")
 }
 
 func runBugCount(cmd *cobra.Command, args []string) error {

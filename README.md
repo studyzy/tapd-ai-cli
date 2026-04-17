@@ -135,6 +135,16 @@ tapd
 | `--workspace-id <id>` | 指定工作区 ID（覆盖本地配置） |
 | `--pretty` | 输出格式化 JSON（带缩进，便于人类阅读；默认输出紧凑 JSON 以节省 token） |
 
+## SDK
+
+TAPD Go SDK 已独立为单独的模块，可直接引入使用：
+
+```bash
+go get github.com/studyzy/tapd-sdk-go@latest
+```
+
+详见 [tapd-sdk-go](https://github.com/studyzy/tapd-sdk-go)。
+
 ## 开发
 
 ```bash

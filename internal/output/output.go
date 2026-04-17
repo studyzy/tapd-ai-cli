@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -26,6 +25,13 @@ const (
 	ExitAPIError = 4
 )
 
+// ErrorResponse 表示输出到 stderr 的错误信息
+type ErrorResponse struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+	Hint    string `json:"hint,omitempty"`
+}
+
 // PrintJSON 将数据以 JSON 格式写入 writer，支持紧凑和缩进两种模式
 func PrintJSON(w io.Writer, data interface{}, compact bool) error {
 	enc := json.NewEncoder(w)
@@ -38,7 +44,7 @@ func PrintJSON(w io.Writer, data interface{}, compact bool) error {
 
 // PrintError 将错误信息以 JSON 格式写入 writer（始终使用紧凑模式）
 func PrintError(w io.Writer, code string, message string, hint string) {
-	resp := model.ErrorResponse{
+	resp := ErrorResponse{
 		Error:   code,
 		Message: message,
 		Hint:    hint,

@@ -6,14 +6,20 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
+
+// Config 表示本地持久化的配置数据，存储于 .tapd.json
+type Config struct {
+	AccessToken string `json:"access_token,omitempty"`
+	APIUser     string `json:"api_user,omitempty"`
+	APIPassword string `json:"api_password,omitempty"`
+	WorkspaceID string `json:"workspace_id,omitempty"`
+}
 
 // LoadConfig 按优先级加载配置：环境变量 > ./.tapd.json > ~/.tapd.json
 // 同一来源中 access_token 优先于 api_user/api_password
-func LoadConfig() (*model.Config, error) {
-	cfg := &model.Config{}
+func LoadConfig() (*Config, error) {
+	cfg := &Config{}
 
 	// 尝试从 ~/.tapd.json 加载
 	homePath, err := GetConfigPath(false)
@@ -60,7 +66,7 @@ func LoadConfig() (*model.Config, error) {
 }
 
 // SaveConfig 将配置写入指定路径的 JSON 文件，自动创建父目录，文件权限 0600
-func SaveConfig(cfg *model.Config, filePath string) error {
+func SaveConfig(cfg *Config, filePath string) error {
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
@@ -87,7 +93,7 @@ func GetConfigPath(local bool) (string, error) {
 // SaveWorkspaceID 将 workspace_id 保存到当前目录的 .tapd.json，保留已有的其他字段
 func SaveWorkspaceID(workspaceID string) error {
 	path, _ := GetConfigPath(true)
-	cfg := &model.Config{}
+	cfg := &Config{}
 	if existing, err := readConfigFile(path); err != nil {
 		return err
 	} else if existing != nil {
@@ -99,7 +105,7 @@ func SaveWorkspaceID(workspaceID string) error {
 
 // readConfigFile 读取并解析指定路径的 .tapd.json 配置文件
 // 文件不存在时返回 (nil, nil)，解析失败时返回错误
-func readConfigFile(path string) (*model.Config, error) {
+func readConfigFile(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -107,7 +113,7 @@ func readConfigFile(path string) (*model.Config, error) {
 		}
 		return nil, err
 	}
-	cfg := &model.Config{}
+	cfg := &Config{}
 	if err := json.Unmarshal(data, cfg); err != nil {
 		return nil, err
 	}

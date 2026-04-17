@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/studyzy/tapd-ai-cli/internal/client"
 	"github.com/studyzy/tapd-ai-cli/internal/config"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	tapd "github.com/studyzy/tapd-sdk-go"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 var (
@@ -23,8 +23,8 @@ var (
 	flagAPIPassword string
 
 	// 全局共享的客户端和配置
-	apiClient *client.Client
-	appConfig *model.Config
+	apiClient *tapd.Client
+	appConfig *config.Config
 )
 
 // rootCmd 是 CLI 的根命令
@@ -104,7 +104,7 @@ func initClientAndConfig(cmd *cobra.Command) error {
 		os.Exit(output.ExitAuthError)
 	}
 
-	apiClient = client.NewClient(accessToken, apiUser, apiPassword)
+	apiClient = tapd.NewClient(accessToken, apiUser, apiPassword)
 	if accessToken != "" {
 		apiClient.FetchNick()
 	}
@@ -167,6 +167,9 @@ func printComments(workspaceID, entryType, entryID string) {
 		return
 	}
 	fmt.Fprintf(os.Stdout, "\n## 评论 (%d)\n\n", len(comments))
+	for i := range comments {
+		comments[i].Description = htmlToMarkdown(comments[i].Description)
+	}
 	for _, c := range comments {
 		fmt.Fprintf(os.Stdout, "**%s** (%s):\n%s\n\n", c.Author, c.Created, c.Description)
 	}

@@ -5,10 +5,10 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/studyzy/tapd-ai-cli/internal/client"
 	"github.com/studyzy/tapd-ai-cli/internal/config"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	tapd "github.com/studyzy/tapd-sdk-go"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 var flagLocal bool
@@ -49,7 +49,7 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	// 验证凭据有效性
-	c := client.NewClient(accessToken, apiUser, apiPassword)
+	c := tapd.NewClient(accessToken, apiUser, apiPassword)
 	if err := c.TestAuth(); err != nil {
 		output.PrintError(os.Stderr, "authentication_failed",
 			"Invalid credentials: "+err.Error(),
@@ -59,7 +59,7 @@ func runLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	// 构建配置
-	cfg := &model.Config{}
+	cfg := &config.Config{}
 	if accessToken != "" {
 		cfg.AccessToken = accessToken
 	} else {

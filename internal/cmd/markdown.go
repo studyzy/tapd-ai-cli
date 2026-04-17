@@ -1,9 +1,10 @@
-// Package cmd 中的 markdown.go 提供 Markdown 到 HTML 的转换辅助函数
+// Package cmd 中的 markdown.go 提供 Markdown 与 HTML 的双向转换辅助函数
 package cmd
 
 import (
 	"strings"
 
+	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
@@ -45,4 +46,17 @@ func containsBlockHTML(s string) bool {
 		}
 	}
 	return false
+}
+
+// htmlToMarkdown 将 HTML 文本转换为 Markdown。
+// 空字符串直接返回；转换失败时返回原始 HTML。
+func htmlToMarkdown(h string) string {
+	if h == "" {
+		return h
+	}
+	md, err := htmltomarkdown.ConvertString(h)
+	if err != nil {
+		return h
+	}
+	return md
 }

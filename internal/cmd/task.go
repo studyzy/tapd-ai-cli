@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 var flagStoryID string
@@ -130,6 +130,7 @@ func runTaskShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
+	task.Description = htmlToMarkdown(task.Description)
 	if err := printDetail(task, "description"); err != nil {
 		return err
 	}

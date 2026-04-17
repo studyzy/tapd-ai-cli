@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/studyzy/tapd-ai-cli/internal/config"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 // workspaceCmd 是 workspace 父命令

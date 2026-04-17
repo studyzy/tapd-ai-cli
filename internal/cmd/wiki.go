@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 var (
@@ -139,6 +139,7 @@ func runWikiShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
+	wiki.Description = htmlToMarkdown(wiki.Description)
 	if err := printDetail(wiki, "markdown_description"); err != nil {
 		return err
 	}

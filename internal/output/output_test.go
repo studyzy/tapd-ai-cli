@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 func TestPrintJSON_Compact(t *testing.T) {
@@ -71,7 +71,7 @@ func TestPrintError(t *testing.T) {
 	var buf bytes.Buffer
 	output.PrintError(&buf, "auth_error", "invalid token", "run tapd auth login")
 	got := buf.String()
-	var resp model.ErrorResponse
+	var resp output.ErrorResponse
 	if err := json.Unmarshal([]byte(got), &resp); err != nil {
 		t.Fatalf("invalid JSON: %v", err)
 	}

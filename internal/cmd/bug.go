@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 	"github.com/studyzy/tapd-ai-cli/internal/output"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 var (
@@ -137,6 +137,7 @@ func runBugShow(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
+	bug.Description = htmlToMarkdown(bug.Description)
 	if err := printDetail(bug, "description"); err != nil {
 		return err
 	}

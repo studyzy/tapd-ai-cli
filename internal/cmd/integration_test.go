@@ -11,8 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/studyzy/tapd-ai-cli/internal/client"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
+	"github.com/studyzy/tapd-ai-cli/internal/config"
+	tapd "github.com/studyzy/tapd-sdk-go"
+	"github.com/studyzy/tapd-sdk-go/model"
 )
 
 // skipIfNoCredentials 检查环境变量，若无凭据则跳过测试
@@ -36,12 +37,12 @@ func skipIfNoWorkspace(t *testing.T) {
 }
 
 // setupIntegrationClient 初始化真实 API 客户端
-func setupIntegrationClient(t *testing.T) *client.Client {
+func setupIntegrationClient(t *testing.T) *tapd.Client {
 	t.Helper()
 	token := os.Getenv("TAPD_ACCESS_TOKEN")
 	user := os.Getenv("TAPD_API_USER")
 	pass := os.Getenv("TAPD_API_PASSWORD")
-	return client.NewClient(token, user, pass)
+	return tapd.NewClient(token, user, pass)
 }
 
 // setupIntegrationCmd 初始化 cmd 包的全局变量用于集成测试
@@ -387,7 +388,7 @@ func TestIntegration_WorkspaceSwitch(t *testing.T) {
 		t.Fatalf("Failed to read .tapd.json: %v", err)
 	}
 
-	var cfg model.Config
+	var cfg config.Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		t.Fatalf("Failed to parse .tapd.json: %v", err)
 	}

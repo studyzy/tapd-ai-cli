@@ -7,11 +7,10 @@ import (
 	"testing"
 
 	"github.com/studyzy/tapd-ai-cli/internal/config"
-	"github.com/studyzy/tapd-ai-cli/internal/model"
 )
 
 // writeConfigFile 将 Config 写入指定路径的 JSON 文件
-func writeConfigFile(t *testing.T, path string, cfg *model.Config) {
+func writeConfigFile(t *testing.T, path string, cfg *config.Config) {
 	t.Helper()
 	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
@@ -98,7 +97,7 @@ func TestLoadConfig_FromLocalFile(t *testing.T) {
 	t.Setenv("TAPD_API_PASSWORD", "")
 	t.Setenv("TAPD_WORKSPACE_ID", "")
 
-	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &model.Config{
+	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
 		AccessToken: "file_token",
 		WorkspaceID: "ws123",
 	})
@@ -125,7 +124,7 @@ func TestLoadConfig_LocalFileOverHomeFile(t *testing.T) {
 	t.Setenv("HOME", tmp)
 
 	// 模拟 home 目录下的配置
-	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &model.Config{
+	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
 		AccessToken: "home_token",
 		WorkspaceID: "home_ws",
 	})
@@ -138,7 +137,7 @@ func TestLoadConfig_LocalFileOverHomeFile(t *testing.T) {
 	chdirTemp(t, localDir)
 
 	// 当前目录写入不同的配置
-	writeConfigFile(t, filepath.Join(localDir, ".tapd.json"), &model.Config{
+	writeConfigFile(t, filepath.Join(localDir, ".tapd.json"), &config.Config{
 		APIUser:     "local_user",
 		APIPassword: "local_pass",
 		WorkspaceID: "local_ws",
@@ -161,7 +160,7 @@ func TestSaveConfig(t *testing.T) {
 	tmp := t.TempDir()
 	path := filepath.Join(tmp, "subdir", ".tapd.json")
 
-	cfg := &model.Config{
+	cfg := &config.Config{
 		AccessToken: "save_token",
 		WorkspaceID: "ws456",
 	}
@@ -174,7 +173,7 @@ func TestSaveConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var loaded model.Config
+	var loaded config.Config
 	if err := json.Unmarshal(data, &loaded); err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +204,7 @@ func TestSaveWorkspaceID_NewFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var cfg model.Config
+	var cfg config.Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -219,7 +218,7 @@ func TestSaveWorkspaceID_PreservesExisting(t *testing.T) {
 	chdirTemp(t, tmp)
 
 	// 先写入已有凭据
-	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &model.Config{
+	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
 		AccessToken: "keep_me",
 		APIUser:     "keep_user",
 	})
@@ -233,7 +232,7 @@ func TestSaveWorkspaceID_PreservesExisting(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var cfg model.Config
+	var cfg config.Config
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		t.Fatal(err)
 	}

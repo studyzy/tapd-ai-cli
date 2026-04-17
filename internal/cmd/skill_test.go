@@ -97,8 +97,8 @@ func TestGenerateSkillContent(t *testing.T) {
 	}
 
 	// 应包含固定部分
-	if !strings.Contains(content, "# tapd-ai-cli") {
-		t.Error("generated content should contain title")
+	if !strings.Contains(content, "name: tapd") {
+		t.Error("generated content should contain skill name")
 	}
 	if !strings.Contains(content, "go install") {
 		t.Error("generated content should contain install instructions")

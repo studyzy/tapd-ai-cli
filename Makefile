@@ -9,7 +9,6 @@ build:
 
 test:
 	go test ./...
-	cd sdk && go test ./...
 
 test-integration:
 	go test ./... -v -run "TestIntegration" -count=1
@@ -25,8 +24,6 @@ fmt:
 coverage:
 	go test ./... -coverprofile=coverage.out
 	go tool cover -func=coverage.out
-	cd sdk && go test ./... -coverprofile=coverage.out
-	cd sdk && go tool cover -func=coverage.out
 
 install:
 	go install $(LDFLAGS) ./cmd/tapd/

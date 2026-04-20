@@ -68,8 +68,8 @@ func init() {
 	})
 
 	rootCmd.PersistentFlags().StringVar(&flagWorkspaceID, "workspace-id", "", "指定工作区 ID（覆盖本地配置）")
-	rootCmd.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "输出格式化 JSON（带缩进，方便人类阅读，隐含 --json）")
-	rootCmd.PersistentFlags().BoolVar(&flagJSON, "json", false, "以 JSON 格式输出（默认部分命令输出 Markdown）")
+	rootCmd.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "输出带缩进的 JSON，仅供人类阅读，AI Agent 不应使用（浪费 token）")
+	rootCmd.PersistentFlags().BoolVar(&flagJSON, "json", false, "强制 JSON 输出（列表默认已是 JSON，详情默认 Markdown 更省 token；仅在需要从详情提取字段时使用）")
 	rootCmd.PersistentFlags().StringVar(&flagAccessToken, "access-token", "", "TAPD Access Token")
 	rootCmd.PersistentFlags().StringVar(&flagAPIUser, "api-user", "", "TAPD API 用户名")
 	rootCmd.PersistentFlags().StringVar(&flagAPIPassword, "api-password", "", "TAPD API 密码")

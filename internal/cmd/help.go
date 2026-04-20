@@ -201,7 +201,7 @@ func isGlobalDisplayFlag(name string) bool {
 func printSpecOutput(w *os.File, root *cobra.Command, lines []specLine) {
 	// 标题行
 	fmt.Fprintf(w, "tapd - %s\n", root.Short)
-	fmt.Fprintln(w, "Global: [--workspace-id=<id>] [--json] [--pretty] [--no-comments]")
+	fmt.Fprintln(w, "Global: [--workspace-id=<id>] [--json（详情提取字段时用，默认勿加）] [--pretty（人类阅读用，AI勿加）] [--no-comments]")
 
 	// 按分组输出
 	lastGroup := ""

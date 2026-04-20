@@ -95,6 +95,9 @@ tapd story list
 # 创建需求
 tapd story create --name "新功能需求"
 
+# 更新需求并切换迭代
+tapd story update 10001 --iteration-id 12345
+
 # 查询缺陷列表
 tapd bug list
 

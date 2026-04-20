@@ -98,6 +98,7 @@ func init() {
 	storyUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（用 workflow status-map 查询可用值）")
 	storyUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
 	storyUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（High/Middle/Low/Nice To Have）")
+	storyUpdateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "新迭代 ID")
 
 	storyCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 
@@ -204,6 +205,7 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 		VStatus:       flagStatus,
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
+		IterationID:   flagIterationID,
 	}
 	story, err := apiClient.UpdateStory(context.Background(), req)
 	if err != nil {

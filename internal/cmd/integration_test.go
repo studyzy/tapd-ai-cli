@@ -777,10 +777,6 @@ func TestIntegration_RunTimesheetList(t *testing.T) {
 func TestIntegration_RunReleaseList(t *testing.T) {
 	skipIfNoWorkspace(t)
 	setupIntegrationCmd(t)
-	flagName = ""
-	flagReleaseStatus = ""
-	flagLimit = 3
-	flagPage = 1
 
 	err := runReleaseList(nil, nil)
 	if err != nil {

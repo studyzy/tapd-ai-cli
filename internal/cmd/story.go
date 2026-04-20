@@ -174,7 +174,7 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		Name:          flagName,
 		Description:   description,
 		Owner:         flagOwner,
-		Creator:       apiClient.GetNick(),
+		Creator:       ensureNick(),
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
 		ParentID:      flagParentID,
@@ -284,15 +284,5 @@ func readDescription() (string, error) {
 func addOptionalParam(params map[string]string, key, value string) {
 	if value != "" {
 		params[key] = value
-	}
-}
-
-// addPaginationParams 添加分页参数
-func addPaginationParams(params map[string]string, limit, page int) {
-	if limit > 0 {
-		params["limit"] = fmt.Sprintf("%d", limit)
-	}
-	if page > 0 {
-		params["page"] = fmt.Sprintf("%d", page)
 	}
 }

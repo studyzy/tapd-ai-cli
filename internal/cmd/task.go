@@ -158,7 +158,7 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		Name:          flagName,
 		Description:   description,
 		Owner:         flagOwner,
-		Creator:       apiClient.GetNick(),
+		Creator:       ensureNick(),
 		PriorityLabel: flagPriority,
 		StoryID:       flagStoryID,
 	}

@@ -164,7 +164,7 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		WorkspaceID:   flagWorkspaceID,
 		Title:         flagTitle,
 		Description:   description,
-		Reporter:      apiClient.GetNick(),
+		Reporter:      ensureNick(),
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 	}

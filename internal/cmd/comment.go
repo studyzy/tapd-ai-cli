@@ -141,7 +141,7 @@ func runCommentAdd(cmd *cobra.Command, args []string) error {
 	// author 优先使用命令行参数，否则使用当前登录用户昵称
 	author := flagCommentAuthor
 	if author == "" {
-		author = apiClient.GetNick()
+		author = ensureNick()
 	}
 	req := &model.AddCommentRequest{
 		WorkspaceID: flagWorkspaceID,
@@ -180,7 +180,7 @@ func runCommentUpdate(cmd *cobra.Command, args []string) error {
 		WorkspaceID:   flagWorkspaceID,
 		ID:            args[0],
 		Description:   description,
-		ChangeCreator: apiClient.GetNick(),
+		ChangeCreator: ensureNick(),
 	}
 	result, err := apiClient.UpdateComment(context.Background(), req)
 	if err != nil {

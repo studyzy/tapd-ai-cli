@@ -102,7 +102,7 @@ func runTimesheetAdd(cmd *cobra.Command, args []string) error {
 	// owner 优先使用命令行参数，否则使用当前登录用户昵称
 	owner := flagTimesheetOwner
 	if owner == "" {
-		owner = apiClient.GetNick()
+		owner = ensureNick()
 	}
 	req := &model.AddTimesheetRequest{
 		WorkspaceID: flagWorkspaceID,

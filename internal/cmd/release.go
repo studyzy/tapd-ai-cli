@@ -10,10 +10,6 @@ import (
 	"github.com/studyzy/tapd-sdk-go/model"
 )
 
-var (
-	flagReleaseStatus string
-)
-
 // releaseCmd 是 release 父命令
 var releaseCmd = &cobra.Command{
 	Use:   "release",
@@ -27,11 +23,6 @@ var releaseListCmd = &cobra.Command{
 }
 
 func init() {
-	releaseListCmd.Flags().StringVar(&flagName, "name", "", "按名称筛选")
-	releaseListCmd.Flags().StringVar(&flagReleaseStatus, "status", "", "按状态筛选（open/done）")
-	releaseListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
-	releaseListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
-
 	releaseCmd.AddCommand(releaseListCmd)
 	rootCmd.AddCommand(releaseCmd)
 }

@@ -303,8 +303,8 @@ func TestLoadConfig_FileAPIURL(t *testing.T) {
 
 	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
 		AccessToken: "token",
-		APIBaseURL:      "https://api.internal.com",
-		BaseURL:         "https://www.internal.com",
+		APIBaseURL:  "https://api.internal.com",
+		BaseURL:     "https://www.internal.com",
 	})
 
 	cfg, err := config.LoadConfig()
@@ -331,8 +331,8 @@ func TestLoadConfig_EnvURLOverridesFileURL(t *testing.T) {
 
 	writeConfigFile(t, filepath.Join(tmp, ".tapd.json"), &config.Config{
 		AccessToken: "file_token",
-		APIBaseURL:      "https://api.file.com",
-		BaseURL:         "https://www.file.com",
+		APIBaseURL:  "https://api.file.com",
+		BaseURL:     "https://www.file.com",
 	})
 
 	cfg, err := config.LoadConfig()

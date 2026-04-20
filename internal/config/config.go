@@ -84,7 +84,7 @@ func LoadConfig() (*Config, error) {
 // SaveConfig 将配置写入指定路径的 JSON 文件，自动创建父目录，文件权限 0600
 func SaveConfig(cfg *Config, filePath string) error {
 	dir := filepath.Dir(filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
 	data, err := json.MarshalIndent(cfg, "", "  ")

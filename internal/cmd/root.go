@@ -110,9 +110,6 @@ func initClientAndConfig(cmd *cobra.Command) error {
 	}
 
 	apiClient = tapd.NewClientWithBaseURL(cfg.APIBaseURL, cfg.BaseURL, accessToken, apiUser, apiPassword)
-	if accessToken != "" {
-		apiClient.FetchNick(context.Background())
-	}
 
 	// workspace-id 标志覆盖配置
 	if flagWorkspaceID == "" {
@@ -120,18 +117,34 @@ func initClientAndConfig(cmd *cobra.Command) error {
 	}
 
 	// 需要 workspace_id 的命令检查
-	// url 命令从 URL 中提取 workspace ID，无需全局配置
-	needsWorkspace := cmd.Name() != "list" || (cmd.Parent() != nil && cmd.Parent().Name() != "workspace")
-	if needsWorkspace && cmd.Name() != "url" && cmd.Parent() != nil && cmd.Parent().Name() != "auth" && cmd.Parent().Name() != "workspace" {
-		if flagWorkspaceID == "" {
-			output.PrintError(os.Stderr, "workspace_required",
-				"No workspace ID configured",
-				fmt.Sprintf("Run 'tapd workspace switch <id>' or use --workspace-id flag."))
-			os.Exit(output.ExitParamError)
-		}
+	// 以下命令不需要 workspace_id：
+	// - workspace list：列出所有工作区
+	// - auth 子命令：认证操作
+	// - url 命令：从 URL 中提取 workspace ID
+	skipWorkspace := map[string]bool{"auth": true, "workspace": true}
+	parentName := ""
+	if cmd.Parent() != nil {
+		parentName = cmd.Parent().Name()
+	}
+	needsWorkspace := !skipWorkspace[parentName] &&
+		cmd.Name() != "url" &&
+		!(cmd.Name() == "list" && parentName == "workspace")
+	if needsWorkspace && flagWorkspaceID == "" {
+		output.PrintError(os.Stderr, "workspace_required",
+			"No workspace ID configured",
+			"Run 'tapd workspace switch <id>' or use --workspace-id flag.")
+		os.Exit(output.ExitParamError)
 	}
 
 	return nil
+}
+
+// ensureNick 按需获取当前用户昵称，仅在首次调用时发起 HTTP 请求
+func ensureNick() string {
+	if apiClient.GetNick() == "" {
+		apiClient.FetchNick(context.Background())
+	}
+	return apiClient.GetNick()
 }
 
 // useJSONOutput 判断是否应使用 JSON 格式输出，--pretty 隐含 --json

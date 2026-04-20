@@ -34,8 +34,8 @@ func TestBuildCommandReferenceMarkdown(t *testing.T) {
 
 func TestGetGroupShort(t *testing.T) {
 	tests := []struct {
-		group    string
-		wantNon  bool // 期望返回非空
+		group   string
+		wantNon bool // 期望返回非空
 	}{
 		{group: "story", wantNon: true},
 		{group: "bug", wantNon: true},

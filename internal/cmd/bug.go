@@ -88,6 +88,7 @@ func init() {
 	bugUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（用 workflow status-map 查询可用值）")
 	bugUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（urgent/high/medium/low/insignificant）")
 	bugUpdateCmd.Flags().StringVar(&flagSeverity, "severity", "", "新严重程度（fatal/serious/normal/prompt/advice）")
+	bugUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人（current_owner）")
 
 	bugCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 
@@ -193,6 +194,7 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 		VStatus:       flagStatus,
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
+		CurrentOwner:  flagOwner,
 	}
 	bug, err := apiClient.UpdateBug(context.Background(), req)
 	if err != nil {

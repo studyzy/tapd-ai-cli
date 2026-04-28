@@ -50,6 +50,9 @@ var iterationCountCmd = &cobra.Command{
 
 func init() {
 	iterationListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/done）")
+	iterationListCmd.Flags().StringVar(&flagName, "name", "", "按标题模糊匹配")
+	iterationListCmd.Flags().StringVar(&flagCreator, "creator", "", "按创建人筛选")
+	iterationListCmd.Flags().StringVar(&flagOrder, "order", "", "排序规则（如 \"created desc\"）")
 	iterationListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	iterationListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 
@@ -59,6 +62,8 @@ func init() {
 	iterationCreateCmd.Flags().StringVar(&flagCreator, "creator", "", "创建人（必需）")
 	iterationCreateCmd.Flags().StringVar(&flagDescription, "description", "", "详细描述")
 	iterationCreateCmd.Flags().StringVar(&flagStatus, "status", "", "状态（open/done，默认 open）")
+	iterationCreateCmd.Flags().StringVar(&flagLabel, "label", "", "标签（多个以竖线分隔）")
+	iterationCreateCmd.Flags().StringVar(&flagParentID, "parent-id", "", "上层计划 ID")
 
 	iterationUpdateCmd.Flags().StringVar(&flagCurrentUser, "current-user", "", "变更人（必需）")
 	iterationUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
@@ -76,7 +81,10 @@ func init() {
 func runIterationList(cmd *cobra.Command, args []string) error {
 	req := &model.ListIterationsRequest{
 		WorkspaceID: flagWorkspaceID,
+		Name:        flagName,
 		Status:      flagStatus,
+		Creator:     flagCreator,
+		Order:       flagOrder,
 		Fields:      "id,name,status,startdate,enddate,modified",
 		Limit:       flagLimit,
 		Page:        flagPage,
@@ -133,6 +141,8 @@ func runIterationCreate(cmd *cobra.Command, args []string) error {
 		Creator:     flagCreator,
 		Description: flagDescription,
 		Status:      flagStatus,
+		Label:       flagLabel,
+		ParentID:    flagParentID,
 	}
 	iteration, err := apiClient.CreateIteration(context.Background(), req)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/studyzy/tapd-ai-cli/internal/config"
@@ -202,4 +203,21 @@ func printComments(workspaceID, entryType, entryID string) {
 	for _, c := range comments {
 		fmt.Fprintf(os.Stdout, "**%s** (%s):\n%s\n\n", c.Author, c.Created, c.Description)
 	}
+}
+
+// parseCustomFields 将 ["key1=value1","key2=value2"] 形式的切片解析为 map[string]string
+// 用于支持 --custom-field key=value 可重复 flag
+func parseCustomFields(fields []string) map[string]string {
+	if len(fields) == 0 {
+		return nil
+	}
+	m := make(map[string]string, len(fields))
+	for _, f := range fields {
+		k, v, ok := strings.Cut(f, "=")
+		if !ok || k == "" {
+			continue
+		}
+		m[k] = v
+	}
+	return m
 }

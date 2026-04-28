@@ -12,8 +12,10 @@ import (
 )
 
 var (
-	flagSeverity string
-	flagTitle    string
+	flagSeverity     string
+	flagTitle        string
+	flagReporter     string
+	flagCurrentOwner string
 )
 
 // bugCmd 是 bug 父命令
@@ -73,6 +75,12 @@ func init() {
 	bugListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
 	bugListCmd.Flags().StringVar(&flagPriority, "priority", "", "按优先级筛选（urgent/high/medium/low/insignificant）")
 	bugListCmd.Flags().StringVar(&flagSeverity, "severity", "", "按严重程度筛选（fatal/serious/normal/prompt/advice）")
+	bugListCmd.Flags().StringVar(&flagTitle, "title", "", "按标题模糊匹配")
+	bugListCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "按迭代 ID 筛选")
+	bugListCmd.Flags().StringVar(&flagModule, "module", "", "按模块筛选")
+	bugListCmd.Flags().StringVar(&flagLabel, "label", "", "按标签筛选")
+	bugListCmd.Flags().StringVar(&flagReporter, "reporter", "", "按创建人筛选")
+	bugListCmd.Flags().StringVar(&flagOrder, "order", "", "排序规则（如 \"created desc\"）")
 	bugListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	bugListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 
@@ -81,6 +89,14 @@ func init() {
 	bugCreateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	bugCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（urgent/high/medium/low/insignificant）")
 	bugCreateCmd.Flags().StringVar(&flagSeverity, "severity", "", "严重程度（fatal/serious/normal/prompt/advice）")
+	bugCreateCmd.Flags().StringVar(&flagCurrentOwner, "current-owner", "", "处理人")
+	bugCreateCmd.Flags().StringVar(&flagCC, "cc", "", "抄送人")
+	bugCreateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "关联迭代 ID")
+	bugCreateCmd.Flags().StringVar(&flagModule, "module", "", "模块")
+	bugCreateCmd.Flags().StringVar(&flagLabel, "label", "", "标签（多个以竖线分隔）")
+	bugCreateCmd.Flags().StringVar(&flagBegin, "begin", "", "预计开始日期（格式：2006-01-02）")
+	bugCreateCmd.Flags().StringVar(&flagDue, "due", "", "预计结束日期（格式：2006-01-02）")
+	bugCreateCmd.Flags().StringArrayVar(&flagCustomField, "custom-field", nil, "自定义字段（可重复，格式：key=value）")
 
 	bugUpdateCmd.Flags().StringVar(&flagTitle, "title", "", "新标题")
 	bugUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
@@ -89,6 +105,15 @@ func init() {
 	bugUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（urgent/high/medium/low/insignificant）")
 	bugUpdateCmd.Flags().StringVar(&flagSeverity, "severity", "", "新严重程度（fatal/serious/normal/prompt/advice）")
 	bugUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人（current_owner）")
+	bugUpdateCmd.Flags().StringVar(&flagCC, "cc", "", "新抄送人")
+	bugUpdateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "新迭代 ID")
+	bugUpdateCmd.Flags().StringVar(&flagModule, "module", "", "新模块")
+	bugUpdateCmd.Flags().StringVar(&flagLabel, "label", "", "新标签（多个以竖线分隔）")
+	bugUpdateCmd.Flags().StringVar(&flagBegin, "begin", "", "新预计开始日期（格式：2006-01-02）")
+	bugUpdateCmd.Flags().StringVar(&flagDue, "due", "", "新预计结束日期（格式：2006-01-02）")
+	bugUpdateCmd.Flags().StringVar(&flagCurrentUser, "current-user", "", "变更人")
+	bugUpdateCmd.Flags().StringVar(&flagResolution, "resolution", "", "解决方法")
+	bugUpdateCmd.Flags().StringArrayVar(&flagCustomField, "custom-field", nil, "自定义字段（可重复，格式：key=value）")
 
 	bugCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 
@@ -102,10 +127,16 @@ func init() {
 func runBugList(cmd *cobra.Command, args []string) error {
 	req := &model.ListBugsRequest{
 		WorkspaceID:   flagWorkspaceID,
+		Title:         flagTitle,
 		CurrentOwner:  flagOwner,
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 		Status:        flagStatus,
+		IterationID:   flagIterationID,
+		Module:        flagModule,
+		Label:         flagLabel,
+		Reporter:      flagReporter,
+		Order:         flagOrder,
 		Fields:        "id,title,status,current_owner,severity,modified",
 		Limit:         flagLimit,
 		Page:          flagPage,
@@ -168,6 +199,14 @@ func runBugCreate(cmd *cobra.Command, args []string) error {
 		Reporter:      ensureNick(),
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
+		CurrentOwner:  flagCurrentOwner,
+		CC:            flagCC,
+		IterationID:   flagIterationID,
+		Module:        flagModule,
+		Label:         flagLabel,
+		Begin:         flagBegin,
+		Due:           flagDue,
+		CustomFields:  parseCustomFields(flagCustomField),
 	}
 	bug, err := apiClient.CreateBug(context.Background(), req)
 	if err != nil {
@@ -195,6 +234,15 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 		PriorityLabel: flagPriority,
 		Severity:      flagSeverity,
 		CurrentOwner:  flagOwner,
+		CC:            flagCC,
+		IterationID:   flagIterationID,
+		Module:        flagModule,
+		Label:         flagLabel,
+		Begin:         flagBegin,
+		Due:           flagDue,
+		CurrentUser:   flagCurrentUser,
+		Resolution:    flagResolution,
+		CustomFields:  parseCustomFields(flagCustomField),
 	}
 	bug, err := apiClient.UpdateBug(context.Background(), req)
 	if err != nil {

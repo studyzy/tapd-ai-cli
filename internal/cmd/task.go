@@ -68,6 +68,12 @@ var taskTodoCmd = &cobra.Command{
 func init() {
 	taskListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/progressing/done）")
 	taskListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
+	taskListCmd.Flags().StringVar(&flagName, "name", "", "按标题模糊匹配")
+	taskListCmd.Flags().StringVar(&flagStoryID, "story-id", "", "按关联需求 ID 筛选")
+	taskListCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "按迭代 ID 筛选")
+	taskListCmd.Flags().StringVar(&flagPriority, "priority", "", "按优先级筛选")
+	taskListCmd.Flags().StringVar(&flagLabel, "label", "", "按标签筛选")
+	taskListCmd.Flags().StringVar(&flagOrder, "order", "", "排序规则（如 \"created desc\"）")
 	taskListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	taskListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 
@@ -77,12 +83,29 @@ func init() {
 	taskCreateCmd.Flags().StringVar(&flagOwner, "owner", "", "处理人")
 	taskCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（High/Middle/Low/Nice To Have）")
 	taskCreateCmd.Flags().StringVar(&flagStoryID, "story-id", "", "关联需求 ID")
+	taskCreateCmd.Flags().StringVar(&flagCC, "cc", "", "抄送人")
+	taskCreateCmd.Flags().StringVar(&flagBegin, "begin", "", "预计开始日期（格式：2006-01-02）")
+	taskCreateCmd.Flags().StringVar(&flagDue, "due", "", "预计结束日期（格式：2006-01-02）")
+	taskCreateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "关联迭代 ID")
+	taskCreateCmd.Flags().StringVar(&flagEffort, "effort", "", "预估工时")
+	taskCreateCmd.Flags().StringVar(&flagLabel, "label", "", "标签（多个以竖线分隔）")
+	taskCreateCmd.Flags().StringArrayVar(&flagCustomField, "custom-field", nil, "自定义字段（可重复，格式：key=value）")
 
 	taskUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
 	taskUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
 	taskUpdateCmd.Flags().StringVar(&flagDescFile, "file", "", "从本地文件读取描述内容")
 	taskUpdateCmd.Flags().StringVar(&flagStatus, "status", "", "新状态（open/progressing/done）")
 	taskUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
+	taskUpdateCmd.Flags().StringVar(&flagCC, "cc", "", "新抄送人")
+	taskUpdateCmd.Flags().StringVar(&flagBegin, "begin", "", "新预计开始日期（格式：2006-01-02）")
+	taskUpdateCmd.Flags().StringVar(&flagDue, "due", "", "新预计结束日期（格式：2006-01-02）")
+	taskUpdateCmd.Flags().StringVar(&flagStoryID, "story-id", "", "新关联需求 ID")
+	taskUpdateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "新迭代 ID")
+	taskUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（High/Middle/Low/Nice To Have）")
+	taskUpdateCmd.Flags().StringVar(&flagEffort, "effort", "", "新预估工时")
+	taskUpdateCmd.Flags().StringVar(&flagLabel, "label", "", "新标签（多个以竖线分隔）")
+	taskUpdateCmd.Flags().StringVar(&flagCurrentUser, "current-user", "", "操作人")
+	taskUpdateCmd.Flags().StringArrayVar(&flagCustomField, "custom-field", nil, "自定义字段（可重复，格式：key=value）")
 
 	taskCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（open/progressing/done）")
 
@@ -95,12 +118,18 @@ func init() {
 
 func runTaskList(cmd *cobra.Command, args []string) error {
 	req := &model.ListTasksRequest{
-		WorkspaceID: flagWorkspaceID,
-		Status:      flagStatus,
-		Owner:       flagOwner,
-		Fields:      "id,name,status,owner,modified",
-		Limit:       flagLimit,
-		Page:        flagPage,
+		WorkspaceID:   flagWorkspaceID,
+		Name:          flagName,
+		Status:        flagStatus,
+		Owner:         flagOwner,
+		StoryID:       flagStoryID,
+		IterationID:   flagIterationID,
+		PriorityLabel: flagPriority,
+		Label:         flagLabel,
+		Order:         flagOrder,
+		Fields:        "id,name,status,owner,modified",
+		Limit:         flagLimit,
+		Page:          flagPage,
 	}
 	tasks, err := apiClient.ListTasks(context.Background(), req)
 	if err != nil {
@@ -161,6 +190,13 @@ func runTaskCreate(cmd *cobra.Command, args []string) error {
 		Creator:       ensureNick(),
 		PriorityLabel: flagPriority,
 		StoryID:       flagStoryID,
+		CC:            flagCC,
+		Begin:         flagBegin,
+		Due:           flagDue,
+		IterationID:   flagIterationID,
+		Effort:        flagEffort,
+		Label:         flagLabel,
+		CustomFields:  parseCustomFields(flagCustomField),
 	}
 	task, err := apiClient.CreateTask(context.Background(), req)
 	if err != nil {
@@ -180,12 +216,22 @@ func runTaskUpdate(cmd *cobra.Command, args []string) error {
 	}
 
 	req := &model.UpdateTaskRequest{
-		WorkspaceID: flagWorkspaceID,
-		ID:          args[0],
-		Name:        flagName,
-		Description: description,
-		Status:      flagStatus,
-		Owner:       flagOwner,
+		WorkspaceID:   flagWorkspaceID,
+		ID:            args[0],
+		Name:          flagName,
+		Description:   description,
+		Status:        flagStatus,
+		Owner:         flagOwner,
+		CC:            flagCC,
+		Begin:         flagBegin,
+		Due:           flagDue,
+		StoryID:       flagStoryID,
+		IterationID:   flagIterationID,
+		PriorityLabel: flagPriority,
+		Effort:        flagEffort,
+		Label:         flagLabel,
+		CurrentUser:   flagCurrentUser,
+		CustomFields:  parseCustomFields(flagCustomField),
 	}
 	task, err := apiClient.UpdateTask(context.Background(), req)
 	if err != nil {

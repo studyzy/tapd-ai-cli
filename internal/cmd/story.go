@@ -23,6 +23,16 @@ var (
 	flagDescFile    string
 	flagPriority    string
 	flagParentID    string
+	flagLabel       string
+	flagCC          string
+	flagDeveloper   string
+	flagCategoryID  string
+	flagBegin       string
+	flagDue         string
+	flagModule      string
+	flagResolution  string
+	flagEffort      string
+	flagCustomField []string
 )
 
 // storyCmd 是 story 父命令
@@ -81,6 +91,11 @@ func init() {
 	storyListCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 	storyListCmd.Flags().StringVar(&flagOwner, "owner", "", "按处理人筛选")
 	storyListCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "按迭代 ID 筛选")
+	storyListCmd.Flags().StringVar(&flagName, "name", "", "按标题模糊匹配")
+	storyListCmd.Flags().StringVar(&flagPriority, "priority", "", "按优先级筛选")
+	storyListCmd.Flags().StringVar(&flagCategoryID, "category-id", "", "按需求分类 ID 筛选")
+	storyListCmd.Flags().StringVar(&flagLabel, "label", "", "按标签筛选")
+	storyListCmd.Flags().StringVar(&flagOrder, "order", "", "排序规则（如 \"created desc\"）")
 	storyListCmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	storyListCmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 
@@ -91,6 +106,13 @@ func init() {
 	storyCreateCmd.Flags().StringVar(&flagPriority, "priority", "", "优先级（High/Middle/Low/Nice To Have）")
 	storyCreateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "关联迭代 ID")
 	storyCreateCmd.Flags().StringVar(&flagParentID, "parent-id", "", "父需求 ID（创建子需求时使用）")
+	storyCreateCmd.Flags().StringVar(&flagDeveloper, "developer", "", "开发人员")
+	storyCreateCmd.Flags().StringVar(&flagCC, "cc", "", "抄送人")
+	storyCreateCmd.Flags().StringVar(&flagCategoryID, "category-id", "", "需求分类 ID")
+	storyCreateCmd.Flags().StringVar(&flagBegin, "begin", "", "预计开始日期（格式：2006-01-02）")
+	storyCreateCmd.Flags().StringVar(&flagDue, "due", "", "预计结束日期（格式：2006-01-02）")
+	storyCreateCmd.Flags().StringVar(&flagLabel, "label", "", "标签（多个以竖线分隔）")
+	storyCreateCmd.Flags().StringArrayVar(&flagCustomField, "custom-field", nil, "自定义字段（可重复，格式：key=value）")
 
 	storyUpdateCmd.Flags().StringVar(&flagName, "name", "", "新标题")
 	storyUpdateCmd.Flags().StringVar(&flagDescription, "description", "", "新描述")
@@ -99,6 +121,14 @@ func init() {
 	storyUpdateCmd.Flags().StringVar(&flagOwner, "owner", "", "新处理人")
 	storyUpdateCmd.Flags().StringVar(&flagPriority, "priority", "", "新优先级（High/Middle/Low/Nice To Have）")
 	storyUpdateCmd.Flags().StringVar(&flagIterationID, "iteration-id", "", "新迭代 ID")
+	storyUpdateCmd.Flags().StringVar(&flagDeveloper, "developer", "", "新开发人员")
+	storyUpdateCmd.Flags().StringVar(&flagCC, "cc", "", "新抄送人")
+	storyUpdateCmd.Flags().StringVar(&flagCurrentUser, "current-user", "", "变更人")
+	storyUpdateCmd.Flags().StringVar(&flagCategoryID, "category-id", "", "新需求分类 ID")
+	storyUpdateCmd.Flags().StringVar(&flagBegin, "begin", "", "新预计开始日期（格式：2006-01-02）")
+	storyUpdateCmd.Flags().StringVar(&flagDue, "due", "", "新预计结束日期（格式：2006-01-02）")
+	storyUpdateCmd.Flags().StringVar(&flagLabel, "label", "", "新标签（多个以竖线分隔）")
+	storyUpdateCmd.Flags().StringArrayVar(&flagCustomField, "custom-field", nil, "自定义字段（可重复，格式：key=value）")
 
 	storyCountCmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（用 workflow status-map 查询可用值）")
 
@@ -111,13 +141,18 @@ func init() {
 
 func runStoryList(cmd *cobra.Command, args []string) error {
 	req := &model.ListStoriesRequest{
-		WorkspaceID: flagWorkspaceID,
-		Status:      flagStatus,
-		Owner:       flagOwner,
-		IterationID: flagIterationID,
-		Fields:      "id,name,status,owner,modified",
-		Limit:       flagLimit,
-		Page:        flagPage,
+		WorkspaceID:   flagWorkspaceID,
+		Name:          flagName,
+		Status:        flagStatus,
+		Owner:         flagOwner,
+		IterationID:   flagIterationID,
+		PriorityLabel: flagPriority,
+		CategoryID:    flagCategoryID,
+		Label:         flagLabel,
+		Order:         flagOrder,
+		Fields:        "id,name,status,owner,modified",
+		Limit:         flagLimit,
+		Page:          flagPage,
 	}
 	stories, err := apiClient.ListStories(context.Background(), req)
 	if err != nil {
@@ -179,6 +214,13 @@ func runStoryCreate(cmd *cobra.Command, args []string) error {
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
 		ParentID:      flagParentID,
+		Developer:     flagDeveloper,
+		CC:            flagCC,
+		CategoryID:    flagCategoryID,
+		Begin:         flagBegin,
+		Due:           flagDue,
+		Label:         flagLabel,
+		CustomFields:  parseCustomFields(flagCustomField),
 	}
 	story, err := apiClient.CreateStory(context.Background(), req)
 	if err != nil {
@@ -206,6 +248,14 @@ func runStoryUpdate(cmd *cobra.Command, args []string) error {
 		Owner:         flagOwner,
 		PriorityLabel: flagPriority,
 		IterationID:   flagIterationID,
+		Developer:     flagDeveloper,
+		CC:            flagCC,
+		CurrentUser:   flagCurrentUser,
+		CategoryID:    flagCategoryID,
+		Begin:         flagBegin,
+		Due:           flagDue,
+		Label:         flagLabel,
+		CustomFields:  parseCustomFields(flagCustomField),
 	}
 	story, err := apiClient.UpdateStory(context.Background(), req)
 	if err != nil {

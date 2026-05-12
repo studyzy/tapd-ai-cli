@@ -79,7 +79,7 @@ var launchFieldsCmd = &cobra.Command{
 
 func init() {
 	bindLaunchListFlags(launchListCmd)
-	bindLaunchListFlags(launchCountCmd)
+	bindLaunchCountFlags(launchCountCmd)
 	bindLaunchCreateFlags(launchCreateCmd)
 	bindLaunchUpdateFlags(launchUpdateCmd)
 
@@ -87,15 +87,23 @@ func init() {
 	rootCmd.AddCommand(launchCmd)
 }
 
-func bindLaunchListFlags(cmd *cobra.Command) {
+func bindLaunchFilterFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&flagLaunchID, "id", "", "按发布评审 ID 筛选")
 	cmd.Flags().StringVar(&flagCreator, "creator", "", "按创建人筛选")
 	cmd.Flags().StringVar(&flagStatus, "status", "", "按状态筛选（initial/auditing/signing/sign_completed/finished；初始化/评审中/待签发/签发结束/发布结束）")
 	cmd.Flags().StringVar(&flagLaunchTitle, "title", "", "按标题筛选")
 	cmd.Flags().StringVar(&flagLaunchReleaseType, "release-type", "", "按发布类型筛选")
+}
+
+func bindLaunchListFlags(cmd *cobra.Command) {
+	bindLaunchFilterFlags(cmd)
 	cmd.Flags().IntVar(&flagLimit, "limit", 10, "返回数量限制")
 	cmd.Flags().IntVar(&flagPage, "page", 1, "页码")
 	cmd.Flags().StringVar(&flagLaunchFields, "fields", "", "返回字段列表（逗号分隔）")
+}
+
+func bindLaunchCountFlags(cmd *cobra.Command) {
+	bindLaunchFilterFlags(cmd)
 }
 
 func bindLaunchCreateFlags(cmd *cobra.Command) {

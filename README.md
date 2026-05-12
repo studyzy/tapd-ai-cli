@@ -107,6 +107,9 @@ tapd task list
 # 查看迭代列表
 tapd iteration list
 
+# 查询发布评审列表
+tapd launch list
+
 # 通过 URL 查询任意条目（需求/缺陷/任务/Wiki）
 tapd url https://www.tapd.cn/tapd_fe/51081496/story/detail/1151081496001028684
 
@@ -131,6 +134,7 @@ tapd
 ├── comment   list | add | update | count
 ├── tcase     list | create | batch-create
 ├── timesheet list | add | update
+├── launch    list | count | create | update <id> | templates | fields
 ├── workflow  transitions | status-map | last-steps
 ├── relation  bugs | create
 ├── skill     init

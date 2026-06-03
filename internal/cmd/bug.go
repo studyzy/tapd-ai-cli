@@ -255,7 +255,21 @@ func runBugUpdate(cmd *cobra.Command, args []string) error {
 		os.Exit(output.ExitAPIError)
 		return nil
 	}
-	return printSuccessResponse(bug.ID, fmt.Sprintf("%s/%s/bugtrace/bugs/view/%s", apiClient.WebURL(), flagWorkspaceID, bug.ID), "")
+
+	// 把服务端返回的"更新后实际状态/处理人"一并吐进成功输出：
+	// TAPD 的 update 接口会回传更新后的工单对象，bug.Status / bug.CurrentOwner
+	// 即服务端实际生效的值。调用方据此即可确认状态已落地，无需再 `bug show` 验一次（省 TAPD API）。
+	// 若请求了 status 但返回值不符（workflow 拒绝该流转 / 缺 resolution 等），打 warning 提醒。
+	if flagStatus != "" && bug.Status != "" && bug.Status != flagStatus {
+		fmt.Fprintf(os.Stderr, "WARNING: 请求 status=%s，但服务端返回 status=%s（流转可能未生效，检查 workflow / resolution 等必填项）\n", flagStatus, bug.Status)
+	}
+	return output.PrintJSON(os.Stdout, map[string]interface{}{
+		"success":        true,
+		"id":             bug.ID,
+		"url":            fmt.Sprintf("%s/%s/bugtrace/bugs/view/%s", apiClient.WebURL(), flagWorkspaceID, bug.ID),
+		"current_status": bug.Status,
+		"current_owner":  bug.CurrentOwner,
+	}, !flagPretty)
 }
 
 func runBugCount(cmd *cobra.Command, args []string) error {

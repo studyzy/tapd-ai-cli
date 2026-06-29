@@ -72,6 +72,28 @@ func TestParseTAPDURL(t *testing.T) {
 			wantEntityType:  "wiki",
 			wantEntityID:    "1151081496001001503",
 		},
+		// 看板视图格式（prong/{type-plural}/view/{id}）
+		{
+			name:            "story 看板视图 prong/stories/view",
+			rawURL:          "https://www.tapd.cn/51081496/prong/stories/view/1151081496001028684",
+			wantWorkspaceID: "51081496",
+			wantEntityType:  "story",
+			wantEntityID:    "1151081496001028684",
+		},
+		{
+			name:            "bug 看板视图 prong/bugs/view",
+			rawURL:          "https://www.tapd.cn/51081496/prong/bugs/view/1151081496001016136",
+			wantWorkspaceID: "51081496",
+			wantEntityType:  "bug",
+			wantEntityID:    "1151081496001016136",
+		},
+		{
+			name:            "task 看板视图 prong/tasks/view",
+			rawURL:          "https://www.tapd.cn/51081496/prong/tasks/view/1151081496001028786",
+			wantWorkspaceID: "51081496",
+			wantEntityType:  "task",
+			wantEntityID:    "1151081496001028786",
+		},
 		// 错误场景：非 TAPD URL
 		{
 			name:    "非 TAPD URL",

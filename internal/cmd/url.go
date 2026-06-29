@@ -25,6 +25,7 @@ var urlCmd = &cobra.Command{
   缺陷列表页:  https://www.tapd.cn/tapd_fe/{workspace_id}/bug/list?...&dialog_preview_id=bug_{id}
   任务详情页:  https://www.tapd.cn/tapd_fe/{workspace_id}/task/detail/{id}
   任务看板页:  https://www.tapd.cn/{workspace_id}/prong/tasks?...&dialog_preview_id=task_{id}
+  看板视图页:  https://www.tapd.cn/{workspace_id}/prong/stories/view/{id}（支持 stories/bugs/tasks）
   Wiki 文档:   https://www.tapd.cn/{workspace_id}/markdown_wikis/show/#{id}`,
 	Args: cobra.ExactArgs(1),
 	RunE: runURLQuery,
@@ -146,20 +147,23 @@ func parsePreviewID(previewID string) (entityType, entityID string, err error) {
 	return "", "", fmt.Errorf("unsupported entity type in dialog_preview_id: %q, supported types: story, bug, task, wiki", previewID)
 }
 
-// parseDetailPath 从详情页路径中解析条目类型和 ID
-// 路径格式：/tapd_fe/{ws}/{type}/detail/{id} 或 /{ws}/{type}/detail/{id}
+// parseDetailPath 从详情页/看板视图路径中解析条目类型和 ID
+// 支持两种关键段：
+//  1. detail：/tapd_fe/{ws}/{type}/detail/{id} 或 /{ws}/{type}/detail/{id}
+//  2. view：  /{ws}/prong/{type-plural}/view/{id}（类型为复数形式）
 func parseDetailPath(segments []string) (entityType, entityID string, err error) {
-	// 查找 "detail" 段的位置
+	// 查找 "detail" 或 "view" 段的位置
 	for i, s := range segments {
-		if s == "detail" && i > 0 && i+1 < len(segments) {
+		if (s == "detail" || s == "view") && i > 0 && i+1 < len(segments) {
 			typeSegment := segments[i-1]
 			id := segments[i+1]
+			// 归一化类型名，同时兼容单数（detail 路径）与复数（view 路径）
 			switch typeSegment {
-			case "story":
+			case "story", "stories":
 				return "story", id, nil
-			case "bug":
+			case "bug", "bugs":
 				return "bug", id, nil
-			case "task":
+			case "task", "tasks":
 				return "task", id, nil
 			default:
 				return "", "", fmt.Errorf("unsupported entity type: %q, supported types: story, bug, task, wiki", typeSegment)

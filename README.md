@@ -11,20 +11,25 @@
 **Linux / macOS**
 
 ```bash
-# 自动检测系统，下载并安装到 /usr/local/bin
-curl -sSL "https://github.com/studyzy/tapd-ai-cli/releases/latest/download/tapd_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/x86_64/;s/aarch64/arm64/').tar.gz" | sudo tar xz -C /usr/local/bin tapd
+# 自动检测系统与架构，下载并安装到 /usr/local/bin
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+VER=$(curl -s https://api.github.com/repos/studyzy/tapd-ai-cli/releases/latest | grep tag_name | cut -d '"' -f 4)
+curl -sSLo /tmp/tapd.tar.gz "https://github.com/studyzy/tapd-ai-cli/releases/download/${VER}/tapd_${VER}_${OS}_${ARCH}.tar.gz"
+sudo tar xzf /tmp/tapd.tar.gz -C /usr/local/bin tapd && rm /tmp/tapd.tar.gz
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
 # 下载 zip 并解压到当前目录
-$os = "windows"; $arch = if ([Environment]::Is64BitOperatingSystem) { "x86_64" } else { "i386" }
-Invoke-WebRequest -Uri "https://github.com/studyzy/tapd-ai-cli/releases/latest/download/tapd_latest_${os}_${arch}.zip" -OutFile tapd.zip
+$ver = (Invoke-RestMethod https://api.github.com/repos/studyzy/tapd-ai-cli/releases/latest).tag_name
+$arch = if ([Environment]::Is64BitOperatingSystem) { "amd64" } else { "386" }
+Invoke-WebRequest -Uri "https://github.com/studyzy/tapd-ai-cli/releases/download/$ver/tapd_${ver}_windows_${arch}.zip" -OutFile tapd.zip
 Expand-Archive tapd.zip -DestinationPath . ; Remove-Item tapd.zip
 ```
 
-预编译包支持 **Linux / macOS / Windows**，**x86_64 / arm64** 架构。
+预编译包支持 **Linux / macOS / Windows**，**amd64 / arm64** 架构。
 
 ### 方式二：go install
 

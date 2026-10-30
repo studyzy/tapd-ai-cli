@@ -4,6 +4,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -49,6 +50,10 @@ var rootCmd = &cobra.Command{
 		if v, _ := cmd.Flags().GetBool("version"); v {
 			return nil
 		}
+		// 兜底的父命令（如 tapd bug）只输出 help 或报未知子命令，不需要认证
+		if _, ok := cmd.Annotations[annotationGuardedParent]; ok {
+			return nil
+		}
 		return initClientAndConfig(cmd)
 	},
 	SilenceUsage:  true,
@@ -57,8 +62,48 @@ var rootCmd = &cobra.Command{
 
 // Execute 执行根命令
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	guardUnknownSubcommands(rootCmd)
+	if cmd, err := rootCmd.ExecuteC(); err != nil {
+		printCommandError(os.Stderr, cmd, err)
 		os.Exit(1)
+	}
+}
+
+// printCommandError 输出未被子命令自行处理的错误。
+// rootCmd 开启了 SilenceErrors，cobra 层错误（未知参数/子命令、位置参数个数不对等）
+// 和 RunE 直接返回的错误都不会被打印；不在这里输出的话，调用方只能看到退出码 1、零输出。
+func printCommandError(w io.Writer, cmd *cobra.Command, err error) {
+	path := "tapd <command>"
+	if cmd != nil {
+		path = cmd.CommandPath()
+	}
+	output.PrintError(w, "command_error", err.Error(), fmt.Sprintf("Run '%s --help' for usage", path))
+}
+
+// annotationGuardedParent 标记由 guardUnknownSubcommands 补了兜底 RunE 的父命令
+const annotationGuardedParent = "tapd/guarded-parent"
+
+// guardUnknownSubcommands 给没有 Run 的父命令补兜底 RunE。
+// cobra 只在根命令上校验子命令名：`tapd bug comment add` 这类写错的子命令
+// 会打印 bug 的 help 后以退出码 0 返回，调用方误以为执行成功。
+func guardUnknownSubcommands(parent *cobra.Command) {
+	for _, c := range parent.Commands() {
+		if !c.HasSubCommands() {
+			continue
+		}
+		if !c.Runnable() {
+			if c.Annotations == nil {
+				c.Annotations = map[string]string{}
+			}
+			c.Annotations[annotationGuardedParent] = ""
+			c.RunE = func(cmd *cobra.Command, args []string) error {
+				if len(args) > 0 {
+					return fmt.Errorf("unknown command %q for %q", args[0], cmd.CommandPath())
+				}
+				return cmd.Help()
+			}
+		}
+		guardUnknownSubcommands(c)
 	}
 }
 
